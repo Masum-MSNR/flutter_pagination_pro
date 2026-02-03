@@ -35,40 +35,10 @@ class _MyAppState extends State<MyApp> {
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: _themeMode,
-      builder: (context, child) {
-        // Add theme toggle button to all screens
-        return Stack(
-          children: [
-            child!,
-            Positioned(
-              top: MediaQuery.of(context).padding.top + 8,
-              right: 8,
-              child: SafeArea(
-                child: Material(
-                  color: Colors.transparent,
-                  child: IconButton(
-                    icon: Icon(
-                      _themeMode == ThemeMode.light
-                          ? Icons.light_mode
-                          : _themeMode == ThemeMode.dark
-                              ? Icons.dark_mode
-                              : Icons.brightness_auto,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    tooltip: _themeMode == ThemeMode.light
-                        ? 'Switch to Dark Mode'
-                        : _themeMode == ThemeMode.dark
-                            ? 'Switch to System Mode'
-                            : 'Switch to Light Mode',
-                    onPressed: _toggleTheme,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-      home: const HomeScreen(),
+      home: HomeScreen(
+        themeMode: _themeMode,
+        onToggleTheme: _toggleTheme,
+      ),
     );
   }
 }

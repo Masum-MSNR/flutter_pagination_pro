@@ -10,7 +10,14 @@ import 'state_simulator_screen.dart';
 
 /// Home screen with navigation to all demo screens
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({
+    super.key,
+    this.themeMode = ThemeMode.system,
+    this.onToggleTheme,
+  });
+
+  final ThemeMode themeMode;
+  final VoidCallback? onToggleTheme;
 
   @override
   Widget build(BuildContext context) {
@@ -24,6 +31,25 @@ class HomeScreen extends StatelessWidget {
           SliverAppBar.large(
             expandedHeight: 200,
             pinned: true,
+            actions: [
+              if (onToggleTheme != null)
+                IconButton(
+                  icon: Icon(
+                    themeMode == ThemeMode.light
+                        ? Icons.light_mode
+                        : themeMode == ThemeMode.dark
+                            ? Icons.dark_mode
+                            : Icons.brightness_auto,
+                  ),
+                  tooltip: themeMode == ThemeMode.light
+                      ? 'Switch to Dark Mode'
+                      : themeMode == ThemeMode.dark
+                          ? 'Switch to System Mode'
+                          : 'Switch to Light Mode',
+                  onPressed: onToggleTheme,
+                ),
+              const SizedBox(width: 8),
+            ],
             flexibleSpace: FlexibleSpaceBar(
               title: const Text('Flutter Pagination Pro'),
               titlePadding: const EdgeInsets.only(left: 16, bottom: 16),
