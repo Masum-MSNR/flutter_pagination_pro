@@ -423,24 +423,22 @@ class _PaginationListViewState<T> extends State<PaginationListView<T>> {
   }
 
   Widget _buildSeparatedItem(BuildContext context, int index, PaginationState<T> state) {
-    final itemIndex = index ~/ 2;
     final itemCount = state.items.length;
+    final lastItemIndex = itemCount * 2 - 1; // Last item position in separated list
 
-    // Check if it's a separator
-    if (index.isOdd) {
-      if (itemIndex < itemCount - 1) {
-        return widget.separatorBuilder!(context, itemIndex);
-      }
-      // Separator before footer - don't show
-      return const SizedBox.shrink();
-    }
-
-    // Footer item
-    if (itemIndex >= itemCount) {
+    // Footer item - comes after all items and separators
+    if (index > lastItemIndex) {
       return _buildFooter(state);
     }
 
-    // Regular item
+    // Check if it's a separator (odd indices are separators)
+    if (index.isOdd) {
+      final separatorIndex = index ~/ 2;
+      return widget.separatorBuilder!(context, separatorIndex);
+    }
+
+    // Regular item (even indices)
+    final itemIndex = index ~/ 2;
     return widget.itemBuilder(context, state.items[itemIndex], itemIndex);
   }
 
