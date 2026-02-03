@@ -424,10 +424,14 @@ class _PaginationListViewState<T> extends State<PaginationListView<T>> {
 
   Widget _buildSeparatedItem(BuildContext context, int index, PaginationState<T> state) {
     final itemCount = state.items.length;
-    final lastItemIndex = itemCount * 2 - 1; // Last item position in separated list
+    
+    // With separators: items at even indices (0, 2, 4, ...), separators at odd indices (1, 3, 5, ...)
+    // Total items + separators = itemCount * 2 - 1 (e.g., 15 items = 29 positions: 0-28)
+    // Footer comes at index itemCount * 2 - 1 if there are items, else at 0
+    final footerIndex = itemCount == 0 ? 0 : itemCount * 2 - 1;
 
     // Footer item - comes after all items and separators
-    if (index > lastItemIndex) {
+    if (_shouldShowFooter(state) && index >= footerIndex) {
       return _buildFooter(state);
     }
 
