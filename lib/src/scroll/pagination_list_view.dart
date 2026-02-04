@@ -399,10 +399,6 @@ class _PaginationListViewState<T> extends State<PaginationListView<T>> {
     return count;
   }
 
-  int _extraItemCount(PaginationState<T> state) {
-    return _shouldShowFooter(state) ? 1 : 0;
-  }
-
   bool _shouldShowFooter(PaginationState<T> state) {
     return state.status == PaginationStatus.loadingMore ||
         state.status == PaginationStatus.loadMoreError ||

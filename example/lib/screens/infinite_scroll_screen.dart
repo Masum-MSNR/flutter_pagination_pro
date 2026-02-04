@@ -73,7 +73,6 @@ class _InfiniteScrollScreenState extends State<InfiniteScrollScreen> {
       ),
       body: Column(
         children: [
-          // Info banner
           Container(
             width: double.infinity,
             margin: const EdgeInsets.all(16),
@@ -110,7 +109,6 @@ class _InfiniteScrollScreenState extends State<InfiniteScrollScreen> {
               ],
             ),
           ),
-          // List
           Expanded(
             child: PaginationListView<MockItem>.withController(
               controller: _controller,

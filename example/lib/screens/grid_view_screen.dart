@@ -74,7 +74,6 @@ class _GridViewScreenState extends State<GridViewScreen> {
       ),
       body: Column(
         children: [
-          // Controls
           Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
@@ -104,7 +103,6 @@ class _GridViewScreenState extends State<GridViewScreen> {
               ],
             ),
           ),
-          // Info banner
           Container(
             width: double.infinity,
             margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -139,7 +137,6 @@ class _GridViewScreenState extends State<GridViewScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          // Grid
           Expanded(
             child: PaginationGridView<MockItem>.withController(
               controller: _controller,

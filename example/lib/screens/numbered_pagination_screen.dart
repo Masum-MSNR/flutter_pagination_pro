@@ -18,7 +18,6 @@ class _NumberedPaginationScreenState extends State<NumberedPaginationScreen> {
   bool _showFirstLast = true;
   int _visiblePages = 5;
 
-  // Simulated page content
   List<String> get _pageContent => List.generate(
         8,
         (i) => 'Item ${(_currentPage - 1) * 8 + i + 1}',
@@ -35,7 +34,6 @@ class _NumberedPaginationScreenState extends State<NumberedPaginationScreen> {
       ),
       body: Column(
         children: [
-          // Settings card
           Card(
             margin: const EdgeInsets.all(16),
             child: Padding(
@@ -51,7 +49,6 @@ class _NumberedPaginationScreenState extends State<NumberedPaginationScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  // Total pages slider
                   Row(
                     children: [
                       SizedBox(
@@ -89,7 +86,7 @@ class _NumberedPaginationScreenState extends State<NumberedPaginationScreen> {
                       ),
                     ],
                   ),
-                  // Visible pages slider
+
                   Row(
                     children: [
                       SizedBox(
@@ -124,7 +121,7 @@ class _NumberedPaginationScreenState extends State<NumberedPaginationScreen> {
                       ),
                     ],
                   ),
-                  // First/Last toggle
+
                   Row(
                     children: [
                       Text(
@@ -146,7 +143,6 @@ class _NumberedPaginationScreenState extends State<NumberedPaginationScreen> {
               ),
             ),
           ),
-          // Pagination widget
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 16),
             padding: const EdgeInsets.all(16),
@@ -188,7 +184,6 @@ class _NumberedPaginationScreenState extends State<NumberedPaginationScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          // Page content simulation
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.symmetric(horizontal: 16),

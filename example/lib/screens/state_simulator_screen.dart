@@ -78,7 +78,6 @@ class _StateSimulatorScreenState extends State<StateSimulatorScreen> {
       ),
       body: Column(
         children: [
-          // Scenario selector
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -103,7 +102,6 @@ class _StateSimulatorScreenState extends State<StateSimulatorScreen> {
               }).toList(),
             ),
           ),
-          // Load mode toggle
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: SegmentedButton<PaginationType>(
@@ -128,7 +126,7 @@ class _StateSimulatorScreenState extends State<StateSimulatorScreen> {
               },
             ),
           ),
-          // Scenario description
+
           Container(
             width: double.infinity,
             margin: const EdgeInsets.all(16),
@@ -177,7 +175,6 @@ class _StateSimulatorScreenState extends State<StateSimulatorScreen> {
               ],
             ),
           ),
-          // Content area
           Expanded(
             child: PaginationListView<MockItem>.withController(
               key: _listKey,
@@ -208,7 +205,6 @@ class _StateSimulatorScreenState extends State<StateSimulatorScreen> {
                   ),
                 ),
               ),
-              // Custom widget builders for different states
               firstPageLoadingBuilder: (context) => Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,

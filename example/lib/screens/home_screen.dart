@@ -27,7 +27,6 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          // App bar
           SliverAppBar.large(
             expandedHeight: 200,
             pinned: true,
@@ -67,7 +66,6 @@ class HomeScreen extends StatelessWidget {
                 ),
                 child: Stack(
                   children: [
-                    // Decorative elements
                     Positioned(
                       top: -50,
                       right: -50,
@@ -107,13 +105,11 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
           ),
-          // Content
           SliverToBoxAdapter(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 8),
-                // Package info
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 16),
                   padding: const EdgeInsets.all(16),
@@ -165,7 +161,6 @@ class HomeScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-                // Scroll-based section
                 const SectionHeader(
                   title: 'SCROLL-BASED PAGINATION',
                   subtitle: 'ListView and GridView with automatic or manual loading',
@@ -200,7 +195,6 @@ class HomeScreen extends StatelessWidget {
                   ],
                   onTap: () => _navigate(context, const GridViewScreen()),
                 ),
-                // Numbered pagination section
                 const SectionHeader(
                   title: 'NUMBERED PAGINATION',
                   subtitle: 'Traditional page navigation with page numbers',
@@ -216,7 +210,6 @@ class HomeScreen extends StatelessWidget {
                   onTap: () =>
                       _navigate(context, const NumberedPaginationScreen()),
                 ),
-                // Testing section
                 const SectionHeader(
                   title: 'TESTING & STATES',
                   subtitle: 'Test all pagination states and edge cases',

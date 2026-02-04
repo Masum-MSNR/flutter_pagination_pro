@@ -6,7 +6,6 @@ import '../data/mock_service.dart';
 import '../widgets/item_tile.dart';
 import '../theme/app_theme.dart';
 
-/// Demonstrates load more button pagination (manual trigger)
 class LoadMoreScreen extends StatefulWidget {
   const LoadMoreScreen({super.key});
 
@@ -17,15 +16,12 @@ class LoadMoreScreen extends StatefulWidget {
 class _LoadMoreScreenState extends State<LoadMoreScreen> {
   late final PaginationController<MockItem> _controller;
   late MockDataService _service;
-  bool _useSeparator = true;
 
   @override
   void initState() {
     super.initState();
     _service = MockServicePresets.success();
-    _controller = PaginationController<MockItem>(
-      fetchPage: _fetchPage,
-    );
+    _controller = PaginationController<MockItem>(fetchPage: _fetchPage);
   }
 
   Future<List<MockItem>> _fetchPage(int page) {
@@ -34,12 +30,6 @@ class _LoadMoreScreenState extends State<LoadMoreScreen> {
 
   void _refresh() {
     _controller.refresh();
-  }
-
-  void _toggleSeparator() {
-    setState(() {
-      _useSeparator = !_useSeparator;
-    });
   }
 
   @override
@@ -57,14 +47,6 @@ class _LoadMoreScreenState extends State<LoadMoreScreen> {
         title: const Text('Load More Button'),
         actions: [
           IconButton(
-            icon: Icon(
-              _useSeparator ? Icons.view_list : Icons.view_agenda,
-              color: colorScheme.primary,
-            ),
-            tooltip: _useSeparator ? 'Without separator' : 'With separator',
-            onPressed: _toggleSeparator,
-          ),
-          IconButton(
             icon: Icon(Icons.refresh, color: colorScheme.primary),
             tooltip: 'Refresh',
             onPressed: _refresh,
@@ -73,7 +55,6 @@ class _LoadMoreScreenState extends State<LoadMoreScreen> {
       ),
       body: Column(
         children: [
-          // Info banner
           Container(
             width: double.infinity,
             margin: const EdgeInsets.all(16),
@@ -110,20 +91,17 @@ class _LoadMoreScreenState extends State<LoadMoreScreen> {
               ],
             ),
           ),
-          // List
           Expanded(
             child: PaginationListView<MockItem>.withController(
               controller: _controller,
               paginationType: PaginationType.loadMore,
               itemBuilder: (context, item, index) => ItemTile(item: item),
-              separatorBuilder: _useSeparator
-                  ? (context, index) => Divider(
-                        indent: 84,
-                        endIndent: 16,
-                        height: 1,
-                        color: colorScheme.outlineVariant.withValues(alpha: 0.5),
-                      )
-                  : null,
+              separatorBuilder: (context, index) => Divider(
+                indent: 84,
+                endIndent: 16,
+                height: 1,
+                color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+              ),
               loadMoreButtonBuilder: (context, onLoadMore, isLoading) => Padding(
                 padding: const EdgeInsets.all(16),
                 child: SizedBox(

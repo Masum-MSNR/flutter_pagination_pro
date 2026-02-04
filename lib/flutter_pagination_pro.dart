@@ -56,7 +56,7 @@
 /// - **Type-safe** - Generic type support
 /// - **Robust** - Handles loading, errors, empty states
 /// - **Programmatic control** - Use controller for refresh, retry, etc.
-library flutter_pagination_pro;
+library;
 
 // Core
 export 'src/core/pagination_controller.dart';
