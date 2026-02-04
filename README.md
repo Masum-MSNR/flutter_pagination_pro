@@ -1,7 +1,7 @@
 # Flutter Pagination Pro
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/AASoftIR/flutter_pagination_pro/main/images/logo.png" alt="Flutter Pagination Pro" width="120"/>
+  <img src="https://raw.githubusercontent.com/Masum-MSNR/flutter_pagination_pro/main/images/logo.png" alt="Flutter Pagination Pro" width="120"/>
 </p>
 
 <p align="center">
@@ -16,7 +16,7 @@ Supports <b>infinite scroll</b>, <b>load more button</b>, and <b>numbered pagina
 </p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/AASoftIR/flutter_pagination_pro/main/images/preview.png" alt="Flutter Pagination Pro Preview" width="700"/>
+  <img src="https://raw.githubusercontent.com/Masum-MSNR/flutter_pagination_pro/main/images/preview.png" alt="Flutter Pagination Pro Preview" width="700"/>
 </p>
 
 ## Features
