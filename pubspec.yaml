@@ -1,9 +1,9 @@
 name: flutter_pagination_pro
 description: "A lightweight Flutter pagination package supporting infinite scroll, load more button, and numbered pagination with zero dependencies."
 version: 0.0.1
-homepage: https://github.com/AASoftIR/flutter_pagination_pro
-repository: https://github.com/AASoftIR/flutter_pagination_pro
-issue_tracker: https://github.com/AASoftIR/flutter_pagination_pro/issues
+homepage: https://github.com/Masum-MSNR/flutter_pagination_pro
+repository: https://github.com/Masum-MSNR/flutter_pagination_pro
+issue_tracker: https://github.com/Masum-MSNR/flutter_pagination_pro/issues
 
 topics:
   - pagination
