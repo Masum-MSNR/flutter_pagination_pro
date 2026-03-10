@@ -10,6 +10,7 @@ class DefaultEmpty extends StatelessWidget {
     this.title = 'No items found',
     this.subtitle,
     this.icon = Icons.inbox_outlined,
+    this.onRefresh,
   });
 
   /// The title text.
@@ -20,6 +21,10 @@ class DefaultEmpty extends StatelessWidget {
 
   /// The icon to display.
   final IconData icon;
+
+  /// Optional refresh callback. When provided, a refresh button is shown
+  /// below the empty message.
+  final VoidCallback? onRefresh;
 
   @override
   Widget build(BuildContext context) {
@@ -54,6 +59,14 @@ class DefaultEmpty extends StatelessWidget {
                   color: colorScheme.outline,
                 ),
                 textAlign: TextAlign.center,
+              ),
+            ],
+            if (onRefresh != null) ...[
+              const SizedBox(height: 20),
+              OutlinedButton.icon(
+                onPressed: onRefresh,
+                icon: const Icon(Icons.refresh, size: 18),
+                label: const Text('Refresh'),
               ),
             ],
           ],

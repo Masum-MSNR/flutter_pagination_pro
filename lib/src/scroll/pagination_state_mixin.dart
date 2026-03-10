@@ -375,7 +375,8 @@ mixin PaginationStateMixin<K, T, W extends StatefulWidget> on State<W> {
     }
 
     if (state.status.isEmpty) {
-      return widgetEmptyBuilder?.call(context) ?? const DefaultEmpty();
+      return widgetEmptyBuilder?.call(context) ??
+          DefaultEmpty(onRefresh: _retryAction);
     }
 
     final content = contentBuilder(state);

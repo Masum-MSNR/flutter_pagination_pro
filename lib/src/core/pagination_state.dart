@@ -21,6 +21,7 @@ class PaginationState<K, T> {
     this.error,
     this.hasMorePages = true,
     this.totalItems,
+    this.retryCount = 0,
   }) : items = items ?? const [];
 
   /// The list of loaded items.
@@ -48,6 +49,12 @@ class PaginationState<K, T> {
   /// a total count in the response.
   final int? totalItems;
 
+  /// The current retry attempt count (0 means no retries yet).
+  ///
+  /// Updated when the controller is auto-retrying with a [RetryPolicy].
+  /// Useful for displaying "Retrying... (2/3)" in the UI.
+  final int retryCount;
+
   /// Creates a copy of this state with the given fields replaced.
   PaginationState<K, T> copyWith({
     List<T>? items,
@@ -57,6 +64,7 @@ class PaginationState<K, T> {
     bool? hasMorePages,
     bool clearError = false,
     int? totalItems,
+    int? retryCount,
   }) {
     return PaginationState<K, T>(
       items: items ?? this.items,
@@ -65,6 +73,7 @@ class PaginationState<K, T> {
       error: clearError ? null : (error ?? this.error),
       hasMorePages: hasMorePages ?? this.hasMorePages,
       totalItems: totalItems ?? this.totalItems,
+      retryCount: retryCount ?? this.retryCount,
     );
   }
 
@@ -89,7 +98,8 @@ class PaginationState<K, T> {
         other.status == status &&
         other.error == error &&
         other.hasMorePages == hasMorePages &&
-        other.totalItems == totalItems;
+        other.totalItems == totalItems &&
+        other.retryCount == retryCount;
   }
 
   @override
@@ -100,6 +110,7 @@ class PaginationState<K, T> {
         error,
         hasMorePages,
         totalItems,
+        retryCount,
       );
 
   @override

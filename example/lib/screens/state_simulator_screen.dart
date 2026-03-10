@@ -29,6 +29,15 @@ class _StateSimulatorScreenState extends State<StateSimulatorScreen> {
   void _createController() {
     _controller = PagedController<MockItem>(
       fetchPage: _fetchPage,
+      config: PaginationConfig(
+        retryPolicy: _scenario == _SimulationScenario.autoRetry
+            ? const RetryPolicy(
+                maxRetries: 3,
+                initialDelay: Duration(seconds: 1),
+                backoffMultiplier: 2.0,
+              )
+            : null,
+      ),
     );
   }
 
@@ -325,6 +334,12 @@ enum _SimulationScenario {
     description: 'Only a few items (no pagination needed)',
     icon: Icons.short_text,
     color: AppTheme.primaryColor,
+  ),
+  autoRetry(
+    label: 'Auto-Retry',
+    description: 'Intermittent errors with exponential backoff retry (1s → 2s → 4s)',
+    icon: Icons.replay_circle_filled_outlined,
+    color: AppTheme.accentColor,
   );
 
   const _SimulationScenario({
@@ -353,6 +368,8 @@ enum _SimulationScenario {
         return MockServicePresets.slowLoading();
       case _SimulationScenario.fewItems:
         return MockServicePresets.fewItems();
+      case _SimulationScenario.autoRetry:
+        return MockServicePresets.intermittentError();
     }
   }
 }

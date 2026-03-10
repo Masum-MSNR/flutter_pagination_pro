@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.5.0
+
+### New Features
+
+- **Auto-retry with exponential backoff**: Failed page loads can now be automatically retried with configurable backoff via `RetryPolicy`. Attach to `PaginationConfig.retryPolicy` to enable. Supports `maxRetries`, `initialDelay`, `backoffMultiplier`, error filtering via `retryOn`, and optional first-page retries via `retryFirstPage`. Access `state.retryCount` to display retry progress in the UI.
+
+  ```dart
+  PaginationListView<int, User>(
+    fetchPage: (page) => api.getUsers(page),
+    config: PaginationConfig(
+      retryPolicy: RetryPolicy(
+        maxRetries: 3,
+        initialDelay: Duration(seconds: 1),
+        backoffMultiplier: 2.0, // 1s → 2s → 4s
+      ),
+    ),
+    itemBuilder: (context, user, index) => UserTile(user: user),
+  )
+  ```
+
+- **Empty state refresh action**: `DefaultEmpty` now accepts an optional `onRefresh` callback. When provided, a "Refresh" button is shown below the empty message. In controlled mode (`.withController()` / `.controlled()`), `onRefresh` is auto-wired to the controller's refresh method — no manual wiring needed.
+
 ## 0.4.0
 
 ### New Features

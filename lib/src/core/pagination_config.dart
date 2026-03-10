@@ -10,6 +10,71 @@ enum PaginationType {
   loadMore,
 }
 
+/// Configuration for automatic retry behavior with exponential backoff.
+///
+/// When attached to a [PaginationConfig], the controller will automatically
+/// retry failed fetches before settling into an error state.
+///
+/// ```dart
+/// PaginationController<int, User>(
+///   fetchPage: (page) => api.getUsers(page: page),
+///   config: PaginationConfig(
+///     retryPolicy: RetryPolicy(
+///       maxRetries: 3,
+///       initialDelay: Duration(seconds: 1),
+///       backoffMultiplier: 2.0, // 1s → 2s → 4s
+///     ),
+///   ),
+/// );
+/// ```
+class RetryPolicy {
+  /// Creates a retry policy.
+  const RetryPolicy({
+    this.maxRetries = 3,
+    this.initialDelay = const Duration(seconds: 1),
+    this.backoffMultiplier = 2.0,
+    this.retryOn,
+    this.retryFirstPage = false,
+  }) : assert(maxRetries > 0, 'maxRetries must be > 0'),
+       assert(backoffMultiplier >= 1.0, 'backoffMultiplier must be >= 1.0');
+
+  /// Maximum number of retry attempts before giving up.
+  final int maxRetries;
+
+  /// Delay before the first retry.
+  final Duration initialDelay;
+
+  /// Each subsequent retry delay is multiplied by this factor.
+  ///
+  /// For example, with [initialDelay] of 1s and [backoffMultiplier] of 2.0:
+  /// retry 1 → 1s, retry 2 → 2s, retry 3 → 4s.
+  final double backoffMultiplier;
+
+  /// Optional predicate to filter which errors should be retried.
+  ///
+  /// If null, all errors are retried. If provided, only errors where
+  /// `retryOn(error)` returns `true` will trigger a retry.
+  final bool Function(Object error)? retryOn;
+
+  /// Whether to also retry first-page errors.
+  ///
+  /// By default, only load-more errors are retried. Set to `true` to
+  /// also auto-retry when the first page fails.
+  final bool retryFirstPage;
+
+  /// Calculates the delay for a given retry attempt (0-based).
+  Duration delayForAttempt(int attempt) {
+    final multiplier =
+        attempt == 0 ? 1.0 : backoffMultiplier * attempt.toDouble();
+    return Duration(
+      milliseconds: (initialDelay.inMilliseconds * multiplier).round(),
+    );
+  }
+
+  /// Whether the given error should be retried.
+  bool shouldRetry(Object error) => retryOn?.call(error) ?? true;
+}
+
 /// Configuration options for pagination behavior.
 class PaginationConfig {
   /// Creates a pagination configuration.
@@ -17,6 +82,7 @@ class PaginationConfig {
     this.scrollThreshold = 200.0,
     this.autoLoadFirstPage = true,
     this.pageSize,
+    this.retryPolicy,
   });
 
   /// Distance in pixels from the bottom of the scrollable area that triggers
@@ -43,6 +109,13 @@ class PaginationConfig {
   /// is returned from the fetch function.
   final int? pageSize;
 
+  /// Optional retry policy for automatic retry with exponential backoff.
+  ///
+  /// When set, the controller will automatically retry failed fetches
+  /// (load-more by default, optionally first-page) before entering
+  /// an error state.
+  final RetryPolicy? retryPolicy;
+
   /// Default configuration.
   static const PaginationConfig defaults = PaginationConfig();
 
@@ -51,11 +124,13 @@ class PaginationConfig {
     double? scrollThreshold,
     bool? autoLoadFirstPage,
     int? pageSize,
+    RetryPolicy? retryPolicy,
   }) {
     return PaginationConfig(
       scrollThreshold: scrollThreshold ?? this.scrollThreshold,
       autoLoadFirstPage: autoLoadFirstPage ?? this.autoLoadFirstPage,
       pageSize: pageSize ?? this.pageSize,
+      retryPolicy: retryPolicy ?? this.retryPolicy,
     );
   }
 
@@ -65,10 +140,11 @@ class PaginationConfig {
     return other is PaginationConfig &&
         other.scrollThreshold == scrollThreshold &&
         other.autoLoadFirstPage == autoLoadFirstPage &&
-        other.pageSize == pageSize;
+        other.pageSize == pageSize &&
+        other.retryPolicy == retryPolicy;
   }
 
   @override
   int get hashCode =>
-      Object.hash(scrollThreshold, autoLoadFirstPage, pageSize);
+      Object.hash(scrollThreshold, autoLoadFirstPage, pageSize, retryPolicy);
 }

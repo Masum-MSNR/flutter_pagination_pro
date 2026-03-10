@@ -354,9 +354,13 @@ class _SliverPaginatedListState<K, T> extends State<SliverPaginatedList<K, T>>
     }
 
     if (state.status.isEmpty) {
+      final retryAction = isControlledMode
+          ? (controlledOnRetry ?? () {})
+          : paginationController!.retry;
       return SliverFillRemaining(
         hasScrollBody: false,
-        child: widgetEmptyBuilder?.call(context) ?? const DefaultEmpty(),
+        child: widgetEmptyBuilder?.call(context) ??
+            DefaultEmpty(onRefresh: retryAction),
       );
     }
 

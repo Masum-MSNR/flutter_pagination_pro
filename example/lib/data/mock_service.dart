@@ -8,6 +8,7 @@ class MockDataService {
     this.delayMs = 800,
     this.errorOnPage,
     this.emptyResponse = false,
+    this.failFirstNTimes = 0,
   });
 
   final int pageSize;
@@ -16,8 +17,35 @@ class MockDataService {
   final int? errorOnPage;
   final bool emptyResponse;
 
+  /// Number of times each page-2+ request should fail before succeeding.
+  ///
+  /// Use this to demo auto-retry: set to 2 so the first 2 load-more attempts
+  /// fail, then succeed on the 3rd attempt after retries.
+  final int failFirstNTimes;
+
+  int _loadMoreAttempts = 0;
+
   Future<List<MockItem>> fetchPage(int page) async {
     await Future.delayed(Duration(milliseconds: delayMs));
+
+    if (emptyResponse) return [];
+
+    if (errorOnPage != null && page == errorOnPage) {
+      throw Exception(
+          'Simulated network error on page $page. Please try again.');
+    }
+
+    // Intermittent failure for auto-retry demo
+    if (failFirstNTimes > 0 && page > 1) {
+      _loadMoreAttempts++;
+      if (_loadMoreAttempts <= failFirstNTimes) {
+        throw Exception(
+          'Intermittent network error (attempt $_loadMoreAttempts/$failFirstNTimes)',
+        );
+      }
+      // Reset for next page load
+      _loadMoreAttempts = 0;
+    }
 
     if (emptyResponse) return [];
 
@@ -53,4 +81,9 @@ class MockServicePresets {
   static MockDataService fewItems() => MockDataService(totalItems: 5, pageSize: 10);
   
   static MockDataService manyPages() => MockDataService(totalItems: 500, pageSize: 10);
+
+  /// Intermittent errors on load-more — first 2 attempts fail, 3rd succeeds.
+  /// Perfect for demoing auto-retry with exponential backoff.
+  static MockDataService intermittentError() =>
+      MockDataService(failFirstNTimes: 2, delayMs: 300);
 }

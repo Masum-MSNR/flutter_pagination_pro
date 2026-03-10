@@ -426,6 +426,59 @@ void main() {
       expect(find.text('Custom Subtitle'), findsOneWidget);
     });
 
+    testWidgets('DefaultEmpty shows refresh button when onRefresh provided',
+        (tester) async {
+      var refreshed = false;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: DefaultEmpty(
+              onRefresh: () => refreshed = true,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Refresh'), findsOneWidget);
+      await tester.tap(find.text('Refresh'));
+      expect(refreshed, true);
+    });
+
+    testWidgets('DefaultEmpty hides refresh button when onRefresh is null',
+        (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: DefaultEmpty(),
+          ),
+        ),
+      );
+
+      expect(find.text('Refresh'), findsNothing);
+    });
+
+    testWidgets('Empty state auto-wires refresh action', (tester) async {
+      var retried = false;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: PaginationListView<int, String>.controlled(
+              items: const [],
+              status: PaginationStatus.empty,
+              itemBuilder: (context, item, index) => Text(item),
+              onRetry: () => retried = true,
+            ),
+          ),
+        ),
+      );
+
+      // Default empty should have a Refresh button
+      expect(find.text('No items found'), findsOneWidget);
+      expect(find.text('Refresh'), findsOneWidget);
+      await tester.tap(find.text('Refresh'));
+      expect(retried, true);
+    });
+
     testWidgets('DefaultEndOfList renders', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(

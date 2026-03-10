@@ -117,6 +117,9 @@ class PaginationController<K, T> extends ValueNotifier<PaginationState<K, T>> {
   /// Tracks the current async operation to handle cancellation.
   Object? _currentOperation;
 
+  /// Timer used for retry delays; cancelled on refresh/reset/dispose.
+  Timer? _retryTimer;
+
   /// Returns a default [NextPageKeyBuilder] that increments int keys by 1.
   ///
   /// Throws a [StateError] at call-time if K is not int.
@@ -154,57 +157,105 @@ class PaginationController<K, T> extends ValueNotifier<PaginationState<K, T>> {
   /// The initial page key.
   K get initialPageKey => _initialPageKey;
 
+  /// Cancels any pending retry timer.
+  void _cancelRetryTimer() {
+    _retryTimer?.cancel();
+    _retryTimer = null;
+  }
+
+  /// Waits for [duration] using a cancellable timer.
+  ///
+  /// Returns `false` if the timer was cancelled (operation changed).
+  Future<bool> _waitForRetry(Duration duration, Object operation) {
+    final completer = Completer<bool>();
+    _retryTimer = Timer(duration, () {
+      if (operation == _currentOperation) {
+        completer.complete(true);
+      } else {
+        completer.complete(false);
+      }
+    });
+    return completer.future;
+  }
+
   /// Loads the first page.
   ///
   /// This is typically called automatically when the widget is first built
   /// if [PaginationConfig.autoLoadFirstPage] is true.
+  ///
+  /// If a [RetryPolicy] is configured with [RetryPolicy.retryFirstPage]
+  /// set to `true`, failed first-page loads will be retried automatically
+  /// with exponential backoff.
   Future<void> loadFirstPage() async {
     if (value.status == PaginationStatus.loadingFirstPage) return;
 
+    _cancelRetryTimer();
     final operation = _currentOperation = Object();
 
     value = value.copyWith(
       status: PaginationStatus.loadingFirstPage,
       clearError: true,
+      retryCount: 0,
     );
 
-    try {
-      final items = await _fetchPage(_initialPageKey);
+    final retryPolicy = _config.retryPolicy;
+    var attempt = 0;
 
-      if (operation != _currentOperation) return; // Cancelled
+    while (true) {
+      try {
+        final items = await _fetchPage(_initialPageKey);
 
-      if (items.isEmpty) {
-        value = PaginationState<K, T>(
-          items: [],
-          pageKey: _initialPageKey,
-          status: PaginationStatus.empty,
-          hasMorePages: false,
-        );
-      } else {
-        final isLastPage =
-            _config.pageSize != null && items.length < _config.pageSize!;
-        if (!isLastPage) {
-          _nextPageKey = _nextPageKeyBuilder(_initialPageKey, items);
+        if (operation != _currentOperation) return; // Cancelled
+
+        if (items.isEmpty) {
+          value = PaginationState<K, T>(
+            items: [],
+            pageKey: _initialPageKey,
+            status: PaginationStatus.empty,
+            hasMorePages: false,
+          );
+        } else {
+          final isLastPage =
+              _config.pageSize != null && items.length < _config.pageSize!;
+          if (!isLastPage) {
+            _nextPageKey = _nextPageKeyBuilder(_initialPageKey, items);
+          }
+          value = PaginationState<K, T>(
+            items: items,
+            pageKey: _initialPageKey,
+            status: isLastPage
+                ? PaginationStatus.completed
+                : PaginationStatus.loaded,
+            hasMorePages: !isLastPage,
+          );
         }
-        value = PaginationState<K, T>(
-          items: items,
-          pageKey: _initialPageKey,
-          status: isLastPage
-              ? PaginationStatus.completed
-              : PaginationStatus.loaded,
-          hasMorePages: !isLastPage,
+        return; // Success – exit loop
+      } catch (error) {
+        if (operation != _currentOperation) return; // Cancelled
+
+        // Check if we should retry
+        if (retryPolicy != null &&
+            retryPolicy.retryFirstPage &&
+            attempt < retryPolicy.maxRetries &&
+            retryPolicy.shouldRetry(error)) {
+          attempt++;
+          value = value.copyWith(retryCount: attempt);
+
+          final delay = retryPolicy.delayForAttempt(attempt - 1);
+          final shouldContinue = await _waitForRetry(delay, operation);
+          if (!shouldContinue) return; // Cancelled during wait
+          continue; // Retry
+        }
+
+        value = value.copyWith(
+          status: PaginationStatus.firstPageError,
+          error: error,
         );
+
+        // Rethrow non-Exception errors (programming errors)
+        if (error is! Exception) rethrow;
+        return;
       }
-    } catch (error) {
-      if (operation != _currentOperation) return; // Cancelled
-
-      value = value.copyWith(
-        status: PaginationStatus.firstPageError,
-        error: error,
-      );
-
-      // Rethrow non-Exception errors (programming errors)
-      if (error is! Exception) rethrow;
     }
   }
 
@@ -214,53 +265,78 @@ class PaginationController<K, T> extends ValueNotifier<PaginationState<K, T>> {
   /// - Already loading
   /// - No more pages available
   /// - In an error or empty state that can't load more
+  ///
+  /// If a [RetryPolicy] is configured, failed load-more operations will be
+  /// retried automatically with exponential backoff.
   Future<void> loadNextPage() async {
     if (!value.status.canLoadMore || !value.hasMorePages) return;
 
+    _cancelRetryTimer();
     final operation = _currentOperation = Object();
     final pageKey = _nextPageKey;
 
     value = value.copyWith(
       status: PaginationStatus.loadingMore,
       clearError: true,
+      retryCount: 0,
     );
 
-    try {
-      final newItems = await _fetchPage(pageKey);
+    final retryPolicy = _config.retryPolicy;
+    var attempt = 0;
 
-      if (operation != _currentOperation) return; // Cancelled
+    while (true) {
+      try {
+        final newItems = await _fetchPage(pageKey);
 
-      if (newItems.isEmpty) {
-        value = value.copyWith(
-          pageKey: pageKey,
-          status: PaginationStatus.completed,
-          hasMorePages: false,
-        );
-      } else {
-        final isLastPage =
-            _config.pageSize != null && newItems.length < _config.pageSize!;
-        if (!isLastPage) {
-          _nextPageKey = _nextPageKeyBuilder(pageKey, newItems);
+        if (operation != _currentOperation) return; // Cancelled
+
+        if (newItems.isEmpty) {
+          value = value.copyWith(
+            pageKey: pageKey,
+            status: PaginationStatus.completed,
+            hasMorePages: false,
+          );
+        } else {
+          final isLastPage =
+              _config.pageSize != null && newItems.length < _config.pageSize!;
+          if (!isLastPage) {
+            _nextPageKey = _nextPageKeyBuilder(pageKey, newItems);
+          }
+          value = value.copyWith(
+            items: [...value.items, ...newItems],
+            pageKey: pageKey,
+            status: isLastPage
+                ? PaginationStatus.completed
+                : PaginationStatus.loaded,
+            hasMorePages: !isLastPage,
+          );
         }
+        return; // Success – exit loop
+      } catch (error) {
+        if (operation != _currentOperation) return; // Cancelled
+
+        // Check if we should retry
+        if (retryPolicy != null &&
+            attempt < retryPolicy.maxRetries &&
+            retryPolicy.shouldRetry(error)) {
+          attempt++;
+          value = value.copyWith(retryCount: attempt);
+
+          final delay = retryPolicy.delayForAttempt(attempt - 1);
+          final shouldContinue = await _waitForRetry(delay, operation);
+          if (!shouldContinue) return; // Cancelled during wait
+          continue; // Retry
+        }
+
         value = value.copyWith(
-          items: [...value.items, ...newItems],
-          pageKey: pageKey,
-          status: isLastPage
-              ? PaginationStatus.completed
-              : PaginationStatus.loaded,
-          hasMorePages: !isLastPage,
+          status: PaginationStatus.loadMoreError,
+          error: error,
         );
+
+        // Rethrow non-Exception errors (programming errors)
+        if (error is! Exception) rethrow;
+        return;
       }
-    } catch (error) {
-      if (operation != _currentOperation) return; // Cancelled
-
-      value = value.copyWith(
-        status: PaginationStatus.loadMoreError,
-        error: error,
-      );
-
-      // Rethrow non-Exception errors (programming errors)
-      if (error is! Exception) rethrow;
     }
   }
 
@@ -268,6 +344,7 @@ class PaginationController<K, T> extends ValueNotifier<PaginationState<K, T>> {
   ///
   /// This clears all existing items and starts fresh.
   Future<void> refresh() async {
+    _cancelRetryTimer();
     _currentOperation = null; // Cancel any ongoing operation
     _nextPageKey = _initialPageKey;
 
@@ -375,6 +452,7 @@ class PaginationController<K, T> extends ValueNotifier<PaginationState<K, T>> {
 
   /// Resets the controller to initial state.
   void reset() {
+    _cancelRetryTimer();
     _currentOperation = null;
     _nextPageKey = _initialPageKey;
     value = PaginationState<K, T>();
@@ -425,6 +503,7 @@ class PaginationController<K, T> extends ValueNotifier<PaginationState<K, T>> {
 
   @override
   void dispose() {
+    _cancelRetryTimer();
     _currentOperation = null;
     super.dispose();
   }

@@ -273,6 +273,35 @@ expect(controller, isPaginationEmpty);      // empty status + no items
 | `scrollThreshold` | `200.0` | Pixels from bottom to trigger load |
 | `autoLoadFirstPage` | `true` | Auto-load on build |
 | `pageSize` | `null` | Items per page — auto-detects last page |
+| `retryPolicy` | `null` | Auto-retry failed fetches with backoff |
+
+## Auto-Retry with Exponential Backoff
+
+Automatically retry failed page loads with configurable backoff:
+
+```dart
+PaginationListView<int, User>(
+  fetchPage: (page) => api.getUsers(page),
+  config: PaginationConfig(
+    retryPolicy: RetryPolicy(
+      maxRetries: 3,
+      initialDelay: Duration(seconds: 1),
+      backoffMultiplier: 2.0, // 1s → 2s → 4s
+    ),
+  ),
+  itemBuilder: (context, user, index) => UserTile(user: user),
+)
+```
+
+| RetryPolicy Param | Default | Description |
+|-------------------|---------|-------------|
+| `maxRetries` | `3` | Max retry attempts before giving up |
+| `initialDelay` | `1s` | Delay before the first retry |
+| `backoffMultiplier` | `2.0` | Multiplier for each subsequent delay |
+| `retryOn` | `null` | Optional predicate — only retry matching errors |
+| `retryFirstPage` | `false` | Also retry first-page errors |
+
+Access `state.retryCount` to show retry progress in your UI.
 
 ### NumberedPaginationConfig
 
