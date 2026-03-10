@@ -355,13 +355,19 @@ class _SliverPaginatedGridState<K, T> extends State<SliverPaginatedGrid<K, T>>
 
   Widget _buildSliverContent(PaginationState<K, T> state) {
     final hasFooter = shouldShowFooter(state);
+    final skeletonCount = skeletonLoadMoreCount(state);
+    final effectiveCount = state.items.length + skeletonCount;
 
     final sliverGrid = SliverGrid(
       gridDelegate: widget.gridDelegate,
       delegate: SliverChildBuilderDelegate(
-        (context, index) =>
-            widget.itemBuilder(context, state.items[index], index),
-        childCount: state.items.length,
+        (context, index) {
+          if (index >= state.items.length) {
+            return buildSkeletonItem(context, index);
+          }
+          return widget.itemBuilder(context, state.items[index], index);
+        },
+        childCount: effectiveCount,
         findChildIndexCallback: widget.findChildIndexCallback,
       ),
     );

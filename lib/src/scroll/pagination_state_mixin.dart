@@ -390,8 +390,37 @@ mixin PaginationStateMixin<K, T, W extends StatefulWidget> on State<W> {
     return content;
   }
 
+  /// Whether to use inline skeleton items for load-more loading
+  /// instead of the default spinner footer.
+  bool get _useLoadMoreSkeleton =>
+      widgetPlaceholderItem != null &&
+      widgetLoadMoreLoadingBuilder == null;
+
+  /// Returns the number of skeleton placeholder items to append when
+  /// loading more items. Returns 0 when not applicable.
+  int skeletonLoadMoreCount(PaginationState<K, T> state) {
+    if (state.status != PaginationStatus.loadingMore) return 0;
+    if (widgetPaginationType == PaginationType.loadMore) return 0;
+    if (!_useLoadMoreSkeleton) return 0;
+    return widgetPlaceholderCount;
+  }
+
+  /// Builds a single skeleton placeholder item at the given [index].
+  Widget buildSkeletonItem(BuildContext context, int index) {
+    final color = widgetSkeletonOverlayColor ?? Colors.grey.shade300;
+    return ColorFiltered(
+      colorFilter: ColorFilter.mode(color, BlendMode.srcATop),
+      child: widgetItemBuilder(context, widgetPlaceholderItem as T, index),
+    );
+  }
+
   /// Whether a footer widget should be displayed below items.
   bool shouldShowFooter(PaginationState<K, T> state) {
+    // When using inline skeleton items for load-more, skip the footer
+    if (state.status == PaginationStatus.loadingMore && _useLoadMoreSkeleton &&
+        widgetPaginationType != PaginationType.loadMore) {
+      return false;
+    }
     return state.status == PaginationStatus.loadingMore ||
         state.status == PaginationStatus.loadMoreError ||
         state.status == PaginationStatus.completed ||

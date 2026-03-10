@@ -980,4 +980,199 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
   });
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // placeholderItem load-more skeleton — inline skeleton items when loading more
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  group('load-more skeleton items via placeholderItem', () {
+    testWidgets('PaginationListView shows skeleton items when loading more',
+        (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: PaginationListView<int, String>.controlled(
+              items: const ['A', 'B', 'C'],
+              status: PaginationStatus.loadingMore,
+              itemBuilder: (context, item, index) => ListTile(
+                key: ValueKey('item-$index'),
+                title: Text(item),
+              ),
+              placeholderItem: 'Placeholder',
+              placeholderCount: 3,
+            ),
+          ),
+        ),
+      );
+
+      // Real items rendered
+      expect(find.text('A'), findsOneWidget);
+      expect(find.text('B'), findsOneWidget);
+      expect(find.text('C'), findsOneWidget);
+      // Skeleton items appended
+      expect(find.byType(ColorFiltered), findsNWidgets(3));
+      expect(find.text('Placeholder'), findsNWidgets(3));
+      // No default spinner footer
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+    });
+
+    testWidgets('no load-more skeleton when placeholderItem is null',
+        (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: PaginationListView<int, String>.controlled(
+              items: const ['A', 'B'],
+              status: PaginationStatus.loadingMore,
+              itemBuilder: (context, item, index) => Text(item),
+            ),
+          ),
+        ),
+      );
+
+      // Default spinner footer, no skeleton
+      expect(find.byType(ColorFiltered), findsNothing);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    });
+
+    testWidgets('loadMoreLoadingBuilder takes priority over skeleton',
+        (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: PaginationListView<int, String>.controlled(
+              items: const ['A'],
+              status: PaginationStatus.loadingMore,
+              itemBuilder: (context, item, index) => Text(item),
+              placeholderItem: 'X',
+              placeholderCount: 3,
+              loadMoreLoadingBuilder: (context) =>
+                  const Text('Custom Load More'),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Custom Load More'), findsOneWidget);
+      expect(find.byType(ColorFiltered), findsNothing);
+    });
+
+    testWidgets('PaginationGridView shows skeleton grid items when loading more',
+        (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: PaginationGridView<int, String>.controlled(
+              items: const ['A', 'B'],
+              status: PaginationStatus.loadingMore,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+              ),
+              itemBuilder: (context, item, index) => Center(
+                key: ValueKey('grid-$index'),
+                child: Text(item),
+              ),
+              placeholderItem: 'Skeleton',
+              placeholderCount: 2,
+            ),
+          ),
+        ),
+      );
+
+      // Real items
+      expect(find.text('A'), findsOneWidget);
+      expect(find.text('B'), findsOneWidget);
+      // Skeleton items in the grid (at least some visible)
+      expect(find.byType(ColorFiltered), findsAtLeast(1));
+      expect(find.text('Skeleton'), findsAtLeast(1));
+    });
+
+    testWidgets('SliverPaginatedList shows skeleton items when loading more',
+        (tester) async {
+      final scrollController = ScrollController();
+      addTearDown(scrollController.dispose);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: CustomScrollView(
+              controller: scrollController,
+              slivers: [
+                SliverPaginatedList<int, String>.controlled(
+                  items: const ['A', 'B'],
+                  status: PaginationStatus.loadingMore,
+                  scrollController: scrollController,
+                  itemBuilder: (context, item, index) => ListTile(
+                    title: Text(item),
+                  ),
+                  placeholderItem: 'Sk',
+                  placeholderCount: 2,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('A'), findsOneWidget);
+      expect(find.text('B'), findsOneWidget);
+      expect(find.byType(ColorFiltered), findsNWidgets(2));
+      expect(find.text('Sk'), findsNWidgets(2));
+    });
+
+    testWidgets('SliverPaginatedGrid shows skeleton items when loading more',
+        (tester) async {
+      final scrollController = ScrollController();
+      addTearDown(scrollController.dispose);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: CustomScrollView(
+              controller: scrollController,
+              slivers: [
+                SliverPaginatedGrid<int, String>.controlled(
+                  items: const ['A', 'B'],
+                  status: PaginationStatus.loadingMore,
+                  scrollController: scrollController,
+                  gridDelegate:
+                      const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                  ),
+                  itemBuilder: (context, item, index) => Center(
+                    child: Text(item),
+                  ),
+                  placeholderItem: 'Sk',
+                  placeholderCount: 2,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('A'), findsOneWidget);
+      expect(find.text('B'), findsOneWidget);
+      expect(find.byType(ColorFiltered), findsNWidgets(2));
+    });
+
+    testWidgets('no skeleton for loadMore paginationType even with placeholderItem',
+        (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: PaginationListView<int, String>.controlled(
+              items: const ['A'],
+              status: PaginationStatus.loadingMore,
+              paginationType: PaginationType.loadMore,
+              itemBuilder: (context, item, index) => Text(item),
+              placeholderItem: 'X',
+              placeholderCount: 3,
+            ),
+          ),
+        ),
+      );
+
+      // loadMore mode shows button, not skeleton
+      expect(find.byType(ColorFiltered), findsNothing);
+    });
+  });
 }

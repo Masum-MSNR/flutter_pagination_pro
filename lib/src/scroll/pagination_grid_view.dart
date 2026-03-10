@@ -391,6 +391,8 @@ class _PaginationGridViewState<K, T> extends State<PaginationGridView<K, T>>
 
   Widget _buildGrid(PaginationState<K, T> state) {
     final hasFooter = shouldShowFooter(state);
+    final skeletonCount = skeletonLoadMoreCount(state);
+    final effectiveCount = state.items.length + skeletonCount;
 
     return CustomScrollView(
       controller: activeScrollController,
@@ -412,12 +414,17 @@ class _PaginationGridViewState<K, T> extends State<PaginationGridView<K, T>>
           sliver: SliverGrid(
             gridDelegate: widget.gridDelegate,
             delegate: SliverChildBuilderDelegate(
-              (context, index) => widget.itemBuilder(
-                context,
-                state.items[index],
-                index,
-              ),
-              childCount: state.items.length,
+              (context, index) {
+                if (index >= state.items.length) {
+                  return buildSkeletonItem(context, index);
+                }
+                return widget.itemBuilder(
+                  context,
+                  state.items[index],
+                  index,
+                );
+              },
+              childCount: effectiveCount,
               findChildIndexCallback: widget.findChildIndexCallback,
             ),
           ),

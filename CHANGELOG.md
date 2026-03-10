@@ -6,7 +6,7 @@
 
 - **Skeleton / Shimmer first-page loading**: `DefaultFirstPageLoading.builder()` — a named constructor that renders a list of placeholder widgets during the initial load. Accepts `itemBuilder`, `itemCount` (default 6), optional `separatorBuilder`, `padding`, and `scrollDirection`. Works seamlessly as a `firstPageLoadingBuilder` for shimmer/skeleton patterns without adding any dependencies.
 
-- **Zero-config skeleton loading via `placeholderItem`**: All four widget types (`PaginationListView`, `PaginationGridView`, `SliverPaginatedList`, `SliverPaginatedGrid`) now accept `placeholderItem`, `placeholderCount` (default 6), and `skeletonOverlayColor` directly as constructor parameters. When `placeholderItem` is provided, the widget automatically reuses your existing `itemBuilder` with a `ColorFiltered` grey overlay to produce a skeleton effect — no duplication of `itemBuilder` or separate builder required.
+- **Zero-config skeleton loading via `placeholderItem`**: All four widget types (`PaginationListView`, `PaginationGridView`, `SliverPaginatedList`, `SliverPaginatedGrid`) now accept `placeholderItem`, `placeholderCount` (default 6), and `skeletonOverlayColor` directly as constructor parameters. When `placeholderItem` is provided, the widget automatically reuses your existing `itemBuilder` with a `ColorFiltered` grey overlay to produce a skeleton effect — no duplication of `itemBuilder` or separate builder required. Skeleton items appear both during **first-page loading** (full screen) and **load-more** (appended inline below existing items), giving a consistent placeholder UX throughout the list lifecycle.
 
   ```dart
   PagedListView<User>(

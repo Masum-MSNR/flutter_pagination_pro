@@ -498,17 +498,18 @@ class _PaginationListViewState<K, T> extends State<PaginationListView<K, T>>
   }
 
   Widget _buildPlainList(PaginationState<K, T> state) {
-    final itemCount = _calculateItemCount(state);
     final hasSeparator = widget.separatorBuilder != null;
+    final skeletonCount = skeletonLoadMoreCount(state);
+    final effectiveItemCount = state.items.length + skeletonCount;
+    final footerCount = shouldShowFooter(state) ? 1 : 0;
 
     int totalCount;
     if (hasSeparator) {
       final itemsWithSeparators =
-          state.items.isEmpty ? 0 : state.items.length * 2 - 1;
-      final footerCount = shouldShowFooter(state) ? 1 : 0;
+          effectiveItemCount == 0 ? 0 : effectiveItemCount * 2 - 1;
       totalCount = itemsWithSeparators + footerCount;
     } else {
-      totalCount = itemCount;
+      totalCount = effectiveItemCount + footerCount;
     }
 
     return ListView.builder(
@@ -552,15 +553,16 @@ class _PaginationListViewState<K, T> extends State<PaginationListView<K, T>>
     }
 
     // Main content sliver
-    final itemCount = _calculateItemCount(state);
+    final skeletonCount = skeletonLoadMoreCount(state);
+    final effectiveItemCount = state.items.length + skeletonCount;
+    final footerCount = shouldShowFooter(state) ? 1 : 0;
     int totalCount;
     if (hasSeparator) {
       final itemsWithSeparators =
-          state.items.isEmpty ? 0 : state.items.length * 2 - 1;
-      final footerCount = shouldShowFooter(state) ? 1 : 0;
+          effectiveItemCount == 0 ? 0 : effectiveItemCount * 2 - 1;
       totalCount = itemsWithSeparators + footerCount;
     } else {
-      totalCount = itemCount;
+      totalCount = effectiveItemCount + footerCount;
     }
 
     Widget contentSliver = SliverList(
@@ -613,18 +615,17 @@ class _PaginationListViewState<K, T> extends State<PaginationListView<K, T>>
     );
   }
 
-  int _calculateItemCount(PaginationState<K, T> state) {
-    int count = state.items.length;
-    if (shouldShowFooter(state)) {
-      count += 1;
-    }
-    return count;
-  }
-
   Widget _buildItem(
       BuildContext context, int index, PaginationState<K, T> state) {
-    if (index >= state.items.length) {
+    final realCount = state.items.length;
+    final skeletonCount = skeletonLoadMoreCount(state);
+    final effectiveCount = realCount + skeletonCount;
+
+    if (index >= effectiveCount) {
       return buildFooter(state);
+    }
+    if (index >= realCount) {
+      return buildSkeletonItem(context, index);
     }
     return widget.itemBuilder(context, state.items[index], index);
   }
@@ -634,8 +635,10 @@ class _PaginationListViewState<K, T> extends State<PaginationListView<K, T>>
     int index,
     PaginationState<K, T> state,
   ) {
-    final itemCount = state.items.length;
-    final footerIndex = itemCount == 0 ? 0 : itemCount * 2 - 1;
+    final realCount = state.items.length;
+    final skeletonCount = skeletonLoadMoreCount(state);
+    final effectiveCount = realCount + skeletonCount;
+    final footerIndex = effectiveCount == 0 ? 0 : effectiveCount * 2 - 1;
 
     if (shouldShowFooter(state) && index >= footerIndex) {
       return buildFooter(state);
@@ -647,6 +650,9 @@ class _PaginationListViewState<K, T> extends State<PaginationListView<K, T>>
     }
 
     final itemIndex = index ~/ 2;
+    if (itemIndex >= realCount) {
+      return buildSkeletonItem(context, itemIndex);
+    }
     return widget.itemBuilder(context, state.items[itemIndex], itemIndex);
   }
 }

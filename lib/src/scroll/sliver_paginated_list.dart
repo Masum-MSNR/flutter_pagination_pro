@@ -367,13 +367,15 @@ class _SliverPaginatedListState<K, T> extends State<SliverPaginatedList<K, T>>
   Widget _buildSliverList(PaginationState<K, T> state) {
     final hasSeparator = widget.separatorBuilder != null;
     final hasFooter = shouldShowFooter(state);
+    final skeletonCount = skeletonLoadMoreCount(state);
+    final effectiveItemCount = state.items.length + skeletonCount;
 
     final int itemSlotCount;
     if (hasSeparator) {
       itemSlotCount =
-          state.items.isEmpty ? 0 : state.items.length * 2 - 1;
+          effectiveItemCount == 0 ? 0 : effectiveItemCount * 2 - 1;
     } else {
-      itemSlotCount = state.items.length;
+      itemSlotCount = effectiveItemCount;
     }
 
     final totalCount = itemSlotCount + (hasFooter ? 1 : 0);
@@ -391,10 +393,16 @@ class _SliverPaginatedListState<K, T> extends State<SliverPaginatedList<K, T>>
               return widget.separatorBuilder!(context, index ~/ 2);
             }
             final itemIndex = index ~/ 2;
+            if (itemIndex >= state.items.length) {
+              return buildSkeletonItem(context, itemIndex);
+            }
             return widget.itemBuilder(
                 context, state.items[itemIndex], itemIndex);
           }
 
+          if (index >= state.items.length) {
+            return buildSkeletonItem(context, index);
+          }
           return widget.itemBuilder(context, state.items[index], index);
         },
         childCount: totalCount,
