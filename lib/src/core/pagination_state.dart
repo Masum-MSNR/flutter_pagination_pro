@@ -20,6 +20,7 @@ class PaginationState<T> {
     this.status = PaginationStatus.initial,
     this.error,
     this.hasMorePages = true,
+    this.totalItems,
   }) : items = items ?? const [];
 
   /// The list of loaded items.
@@ -37,6 +38,13 @@ class PaginationState<T> {
   /// Whether there are more pages to load.
   final bool hasMorePages;
 
+  /// The total number of items available (from API metadata).
+  ///
+  /// This is `null` when the total is unknown. Set via
+  /// [PaginationController.setTotalItems] when your API provides
+  /// a total count in the response.
+  final int? totalItems;
+
   /// Creates a copy of this state with the given fields replaced.
   PaginationState<T> copyWith({
     List<T>? items,
@@ -45,6 +53,7 @@ class PaginationState<T> {
     Object? error,
     bool? hasMorePages,
     bool clearError = false,
+    int? totalItems,
   }) {
     return PaginationState<T>(
       items: items ?? this.items,
@@ -52,6 +61,7 @@ class PaginationState<T> {
       status: status ?? this.status,
       error: clearError ? null : (error ?? this.error),
       hasMorePages: hasMorePages ?? this.hasMorePages,
+      totalItems: totalItems ?? this.totalItems,
     );
   }
 
@@ -75,7 +85,8 @@ class PaginationState<T> {
         other.currentPage == currentPage &&
         other.status == status &&
         other.error == error &&
-        other.hasMorePages == hasMorePages;
+        other.hasMorePages == hasMorePages &&
+        other.totalItems == totalItems;
   }
 
   @override
@@ -85,6 +96,7 @@ class PaginationState<T> {
         status,
         error,
         hasMorePages,
+        totalItems,
       );
 
   @override
@@ -94,6 +106,7 @@ class PaginationState<T> {
         'currentPage: $currentPage, '
         'status: $status, '
         'hasMorePages: $hasMorePages, '
+        'totalItems: $totalItems, '
         'error: $error)';
   }
 }

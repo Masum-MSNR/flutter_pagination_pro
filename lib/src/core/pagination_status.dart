@@ -66,10 +66,7 @@ extension PaginationStatusX on PaginationStatus {
       };
 
   /// Whether in first page loading state (no items yet).
-  bool get isInitialLoading => switch (this) {
-        PaginationStatus.loadingFirstPage || PaginationStatus.refreshing => true,
-        _ => false,
-      };
+  bool get isInitialLoading => this == PaginationStatus.loadingFirstPage;
 
   /// Whether showing first page error (no items to show).
   bool get isFirstPageError => this == PaginationStatus.firstPageError;

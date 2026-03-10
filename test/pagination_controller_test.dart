@@ -199,7 +199,7 @@ void main() {
     test('isInitialLoading returns correct values', () {
       expect(PaginationStatus.initial.isInitialLoading, false);
       expect(PaginationStatus.loadingFirstPage.isInitialLoading, true);
-      expect(PaginationStatus.refreshing.isInitialLoading, true);
+      expect(PaginationStatus.refreshing.isInitialLoading, false);
     });
 
     test('isFirstPageError returns correct values', () {
@@ -218,19 +218,19 @@ void main() {
       const config = PaginationConfig.defaults;
 
       expect(config.initialPage, 1);
-      expect(config.invisibleItemsThreshold, 3);
+      expect(config.scrollThreshold, 200.0);
       expect(config.autoLoadFirstPage, true);
     });
 
     test('custom config works', () {
       const config = PaginationConfig(
         initialPage: 0,
-        invisibleItemsThreshold: 5,
+        scrollThreshold: 500.0,
         autoLoadFirstPage: false,
       );
 
       expect(config.initialPage, 0);
-      expect(config.invisibleItemsThreshold, 5);
+      expect(config.scrollThreshold, 500.0);
       expect(config.autoLoadFirstPage, false);
     });
   });

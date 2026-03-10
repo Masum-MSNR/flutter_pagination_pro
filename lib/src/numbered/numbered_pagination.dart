@@ -140,6 +140,50 @@ class NumberedPaginationConfig {
       nextIcon: nextIcon ?? this.nextIcon,
     );
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is NumberedPaginationConfig &&
+        other.selectedButtonColor == selectedButtonColor &&
+        other.unselectedButtonColor == unselectedButtonColor &&
+        other.selectedTextColor == selectedTextColor &&
+        other.unselectedTextColor == unselectedTextColor &&
+        other.navigationButtonColor == navigationButtonColor &&
+        other.navigationIconColor == navigationIconColor &&
+        other.disabledButtonColor == disabledButtonColor &&
+        other.disabledIconColor == disabledIconColor &&
+        other.buttonSize == buttonSize &&
+        other.spacing == spacing &&
+        other.borderRadius == borderRadius &&
+        other.elevation == elevation &&
+        other.fontSize == fontSize &&
+        other.fontWeight == fontWeight &&
+        other.showFirstLastButtons == showFirstLastButtons &&
+        other.showNavigationButtons == showNavigationButtons &&
+        other.navigationIconSize == navigationIconSize;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        selectedButtonColor,
+        unselectedButtonColor,
+        selectedTextColor,
+        unselectedTextColor,
+        navigationButtonColor,
+        navigationIconColor,
+        disabledButtonColor,
+        disabledIconColor,
+        buttonSize,
+        spacing,
+        borderRadius,
+        elevation,
+        fontSize,
+        fontWeight,
+        showFirstLastButtons,
+        showNavigationButtons,
+        navigationIconSize,
+      );
 }
 
 /// A numbered pagination widget for navigating between pages.
@@ -268,6 +312,7 @@ class NumberedPagination extends StatelessWidget {
             iconColor: isFirstPage || !enabled
                 ? disabledIconColor
                 : navigationIconColor,
+            semanticLabel: 'First page',
           ),
           SizedBox(width: config.spacing),
         ],
@@ -289,6 +334,7 @@ class NumberedPagination extends StatelessWidget {
             iconColor: isFirstPage || !enabled
                 ? disabledIconColor
                 : navigationIconColor,
+            semanticLabel: 'Previous page',
           ),
           SizedBox(width: config.spacing),
         ],
@@ -353,6 +399,7 @@ class NumberedPagination extends StatelessWidget {
             iconColor: isLastPage || !enabled
                 ? disabledIconColor
                 : navigationIconColor,
+            semanticLabel: 'Next page',
           ),
           SizedBox(width: config.spacing),
         ],
@@ -373,6 +420,7 @@ class NumberedPagination extends StatelessWidget {
             iconColor: isLastPage || !enabled
                 ? disabledIconColor
                 : navigationIconColor,
+            semanticLabel: 'Last page',
           ),
       ],
     );
@@ -449,23 +497,30 @@ class _PageButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: size,
-      height: size,
-      child: Material(
-        color: backgroundColor,
-        elevation: elevation,
-        borderRadius: BorderRadius.circular(borderRadius),
-        child: InkWell(
-          onTap: enabled && !isSelected ? onPressed : null,
+    return Semantics(
+      label: 'Page $page${isSelected ? ', current page' : ''}',
+      button: true,
+      selected: isSelected,
+      child: SizedBox(
+        width: size,
+        height: size,
+        child: Material(
+          color: backgroundColor,
+          elevation: elevation,
           borderRadius: BorderRadius.circular(borderRadius),
-          child: Center(
-            child: Text(
-              '$page',
-              style: TextStyle(
-                color: textColor,
-                fontSize: fontSize,
-                fontWeight: fontWeight,
+          child: InkWell(
+            onTap: enabled && !isSelected ? onPressed : null,
+            borderRadius: BorderRadius.circular(borderRadius),
+            child: Center(
+              child: ExcludeSemantics(
+                child: Text(
+                  '$page',
+                  style: TextStyle(
+                    color: textColor,
+                    fontSize: fontSize,
+                    fontWeight: fontWeight,
+                  ),
+                ),
               ),
             ),
           ),
@@ -484,6 +539,7 @@ class _NavigationButton extends StatelessWidget {
     required this.elevation,
     required this.color,
     required this.iconColor,
+    required this.semanticLabel,
   });
 
   final Widget icon;
@@ -493,23 +549,31 @@ class _NavigationButton extends StatelessWidget {
   final double elevation;
   final Color color;
   final Color iconColor;
+  final String semanticLabel;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: size,
-      height: size,
-      child: Material(
-        color: color,
-        elevation: elevation,
-        borderRadius: BorderRadius.circular(borderRadius),
-        child: InkWell(
-          onTap: onPressed,
+    return Semantics(
+      label: semanticLabel,
+      button: true,
+      enabled: onPressed != null,
+      child: SizedBox(
+        width: size,
+        height: size,
+        child: Material(
+          color: color,
+          elevation: elevation,
           borderRadius: BorderRadius.circular(borderRadius),
-          child: Center(
-            child: IconTheme(
-              data: IconThemeData(color: iconColor),
-              child: icon,
+          child: InkWell(
+            onTap: onPressed,
+            borderRadius: BorderRadius.circular(borderRadius),
+            child: Center(
+              child: ExcludeSemantics(
+                child: IconTheme(
+                  data: IconThemeData(color: iconColor),
+                  child: icon,
+                ),
+              ),
             ),
           ),
         ),

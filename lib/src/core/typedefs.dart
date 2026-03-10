@@ -38,6 +38,10 @@ typedef LoadMoreBuilder = Widget Function(
 );
 
 /// Callback when a page is successfully loaded.
+///
+/// [page] is the page number that was loaded.
+/// [items] contains only the **new** items loaded on that page,
+/// not the full accumulated list.
 typedef OnPageLoaded<T> = void Function(int page, List<T> items);
 
 /// Callback when an error occurs.

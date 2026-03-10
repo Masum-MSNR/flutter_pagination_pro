@@ -6,13 +6,8 @@ import 'package:flutter/material.dart';
 import '../core/pagination_controller.dart';
 import '../core/pagination_config.dart';
 import '../core/pagination_state.dart';
-import '../core/pagination_status.dart';
 import '../core/typedefs.dart';
-import '../widgets/default_loading.dart';
-import '../widgets/default_error.dart';
-import '../widgets/default_empty.dart';
-import '../widgets/default_end_of_list.dart';
-import '../widgets/default_load_more.dart';
+import 'pagination_state_mixin.dart';
 
 /// A [GridView] with built-in pagination support.
 ///
@@ -49,6 +44,7 @@ class PaginationGridView<T> extends StatefulWidget {
     this.loadMoreButtonBuilder,
     this.onPageLoaded,
     this.onError,
+    this.enablePullToRefresh = false,
     this.scrollController,
     this.scrollDirection = Axis.vertical,
     this.reverse = false,
@@ -61,8 +57,7 @@ class PaginationGridView<T> extends StatefulWidget {
     this.keyboardDismissBehavior = ScrollViewKeyboardDismissBehavior.manual,
     this.restorationId,
     this.clipBehavior = Clip.hardEdge,
-    this.mainAxisSpacing = 0.0,
-    this.crossAxisSpacing = 0.0,
+    this.findChildIndexCallback,
   })  : _controller = null,
         _externalController = false;
 
@@ -82,6 +77,7 @@ class PaginationGridView<T> extends StatefulWidget {
     this.loadMoreButtonBuilder,
     this.onPageLoaded,
     this.onError,
+    this.enablePullToRefresh = false,
     this.scrollController,
     this.scrollDirection = Axis.vertical,
     this.reverse = false,
@@ -94,8 +90,7 @@ class PaginationGridView<T> extends StatefulWidget {
     this.keyboardDismissBehavior = ScrollViewKeyboardDismissBehavior.manual,
     this.restorationId,
     this.clipBehavior = Clip.hardEdge,
-    this.mainAxisSpacing = 0.0,
-    this.crossAxisSpacing = 0.0,
+    this.findChildIndexCallback,
   })  : _controller = controller,
         _externalController = true,
         fetchPage = null,
@@ -130,8 +125,17 @@ class PaginationGridView<T> extends StatefulWidget {
   final LoadMoreBuilder? loadMoreButtonBuilder;
 
   // Callbacks
+  /// Called when a page is successfully loaded with only the new items.
   final OnPageLoaded<T>? onPageLoaded;
+
+  /// Called when an error occurs.
   final OnError? onError;
+
+  /// Whether pull-to-refresh is enabled.
+  ///
+  /// When true, wraps the grid in a [RefreshIndicator] that triggers
+  /// [PaginationController.refresh] on pull.
+  final bool enablePullToRefresh;
 
   // GridView properties
   final ScrollController? scrollController;
@@ -146,166 +150,94 @@ class PaginationGridView<T> extends StatefulWidget {
   final ScrollViewKeyboardDismissBehavior keyboardDismissBehavior;
   final String? restorationId;
   final Clip clipBehavior;
-  final double mainAxisSpacing;
-  final double crossAxisSpacing;
+
+  /// Optional callback to find a child's index by its key.
+  ///
+  /// Improves performance when items are inserted, removed, or reordered
+  /// by helping Flutter reuse existing widgets.
+  final ChildIndexGetter? findChildIndexCallback;
 
   @override
   State<PaginationGridView<T>> createState() => _PaginationGridViewState<T>();
 }
 
-class _PaginationGridViewState<T> extends State<PaginationGridView<T>> {
-  late PaginationController<T> _controller;
-  late ScrollController _scrollController;
-  bool _ownsScrollController = false;
+class _PaginationGridViewState<T> extends State<PaginationGridView<T>>
+    with PaginationStateMixin<T, PaginationGridView<T>> {
+  // ── Mixin bridge ────────────────────────────────────────────────────────
+
+  @override
+  PaginationController<T>? get widgetExternalController => widget._controller;
+  @override
+  bool get isExternalController => widget._externalController;
+  @override
+  FetchPage<T>? get widgetFetchPage => widget.fetchPage;
+  @override
+  PaginationConfig get widgetConfig => widget.config;
+  @override
+  PaginationType get widgetPaginationType => widget.paginationType;
+  @override
+  ScrollController? get widgetScrollController => widget.scrollController;
+  @override
+  bool get widgetEnablePullToRefresh => widget.enablePullToRefresh;
+  @override
+  LoadingBuilder? get widgetFirstPageLoadingBuilder =>
+      widget.firstPageLoadingBuilder;
+  @override
+  LoadingBuilder? get widgetLoadMoreLoadingBuilder =>
+      widget.loadMoreLoadingBuilder;
+  @override
+  ErrorBuilder? get widgetFirstPageErrorBuilder =>
+      widget.firstPageErrorBuilder;
+  @override
+  ErrorBuilder? get widgetLoadMoreErrorBuilder => widget.loadMoreErrorBuilder;
+  @override
+  EmptyBuilder? get widgetEmptyBuilder => widget.emptyBuilder;
+  @override
+  EndOfListBuilder? get widgetEndOfListBuilder => widget.endOfListBuilder;
+  @override
+  LoadMoreBuilder? get widgetLoadMoreButtonBuilder =>
+      widget.loadMoreButtonBuilder;
+  @override
+  OnPageLoaded<T>? get widgetOnPageLoaded => widget.onPageLoaded;
+  @override
+  OnError? get widgetOnError => widget.onError;
+
+  // ── Lifecycle ───────────────────────────────────────────────────────────
 
   @override
   void initState() {
     super.initState();
-    _initController();
-    _initScrollController();
-  }
-
-  void _initController() {
-    if (widget._externalController) {
-      _controller = widget._controller!;
-    } else {
-      _controller = PaginationController<T>(
-        fetchPage: widget.fetchPage!,
-        config: widget.config,
-      );
-    }
-
-    _controller.addListener(_onStateChanged);
-
-    if (widget.config.autoLoadFirstPage &&
-        _controller.status == PaginationStatus.initial) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _controller.loadFirstPage();
-      });
-    }
-  }
-
-  void _initScrollController() {
-    if (widget.scrollController != null) {
-      _scrollController = widget.scrollController!;
-    } else {
-      _scrollController = ScrollController();
-      _ownsScrollController = true;
-    }
-
-    if (widget.paginationType == PaginationType.infiniteScroll) {
-      _scrollController.addListener(_onScroll);
-    }
-  }
-
-  void _onStateChanged() {
-    final state = _controller.state;
-
-    if (state.status == PaginationStatus.loaded ||
-        state.status == PaginationStatus.completed) {
-      widget.onPageLoaded?.call(state.currentPage, state.items);
-    }
-
-    if (state.error != null && state.status.isError) {
-      widget.onError?.call(state.error!);
-    }
-
-    if (mounted) setState(() {});
-  }
-
-  void _onScroll() {
-    if (!_controller.status.canLoadMore || !_controller.hasMorePages) return;
-
-    final position = _scrollController.position;
-    final maxScroll = position.maxScrollExtent;
-    final currentScroll = position.pixels;
-    final threshold = widget.config.invisibleItemsThreshold * 150.0;
-
-    if (currentScroll >= maxScroll - threshold) {
-      _controller.loadNextPage();
-    }
+    initPagination();
   }
 
   @override
   void didUpdateWidget(covariant PaginationGridView<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
-
-    if (widget._externalController && widget._controller != oldWidget._controller) {
-      oldWidget._controller?.removeListener(_onStateChanged);
-      _controller = widget._controller!;
-      _controller.addListener(_onStateChanged);
-    }
-
-    if (widget.scrollController != oldWidget.scrollController) {
-      if (_ownsScrollController) {
-        _scrollController.removeListener(_onScroll);
-        _scrollController.dispose();
-        _ownsScrollController = false;
-      } else {
-        _scrollController.removeListener(_onScroll);
-      }
-      _initScrollController();
-    }
-
-    if (widget.paginationType != oldWidget.paginationType) {
-      if (oldWidget.paginationType == PaginationType.infiniteScroll) {
-        _scrollController.removeListener(_onScroll);
-      }
-      if (widget.paginationType == PaginationType.infiniteScroll) {
-        _scrollController.addListener(_onScroll);
-      }
-    }
+    didUpdatePagination(
+      oldExternalController: oldWidget._controller,
+      oldScrollController: oldWidget.scrollController,
+      oldPaginationType: oldWidget.paginationType,
+    );
   }
 
   @override
   void dispose() {
-    _controller.removeListener(_onStateChanged);
-    if (!widget._externalController) {
-      _controller.dispose();
-    }
-
-    _scrollController.removeListener(_onScroll);
-    if (_ownsScrollController) {
-      _scrollController.dispose();
-    }
-
+    disposePagination();
     super.dispose();
   }
 
+  // ── Build ───────────────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
-    final state = _controller.state;
-
-    if (state.status.isInitialLoading) {
-      return widget.firstPageLoadingBuilder?.call(context) ??
-          const DefaultFirstPageLoading();
-    }
-
-    if (state.status.isFirstPageError) {
-      return widget.firstPageErrorBuilder?.call(
-            context,
-            state.error!,
-            _controller.retry,
-          ) ??
-          DefaultFirstPageError(
-            error: state.error!,
-            onRetry: _controller.retry,
-          );
-    }
-
-    if (state.status.isEmpty) {
-      return widget.emptyBuilder?.call(context) ?? const DefaultEmpty();
-    }
-
-    return _buildGrid(state);
+    return buildPaginationState(contentBuilder: _buildGrid);
   }
 
   Widget _buildGrid(PaginationState<T> state) {
-    final hasFooter = _shouldShowFooter(state);
+    final hasFooter = shouldShowFooter(state);
 
-    // Use CustomScrollView with slivers for better footer handling
     return CustomScrollView(
-      controller: _scrollController,
+      controller: activeScrollController,
       scrollDirection: widget.scrollDirection,
       reverse: widget.reverse,
       primary: widget.primary,
@@ -328,6 +260,7 @@ class _PaginationGridViewState<T> extends State<PaginationGridView<T>> {
                 index,
               ),
               childCount: state.items.length,
+              findChildIndexCallback: widget.findChildIndexCallback,
             ),
           ),
         ),
@@ -335,64 +268,10 @@ class _PaginationGridViewState<T> extends State<PaginationGridView<T>> {
           SliverToBoxAdapter(
             child: Padding(
               padding: widget.padding ?? EdgeInsets.zero,
-              child: _buildFooter(state),
+              child: buildFooter(state),
             ),
           ),
       ],
     );
   }
-
-  bool _shouldShowFooter(PaginationState<T> state) {
-    return state.status == PaginationStatus.loadingMore ||
-        state.status == PaginationStatus.loadMoreError ||
-        state.status == PaginationStatus.completed ||
-        (widget.paginationType == PaginationType.loadMore &&
-            state.status == PaginationStatus.loaded &&
-            state.hasMorePages);
-  }
-
-  Widget _buildFooter(PaginationState<T> state) {
-    if (state.status == PaginationStatus.loadingMore) {
-      if (widget.paginationType == PaginationType.loadMore) {
-        return widget.loadMoreButtonBuilder?.call(context, () {}, true) ??
-            const DefaultLoadMoreButton(onPressed: _doNothing, isLoading: true);
-      }
-      return widget.loadMoreLoadingBuilder?.call(context) ??
-          const DefaultLoadMoreLoading();
-    }
-
-    if (state.status == PaginationStatus.loadMoreError) {
-      return widget.loadMoreErrorBuilder?.call(
-            context,
-            state.error!,
-            _controller.retry,
-          ) ??
-          DefaultLoadMoreError(
-            error: state.error!,
-            onRetry: _controller.retry,
-          );
-    }
-
-    if (state.status == PaginationStatus.completed) {
-      return widget.endOfListBuilder?.call(context) ?? const DefaultEndOfList();
-    }
-
-    if (widget.paginationType == PaginationType.loadMore &&
-        state.status == PaginationStatus.loaded &&
-        state.hasMorePages) {
-      return widget.loadMoreButtonBuilder?.call(
-            context,
-            _controller.loadNextPage,
-            false,
-          ) ??
-          DefaultLoadMoreButton(
-            onPressed: _controller.loadNextPage,
-            isLoading: false,
-          );
-    }
-
-    return const SizedBox.shrink();
-  }
-
-  static void _doNothing() {}
 }

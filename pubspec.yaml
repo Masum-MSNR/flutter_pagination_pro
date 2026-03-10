@@ -1,6 +1,6 @@
 name: flutter_pagination_pro
-description: "A lightweight Flutter pagination package supporting infinite scroll, load more button, and numbered pagination with zero dependencies."
-version: 0.0.1
+description: "Zero-dependency Flutter pagination: infinite scroll, load more button, grid view, slivers, and numbered pagination. Built-in loading/error/empty states, pull-to-refresh, cache-first initialItems, pageSize auto-detection, and totalItems tracking."
+version: 0.2.0
 homepage: https://github.com/Masum-MSNR/flutter_pagination_pro
 repository: https://github.com/Masum-MSNR/flutter_pagination_pro
 issue_tracker: https://github.com/Masum-MSNR/flutter_pagination_pro/issues
@@ -8,9 +8,9 @@ issue_tracker: https://github.com/Masum-MSNR/flutter_pagination_pro/issues
 topics:
   - pagination
   - infinite-scroll
-  - paging
-  - list
-  - ui
+  - lazy-loading
+  - listview
+  - gridview
 
 environment:
   sdk: ^3.0.0

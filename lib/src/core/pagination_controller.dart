@@ -37,12 +37,25 @@ class PaginationController<T> extends ValueNotifier<PaginationState<T>> {
   ///
   /// [fetchPage] is required and will be called to fetch each page.
   /// [config] provides pagination behavior settings.
+  /// [initialItems] optionally prepopulates the list with cached data,
+  /// skipping the initial load. The controller starts in
+  /// [PaginationStatus.loaded] state at [PaginationConfig.initialPage].
   PaginationController({
     required FetchPage<T> fetchPage,
     PaginationConfig config = PaginationConfig.defaults,
+    List<T>? initialItems,
   })  : _fetchPage = fetchPage,
         _config = config,
-        super(PaginationState<T>());
+        super(
+          initialItems != null && initialItems.isNotEmpty
+              ? PaginationState<T>(
+                  items: List<T>.of(initialItems),
+                  currentPage: config.initialPage,
+                  status: PaginationStatus.loaded,
+                  hasMorePages: true,
+                )
+              : PaginationState<T>(),
+        );
 
   final FetchPage<T> _fetchPage;
   final PaginationConfig _config;
@@ -98,11 +111,15 @@ class PaginationController<T> extends ValueNotifier<PaginationState<T>> {
           hasMorePages: false,
         );
       } else {
+        final isLastPage =
+            _config.pageSize != null && items.length < _config.pageSize!;
         value = PaginationState<T>(
           items: items,
           currentPage: _config.initialPage,
-          status: PaginationStatus.loaded,
-          hasMorePages: true,
+          status: isLastPage
+              ? PaginationStatus.completed
+              : PaginationStatus.loaded,
+          hasMorePages: !isLastPage,
         );
       }
     } catch (error) {
@@ -147,10 +164,15 @@ class PaginationController<T> extends ValueNotifier<PaginationState<T>> {
           hasMorePages: false,
         );
       } else {
+        final isLastPage =
+            _config.pageSize != null && newItems.length < _config.pageSize!;
         value = value.copyWith(
           items: [...value.items, ...newItems],
           currentPage: nextPage,
-          status: PaginationStatus.loaded,
+          status: isLastPage
+              ? PaginationStatus.completed
+              : PaginationStatus.loaded,
+          hasMorePages: !isLastPage,
         );
       }
     } catch (error) {
@@ -192,11 +214,15 @@ class PaginationController<T> extends ValueNotifier<PaginationState<T>> {
           hasMorePages: false,
         );
       } else {
+        final isLastPage =
+            _config.pageSize != null && items.length < _config.pageSize!;
         value = PaginationState<T>(
           items: items,
           currentPage: _config.initialPage,
-          status: PaginationStatus.loaded,
-          hasMorePages: true,
+          status: isLastPage
+              ? PaginationStatus.completed
+              : PaginationStatus.loaded,
+          hasMorePages: !isLastPage,
         );
       }
     } catch (error) {
@@ -219,6 +245,32 @@ class PaginationController<T> extends ValueNotifier<PaginationState<T>> {
     } else if (value.status == PaginationStatus.loadMoreError) {
       return loadNextPage();
     }
+  }
+
+  /// Sets the total number of items available.
+  ///
+  /// Call this when your API provides a total count in the response.
+  /// Automatically adjusts [hasMorePages] and transitions to
+  /// [PaginationStatus.completed] when all items have been loaded.
+  ///
+  /// ```dart
+  /// PaginationListView<User>.withController(
+  ///   controller: controller,
+  ///   onPageLoaded: (page, items) {
+  ///     controller.setTotalItems(apiTotalFromResponse);
+  ///   },
+  ///   itemBuilder: (context, user, index) => UserTile(user: user),
+  /// )
+  /// ```
+  void setTotalItems(int total) {
+    final allLoaded = value.items.length >= total;
+    value = value.copyWith(
+      totalItems: total,
+      hasMorePages: !allLoaded,
+      status: allLoaded && value.status == PaginationStatus.loaded
+          ? PaginationStatus.completed
+          : null,
+    );
   }
 
   /// Resets the controller to initial state.

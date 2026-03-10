@@ -1,5 +1,3 @@
-# Flutter Pagination Pro
-
 <p align="center">
   <img src="https://raw.githubusercontent.com/Masum-MSNR/flutter_pagination_pro/main/images/logo.png" alt="Flutter Pagination Pro" width="120"/>
 </p>
@@ -11,303 +9,176 @@
 </p>
 
 <p align="center">
-A lightweight, zero-dependency Flutter pagination package.<br/>
-Supports <b>infinite scroll</b>, <b>load more button</b>, and <b>numbered pagination</b>.
+A lightweight, <b>zero-dependency</b> Flutter pagination package.<br/>
+Infinite scroll, load more, grid, slivers, numbered pages — all in one.
 </p>
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/Masum-MSNR/flutter_pagination_pro/main/images/preview.png" alt="Flutter Pagination Pro Preview" width="700"/>
 </p>
 
-## Features
+## Why This Package?
 
-- 🚀 **Zero dependencies** - Pure Flutter, no external packages
-- 📜 **Infinite Scroll** - Auto-loads when scrolling near the bottom
-- 🔘 **Load More Button** - Manual trigger for loading next page
-- 🔢 **Numbered Pagination** - Traditional page navigation
-- 🎨 **Fully Customizable** - Override any widget (loading, error, empty states)
-- 🔄 **Controller Support** - Programmatic refresh, retry, and state access
-- ✅ **Type-safe** - Generic type support for your data models
-- 📱 **Cross-platform** - Works on iOS, Android, Web, macOS, Windows, Linux
-
-## Installation
-
-Add to your `pubspec.yaml`:
-
-```yaml
-dependencies:
-  flutter_pagination_pro: ^latest
-```
-
-Then run:
-
-```bash
-flutter pub get
-```
+| Feature | flutter_pagination_pro | infinite_scroll_pagination |
+|---------|:---------------------:|:--------------------------:|
+| Zero dependencies | ✅ | ❌ (sliver_tools) |
+| ListView + GridView | ✅ | ✅ |
+| Sliver variants | ✅ | ✅ |
+| Numbered pagination | ✅ | ❌ |
+| Load more button mode | ✅ | ❌ |
+| Pull-to-refresh | ✅ built-in | Manual |
+| `initialItems` (cache-first) | ✅ | ❌ |
+| `pageSize` auto last-page | ✅ | ❌ |
+| `totalItems` tracking | ✅ | ❌ |
+| `findChildIndexCallback` | ✅ | ✅ |
+| Separator support | ✅ | ✅ |
+| Item mutation helpers | ✅ (`updateItems`, `removeWhere`, `insertItem`) | ❌ |
+| Type-safe generics | ✅ | ✅ |
+| Accessibility (semantics) | ✅ | Partial |
 
 ## Quick Start
 
-### Infinite Scroll (Default)
+```yaml
+dependencies:
+  flutter_pagination_pro: ^0.2.0
+```
 
-The simplest way to add pagination - items load automatically as user scrolls:
+### 3 Lines to Paginated List
 
 ```dart
 PaginationListView<User>(
   fetchPage: (page) => api.getUsers(page: page),
-  itemBuilder: (context, user, index) => ListTile(
-    leading: CircleAvatar(child: Text(user.name[0])),
-    title: Text(user.name),
-    subtitle: Text(user.email),
-  ),
+  itemBuilder: (context, user, index) => ListTile(title: Text(user.name)),
 )
 ```
 
-### Load More Button
+That's it. Handles loading, errors, empty state, and infinite scroll automatically.
 
-Let users control when to load more items:
+## All Modes
 
 ```dart
+// Grid
+PaginationGridView<Photo>(
+  fetchPage: (page) => api.getPhotos(page: page),
+  itemBuilder: (context, photo, index) => PhotoCard(photo: photo),
+  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
+)
+
+// Load More Button
 PaginationListView<User>(
   fetchPage: (page) => api.getUsers(page: page),
   itemBuilder: (context, user, index) => UserCard(user: user),
   paginationType: PaginationType.loadMore,
 )
-```
 
-### Grid View
-
-Perfect for image galleries, product listings, etc:
-
-```dart
-PaginationGridView<Photo>(
-  fetchPage: (page) => api.getPhotos(page: page),
-  itemBuilder: (context, photo, index) => PhotoCard(photo: photo),
-  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-    crossAxisCount: 2,
-    mainAxisSpacing: 8,
-    crossAxisSpacing: 8,
-  ),
-)
-```
-
-### Numbered Pagination
-
-Traditional page navigation with page numbers:
-
-```dart
+// Numbered Pagination
 NumberedPagination(
   totalPages: 20,
-  currentPage: _currentPage,
-  onPageChanged: (page) => setState(() => _currentPage = page),
+  currentPage: _page,
+  onPageChanged: (page) => setState(() => _page = page),
 )
 ```
 
-## Using Controller
-
-For programmatic control over pagination (refresh, retry, access state):
+## Slivers (CustomScrollView)
 
 ```dart
-class _MyPageState extends State<MyPage> {
-  late final PaginationController<User> _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = PaginationController<User>(
-      fetchPage: (page) => api.getUsers(page: page),
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Users'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.refresh),
-            onPressed: () => _controller.refresh(),
-          ),
-        ],
-      ),
-      body: PaginationListView<User>.withController(
-        controller: _controller,
-        itemBuilder: (context, user, index) => UserTile(user: user),
-      ),
-    );
-  }
-}
+CustomScrollView(
+  controller: scrollController,
+  slivers: [
+    SliverAppBar(title: Text('Users'), floating: true),
+    SliverPaginatedList<User>(
+      controller: controller,
+      scrollController: scrollController,
+      itemBuilder: (context, user, index) => ListTile(title: Text(user.name)),
+    ),
+  ],
+)
 ```
 
-### Controller Methods
+`SliverPaginatedGrid` works the same way — just add a `gridDelegate`.
+
+## Controller
+
+```dart
+final controller = PaginationController<User>(
+  fetchPage: (page) => api.getUsers(page: page),
+  config: PaginationConfig(pageSize: 20),  // auto-detects last page
+  initialItems: cachedUsers,                // show cached data instantly
+);
+
+// Use with widget
+PaginationListView<User>.withController(
+  controller: controller,
+  itemBuilder: (context, user, index) => UserTile(user: user),
+)
+```
 
 | Method | Description |
 |--------|-------------|
-| `refresh()` | Clear all items and reload from first page |
-| `retry()` | Retry the last failed request |
-| `reset()` | Reset to initial state |
-| `loadNextPage()` | Manually trigger loading next page |
-
-### Controller Properties
+| `refresh()` | Reload from first page (items stay visible) |
+| `retry()` | Retry last failed request |
+| `reset()` | Clear everything to initial state |
+| `loadNextPage()` | Manually trigger next page |
+| `setTotalItems(n)` | Set total for "Showing X of Y" + auto-complete |
+| `updateItems(fn)` | Transform items in-place |
+| `removeWhere(fn)` | Remove matching items |
+| `insertItem(i, item)` | Insert at index |
+| `removeItemAt(i)` | Remove at index |
+| `updateItemAt(i, item)` | Replace item at index |
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `items` | `List<T>` | Current loaded items |
+| `items` | `List<T>` | All loaded items |
 | `currentPage` | `int` | Current page number |
-| `hasMorePages` | `bool` | Whether more pages are available |
-| `status` | `PaginationStatus` | Current pagination status |
-| `error` | `Object?` | Last error if any |
+| `status` | `PaginationStatus` | Current state |
+| `hasMorePages` | `bool` | More pages available? |
+| `state.totalItems` | `int?` | Total from API (if set) |
 
 ## Customization
 
-### Custom Loading Widget
+Override any state widget:
 
 ```dart
 PaginationListView<User>(
   fetchPage: (page) => api.getUsers(page: page),
   itemBuilder: (context, user, index) => UserTile(user: user),
-  firstPageLoadingBuilder: (context) => Center(
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        CircularProgressIndicator(),
-        SizedBox(height: 16),
-        Text('Loading users...'),
-      ],
-    ),
-  ),
+  firstPageLoadingBuilder: (context) => MyShimmer(),
+  firstPageErrorBuilder: (context, error, retry) => MyErrorWidget(error, retry),
+  emptyBuilder: (context) => MyEmptyState(),
+  loadMoreLoadingBuilder: (context) => MyLoadingSpinner(),
+  loadMoreErrorBuilder: (context, error, retry) => MyRetryBar(error, retry),
+  endOfListBuilder: (context) => Text('All caught up!'),
+  enablePullToRefresh: true,
+  separatorBuilder: (context, index) => Divider(),
 )
 ```
 
-### Custom Error Widget
-
-```dart
-PaginationListView<User>(
-  fetchPage: (page) => api.getUsers(page: page),
-  itemBuilder: (context, user, index) => UserTile(user: user),
-  firstPageErrorBuilder: (context, error, onRetry) => Center(
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(Icons.error, size: 64, color: Colors.red),
-        SizedBox(height: 16),
-        Text('Failed to load: $error'),
-        SizedBox(height: 16),
-        ElevatedButton(
-          onPressed: onRetry,
-          child: Text('Try Again'),
-        ),
-      ],
-    ),
-  ),
-)
-```
-
-### Custom Empty State
-
-```dart
-PaginationListView<User>(
-  fetchPage: (page) => api.getUsers(page: page),
-  itemBuilder: (context, user, index) => UserTile(user: user),
-  emptyBuilder: (context) => Center(
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(Icons.inbox, size: 64, color: Colors.grey),
-        SizedBox(height: 16),
-        Text('No users found'),
-      ],
-    ),
-  ),
-)
-```
-
-### Custom Load More Button
-
-```dart
-PaginationListView<User>(
-  fetchPage: (page) => api.getUsers(page: page),
-  itemBuilder: (context, user, index) => UserTile(user: user),
-  paginationType: PaginationType.loadMore,
-  loadMoreButtonBuilder: (context, onLoadMore, isLoading) => Padding(
-    padding: EdgeInsets.all(16),
-    child: ElevatedButton(
-      onPressed: isLoading ? null : onLoadMore,
-      child: isLoading
-          ? SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            )
-          : Text('Load More'),
-    ),
-  ),
-)
-```
-
-## Parameters
-
-### PaginationListView / PaginationGridView
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `fetchPage` | `FetchPage<T>` | required | Function to fetch items for a page |
-| `itemBuilder` | `ItemBuilder<T>` | required | Builds widget for each item |
-| `paginationType` | `PaginationType` | `infiniteScroll` | Pagination mode |
-| `config` | `PaginationConfig` | defaults | Pagination settings |
-| `separatorBuilder` | `SeparatorBuilder?` | `null` | Separator between items (ListView only) |
-| `scrollController` | `ScrollController?` | `null` | Custom scroll controller |
-| `firstPageLoadingBuilder` | `LoadingBuilder?` | `null` | Custom first page loading widget |
-| `loadMoreLoadingBuilder` | `LoadingBuilder?` | `null` | Custom load more indicator |
-| `firstPageErrorBuilder` | `ErrorBuilder?` | `null` | Custom first page error widget |
-| `loadMoreErrorBuilder` | `ErrorBuilder?` | `null` | Custom load more error widget |
-| `emptyBuilder` | `EmptyBuilder?` | `null` | Custom empty state widget |
-| `endOfListBuilder` | `EndOfListBuilder?` | `null` | Custom end of list widget |
-| `loadMoreButtonBuilder` | `LoadMoreBuilder?` | `null` | Custom load more button |
-| `onPageLoaded` | `OnPageLoaded<T>?` | `null` | Callback when page loads |
-| `onError` | `OnError?` | `null` | Callback on error |
+## Configuration
 
 ### PaginationConfig
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `pageSize` | `int` | `20` | Items per page |
-| `firstPage` | `int` | `1` | Starting page number |
-| `loadMoreThreshold` | `double` | `200.0` | Pixels from bottom to trigger load |
-| `initialPage` | `int?` | `null` | Initial page to load |
-
-### NumberedPagination
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `totalPages` | `int` | required | Total number of pages |
-| `currentPage` | `int` | required | Current active page |
-| `onPageChanged` | `ValueChanged<int>` | required | Page change callback |
-| `visiblePages` | `int` | `5` | Number of visible page buttons |
-| `config` | `NumberedPaginationConfig` | defaults | Styling configuration |
+| Param | Default | Description |
+|-------|---------|-------------|
+| `initialPage` | `1` | Starting page number |
+| `scrollThreshold` | `200.0` | Pixels from bottom to trigger load |
+| `autoLoadFirstPage` | `true` | Auto-load on build |
+| `pageSize` | `null` | Items per page — auto-detects last page |
 
 ### NumberedPaginationConfig
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `buttonSize` | `double` | `40` | Size of page buttons |
-| `spacing` | `double` | `4` | Space between buttons |
-| `showFirstLastButtons` | `bool` | `true` | Show first/last page buttons |
-| `selectedButtonColor` | `Color?` | primary | Selected button background |
-| `unselectedButtonColor` | `Color?` | surface | Unselected button background |
-| `selectedTextColor` | `Color?` | onPrimary | Selected button text color |
-| `unselectedTextColor` | `Color?` | onSurface | Unselected button text color |
+| Param | Default | Description |
+|-------|---------|-------------|
+| `buttonSize` | `40` | Page button size |
+| `spacing` | `4` | Button spacing |
+| `borderRadius` | `8` | Button border radius |
+| `showFirstLastButtons` | `true` | Show ⏮ ⏭ buttons |
+| `showNavigationButtons` | `true` | Show ◀ ▶ buttons |
+| `selectedButtonColor` | `primary` | Active page color |
 
 ## Example
 
-Check out the [example](example/) directory for a complete demo app showcasing all features.
+See the [example](example/) app for a complete demo with all modes.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT — see [LICENSE](LICENSE).

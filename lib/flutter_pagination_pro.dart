@@ -69,6 +69,10 @@ export 'src/core/typedefs.dart';
 export 'src/scroll/pagination_list_view.dart';
 export 'src/scroll/pagination_grid_view.dart';
 
+// Sliver-based pagination (for CustomScrollView)
+export 'src/scroll/sliver_paginated_list.dart';
+export 'src/scroll/sliver_paginated_grid.dart';
+
 // Numbered pagination
 export 'src/numbered/numbered_pagination.dart';
 

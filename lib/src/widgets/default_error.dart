@@ -110,8 +110,10 @@ class DefaultLoadMoreError extends StatelessWidget {
           const SizedBox(width: 8),
           Flexible(
             child: Text(
-              'Failed to load more',
+              _formatError(error),
               style: theme.textTheme.bodyMedium,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
           const SizedBox(width: 8),
@@ -122,5 +124,13 @@ class DefaultLoadMoreError extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _formatError(Object error) {
+    final message = error.toString();
+    if (message.startsWith('Exception: ')) {
+      return message.substring(11);
+    }
+    return message;
   }
 }

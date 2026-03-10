@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_pagination_pro/flutter_pagination_pro.dart';
@@ -13,27 +15,28 @@ void main() {
     }
 
     testWidgets('shows loading indicator initially', (tester) async {
+      final completer = Completer<List<String>>();
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: PaginationListView<String>(
-              fetchPage: (page) async {
-                // Long delay to catch loading state
-                await Future<void>.delayed(const Duration(seconds: 10));
-                return [];
-              },
-              itemBuilder: (context, item, index) => ListTile(title: Text(item)),
-              config: const PaginationConfig(autoLoadFirstPage: false),
+              fetchPage: (_) => completer.future,
+              itemBuilder: (context, item, index) =>
+                  ListTile(title: Text(item)),
             ),
           ),
         ),
       );
 
-      // Manually trigger load
+      // First frame triggers loadFirstPage via post-frame callback
       await tester.pump();
 
-      // Should not be in loading state yet since autoLoadFirstPage is false
-      // The widget should be in initial state
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+      // Clean up
+      completer.complete([]);
+      await tester.pumpAndSettle();
     });
 
     testWidgets('displays items after loading', (tester) async {

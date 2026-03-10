@@ -6,13 +6,8 @@ import 'package:flutter/material.dart';
 import '../core/pagination_controller.dart';
 import '../core/pagination_config.dart';
 import '../core/pagination_state.dart';
-import '../core/pagination_status.dart';
 import '../core/typedefs.dart';
-import '../widgets/default_loading.dart';
-import '../widgets/default_error.dart';
-import '../widgets/default_empty.dart';
-import '../widgets/default_end_of_list.dart';
-import '../widgets/default_load_more.dart';
+import 'pagination_state_mixin.dart';
 
 /// A [ListView] with built-in pagination support.
 ///
@@ -75,6 +70,7 @@ class PaginationListView<T> extends StatefulWidget {
     this.loadMoreButtonBuilder,
     this.onPageLoaded,
     this.onError,
+    this.enablePullToRefresh = false,
     this.scrollController,
     this.scrollDirection = Axis.vertical,
     this.reverse = false,
@@ -87,6 +83,7 @@ class PaginationListView<T> extends StatefulWidget {
     this.keyboardDismissBehavior = ScrollViewKeyboardDismissBehavior.manual,
     this.restorationId,
     this.clipBehavior = Clip.hardEdge,
+    this.findChildIndexCallback,
   })  : _controller = null,
         _externalController = false;
 
@@ -108,6 +105,7 @@ class PaginationListView<T> extends StatefulWidget {
     this.loadMoreButtonBuilder,
     this.onPageLoaded,
     this.onError,
+    this.enablePullToRefresh = false,
     this.scrollController,
     this.scrollDirection = Axis.vertical,
     this.reverse = false,
@@ -120,6 +118,7 @@ class PaginationListView<T> extends StatefulWidget {
     this.keyboardDismissBehavior = ScrollViewKeyboardDismissBehavior.manual,
     this.restorationId,
     this.clipBehavior = Clip.hardEdge,
+    this.findChildIndexCallback,
   })  : _controller = controller,
         _externalController = true,
         fetchPage = null,
@@ -167,11 +166,17 @@ class PaginationListView<T> extends StatefulWidget {
   final LoadMoreBuilder? loadMoreButtonBuilder;
 
   // Callbacks
-  /// Called when a page is successfully loaded.
+  /// Called when a page is successfully loaded with only the new items.
   final OnPageLoaded<T>? onPageLoaded;
 
   /// Called when an error occurs.
   final OnError? onError;
+
+  /// Whether pull-to-refresh is enabled.
+  ///
+  /// When true, wraps the list in a [RefreshIndicator] that triggers
+  /// [PaginationController.refresh] on pull.
+  final bool enablePullToRefresh;
 
   // ListView properties
   final ScrollController? scrollController;
@@ -187,186 +192,106 @@ class PaginationListView<T> extends StatefulWidget {
   final String? restorationId;
   final Clip clipBehavior;
 
+  /// Optional callback to find a child's index by its key.
+  ///
+  /// Improves performance when items are inserted, removed, or reordered
+  /// by helping Flutter reuse existing widgets. When [separatorBuilder] is
+  /// used, your callback should return the **item** index (0, 1, 2…) —
+  /// the package automatically maps to delegate indices.
+  final ChildIndexGetter? findChildIndexCallback;
+
   @override
   State<PaginationListView<T>> createState() => _PaginationListViewState<T>();
 }
 
-class _PaginationListViewState<T> extends State<PaginationListView<T>> {
-  late PaginationController<T> _controller;
-  late ScrollController _scrollController;
-  bool _ownsScrollController = false;
+class _PaginationListViewState<T> extends State<PaginationListView<T>>
+    with PaginationStateMixin<T, PaginationListView<T>> {
+  // ── Mixin bridge ────────────────────────────────────────────────────────
+
+  @override
+  PaginationController<T>? get widgetExternalController => widget._controller;
+  @override
+  bool get isExternalController => widget._externalController;
+  @override
+  FetchPage<T>? get widgetFetchPage => widget.fetchPage;
+  @override
+  PaginationConfig get widgetConfig => widget.config;
+  @override
+  PaginationType get widgetPaginationType => widget.paginationType;
+  @override
+  ScrollController? get widgetScrollController => widget.scrollController;
+  @override
+  bool get widgetEnablePullToRefresh => widget.enablePullToRefresh;
+  @override
+  LoadingBuilder? get widgetFirstPageLoadingBuilder =>
+      widget.firstPageLoadingBuilder;
+  @override
+  LoadingBuilder? get widgetLoadMoreLoadingBuilder =>
+      widget.loadMoreLoadingBuilder;
+  @override
+  ErrorBuilder? get widgetFirstPageErrorBuilder =>
+      widget.firstPageErrorBuilder;
+  @override
+  ErrorBuilder? get widgetLoadMoreErrorBuilder => widget.loadMoreErrorBuilder;
+  @override
+  EmptyBuilder? get widgetEmptyBuilder => widget.emptyBuilder;
+  @override
+  EndOfListBuilder? get widgetEndOfListBuilder => widget.endOfListBuilder;
+  @override
+  LoadMoreBuilder? get widgetLoadMoreButtonBuilder =>
+      widget.loadMoreButtonBuilder;
+  @override
+  OnPageLoaded<T>? get widgetOnPageLoaded => widget.onPageLoaded;
+  @override
+  OnError? get widgetOnError => widget.onError;
+
+  // ── Lifecycle ───────────────────────────────────────────────────────────
 
   @override
   void initState() {
     super.initState();
-    _initController();
-    _initScrollController();
-  }
-
-  void _initController() {
-    if (widget._externalController) {
-      _controller = widget._controller!;
-    } else {
-      _controller = PaginationController<T>(
-        fetchPage: widget.fetchPage!,
-        config: widget.config,
-      );
-    }
-
-    _controller.addListener(_onStateChanged);
-
-    // Auto load first page
-    if (widget.config.autoLoadFirstPage &&
-        _controller.status == PaginationStatus.initial) {
-      // Use post-frame callback to avoid calling during build
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _controller.loadFirstPage();
-      });
-    }
-  }
-
-  void _initScrollController() {
-    if (widget.scrollController != null) {
-      _scrollController = widget.scrollController!;
-    } else {
-      _scrollController = ScrollController();
-      _ownsScrollController = true;
-    }
-
-    if (widget.paginationType == PaginationType.infiniteScroll) {
-      _scrollController.addListener(_onScroll);
-    }
-  }
-
-  void _onStateChanged() {
-    final state = _controller.state;
-
-    // Notify callbacks
-    if (state.status == PaginationStatus.loaded ||
-        state.status == PaginationStatus.completed) {
-      widget.onPageLoaded?.call(state.currentPage, state.items);
-    }
-
-    if (state.error != null && state.status.isError) {
-      widget.onError?.call(state.error!);
-    }
-
-    // Trigger rebuild
-    if (mounted) setState(() {});
-  }
-
-  void _onScroll() {
-    if (!_controller.status.canLoadMore || !_controller.hasMorePages) return;
-
-    final position = _scrollController.position;
-    final maxScroll = position.maxScrollExtent;
-    final currentScroll = position.pixels;
-    final threshold = widget.config.invisibleItemsThreshold * 56.0; // Approximate item height
-
-    if (currentScroll >= maxScroll - threshold) {
-      _controller.loadNextPage();
-    }
+    initPagination();
   }
 
   @override
   void didUpdateWidget(covariant PaginationListView<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
-
-    // Handle controller changes
-    if (widget._externalController && widget._controller != oldWidget._controller) {
-      oldWidget._controller?.removeListener(_onStateChanged);
-      _controller = widget._controller!;
-      _controller.addListener(_onStateChanged);
-    }
-
-    // Handle scroll controller changes
-    if (widget.scrollController != oldWidget.scrollController) {
-      if (_ownsScrollController) {
-        _scrollController.removeListener(_onScroll);
-        _scrollController.dispose();
-        _ownsScrollController = false;
-      } else {
-        _scrollController.removeListener(_onScroll);
-      }
-      _initScrollController();
-    }
-
-    // Handle pagination type changes
-    if (widget.paginationType != oldWidget.paginationType) {
-      if (oldWidget.paginationType == PaginationType.infiniteScroll) {
-        _scrollController.removeListener(_onScroll);
-      }
-      if (widget.paginationType == PaginationType.infiniteScroll) {
-        _scrollController.addListener(_onScroll);
-      }
-    }
+    didUpdatePagination(
+      oldExternalController: oldWidget._controller,
+      oldScrollController: oldWidget.scrollController,
+      oldPaginationType: oldWidget.paginationType,
+    );
   }
 
   @override
   void dispose() {
-    _controller.removeListener(_onStateChanged);
-    if (!widget._externalController) {
-      _controller.dispose();
-    }
-
-    _scrollController.removeListener(_onScroll);
-    if (_ownsScrollController) {
-      _scrollController.dispose();
-    }
-
+    disposePagination();
     super.dispose();
   }
 
+  // ── Build ───────────────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
-    final state = _controller.state;
-
-    // Handle first page loading
-    if (state.status.isInitialLoading) {
-      return widget.firstPageLoadingBuilder?.call(context) ??
-          const DefaultFirstPageLoading();
-    }
-
-    // Handle first page error
-    if (state.status.isFirstPageError) {
-      return widget.firstPageErrorBuilder?.call(
-            context,
-            state.error!,
-            _controller.retry,
-          ) ??
-          DefaultFirstPageError(
-            error: state.error!,
-            onRetry: _controller.retry,
-          );
-    }
-
-    // Handle empty state
-    if (state.status.isEmpty) {
-      return widget.emptyBuilder?.call(context) ?? const DefaultEmpty();
-    }
-
-    // Build the list
-    return _buildList(state);
+    return buildPaginationState(contentBuilder: _buildList);
   }
 
   Widget _buildList(PaginationState<T> state) {
     final itemCount = _calculateItemCount(state);
     final hasSeparator = widget.separatorBuilder != null;
 
-    // Calculate total count for separated list
-    // items * 2 - 1 (for separators between items) but only if there are items
-    // then add 1 for footer if needed
     int totalCount;
     if (hasSeparator) {
-      final itemsWithSeparators = state.items.isEmpty ? 0 : state.items.length * 2 - 1;
-      final footerCount = _shouldShowFooter(state) ? 1 : 0;
+      final itemsWithSeparators =
+          state.items.isEmpty ? 0 : state.items.length * 2 - 1;
+      final footerCount = shouldShowFooter(state) ? 1 : 0;
       totalCount = itemsWithSeparators + footerCount;
     } else {
       totalCount = itemCount;
     }
 
     return ListView.builder(
-      controller: _scrollController,
+      controller: activeScrollController,
       scrollDirection: widget.scrollDirection,
       reverse: widget.reverse,
       primary: widget.primary,
@@ -378,6 +303,13 @@ class _PaginationListViewState<T> extends State<PaginationListView<T>> {
       keyboardDismissBehavior: widget.keyboardDismissBehavior,
       restorationId: widget.restorationId,
       clipBehavior: widget.clipBehavior,
+      findChildIndexCallback:
+          widget.findChildIndexCallback != null && hasSeparator
+              ? (Key key) {
+                  final itemIndex = widget.findChildIndexCallback!(key);
+                  return itemIndex != null ? itemIndex * 2 : null;
+                }
+              : widget.findChildIndexCallback,
       itemCount: totalCount,
       itemBuilder: (context, index) {
         if (hasSeparator) {
@@ -390,104 +322,37 @@ class _PaginationListViewState<T> extends State<PaginationListView<T>> {
 
   int _calculateItemCount(PaginationState<T> state) {
     int count = state.items.length;
-
-    // Add 1 for footer (loading, error, end of list, or load more button)
-    if (_shouldShowFooter(state)) {
+    if (shouldShowFooter(state)) {
       count += 1;
     }
-
     return count;
   }
 
-  bool _shouldShowFooter(PaginationState<T> state) {
-    return state.status == PaginationStatus.loadingMore ||
-        state.status == PaginationStatus.loadMoreError ||
-        state.status == PaginationStatus.completed ||
-        (widget.paginationType == PaginationType.loadMore &&
-            state.status == PaginationStatus.loaded &&
-            state.hasMorePages);
-  }
-
   Widget _buildItem(BuildContext context, int index, PaginationState<T> state) {
-    // Footer item
     if (index >= state.items.length) {
-      return _buildFooter(state);
+      return buildFooter(state);
     }
-
-    // Regular item
     return widget.itemBuilder(context, state.items[index], index);
   }
 
-  Widget _buildSeparatedItem(BuildContext context, int index, PaginationState<T> state) {
+  Widget _buildSeparatedItem(
+    BuildContext context,
+    int index,
+    PaginationState<T> state,
+  ) {
     final itemCount = state.items.length;
-    
-    // With separators: items at even indices (0, 2, 4, ...), separators at odd indices (1, 3, 5, ...)
-    // Total items + separators = itemCount * 2 - 1 (e.g., 15 items = 29 positions: 0-28)
-    // Footer comes at index itemCount * 2 - 1 if there are items, else at 0
     final footerIndex = itemCount == 0 ? 0 : itemCount * 2 - 1;
 
-    // Footer item - comes after all items and separators
-    if (_shouldShowFooter(state) && index >= footerIndex) {
-      return _buildFooter(state);
+    if (shouldShowFooter(state) && index >= footerIndex) {
+      return buildFooter(state);
     }
 
-    // Check if it's a separator (odd indices are separators)
     if (index.isOdd) {
       final separatorIndex = index ~/ 2;
       return widget.separatorBuilder!(context, separatorIndex);
     }
 
-    // Regular item (even indices)
     final itemIndex = index ~/ 2;
     return widget.itemBuilder(context, state.items[itemIndex], itemIndex);
   }
-
-  Widget _buildFooter(PaginationState<T> state) {
-    // Loading more
-    if (state.status == PaginationStatus.loadingMore) {
-      if (widget.paginationType == PaginationType.loadMore) {
-        return widget.loadMoreButtonBuilder?.call(context, () {}, true) ??
-            const DefaultLoadMoreButton(onPressed: _doNothing, isLoading: true);
-      }
-      return widget.loadMoreLoadingBuilder?.call(context) ??
-          const DefaultLoadMoreLoading();
-    }
-
-    // Load more error
-    if (state.status == PaginationStatus.loadMoreError) {
-      return widget.loadMoreErrorBuilder?.call(
-            context,
-            state.error!,
-            _controller.retry,
-          ) ??
-          DefaultLoadMoreError(
-            error: state.error!,
-            onRetry: _controller.retry,
-          );
-    }
-
-    // Completed (no more items)
-    if (state.status == PaginationStatus.completed) {
-      return widget.endOfListBuilder?.call(context) ?? const DefaultEndOfList();
-    }
-
-    // Load more button (only in loadMore mode)
-    if (widget.paginationType == PaginationType.loadMore &&
-        state.status == PaginationStatus.loaded &&
-        state.hasMorePages) {
-      return widget.loadMoreButtonBuilder?.call(
-            context,
-            _controller.loadNextPage,
-            false,
-          ) ??
-          DefaultLoadMoreButton(
-            onPressed: _controller.loadNextPage,
-            isLoading: false,
-          );
-    }
-
-    return const SizedBox.shrink();
-  }
-
-  static void _doNothing() {}
 }
