@@ -154,6 +154,171 @@ void main() {
     });
   });
 
+  group('DefaultFirstPageLoading.fromItemBuilder()', () {
+    testWidgets('renders real item builder with placeholder data as skeleton',
+        (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: DefaultFirstPageLoading.fromItemBuilder<String>(
+              itemBuilder: (context, item, index) => ListTile(
+                key: ValueKey('item-$index'),
+                title: Text(item),
+                subtitle: Text('subtitle $index'),
+              ),
+              placeholderItem: 'Placeholder',
+              itemCount: 5,
+            ),
+          ),
+        ),
+      );
+
+      // All 5 items rendered
+      for (int i = 0; i < 5; i++) {
+        expect(find.byKey(ValueKey('item-$i')), findsOneWidget);
+      }
+
+      // Each item is wrapped in a ColorFiltered
+      expect(find.byType(ColorFiltered), findsNWidgets(5));
+    });
+
+    testWidgets('applies overlay color via ColorFiltered', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: DefaultFirstPageLoading.fromItemBuilder<String>(
+              itemBuilder: (context, item, index) => Text(item),
+              placeholderItem: 'Test',
+              itemCount: 3,
+              overlayColor: Colors.blue.shade200,
+            ),
+          ),
+        ),
+      );
+
+      final colorFiltered =
+          tester.widget<ColorFiltered>(find.byType(ColorFiltered).first);
+      expect(
+        colorFiltered.colorFilter,
+        ColorFilter.mode(Colors.blue.shade200, BlendMode.srcATop),
+      );
+    });
+
+    testWidgets('defaults to grey overlay when no overlayColor given',
+        (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: DefaultFirstPageLoading.fromItemBuilder<String>(
+              itemBuilder: (context, item, index) => Text(item),
+              placeholderItem: 'X',
+              itemCount: 1,
+            ),
+          ),
+        ),
+      );
+
+      final colorFiltered =
+          tester.widget<ColorFiltered>(find.byType(ColorFiltered).first);
+      expect(
+        colorFiltered.colorFilter,
+        ColorFilter.mode(Colors.grey.shade300, BlendMode.srcATop),
+      );
+    });
+
+    testWidgets('supports separators', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: DefaultFirstPageLoading.fromItemBuilder<String>(
+              itemBuilder: (context, item, index) => Container(
+                key: ValueKey('item-$index'),
+                height: 50,
+                child: Text(item),
+              ),
+              placeholderItem: 'Dummy',
+              itemCount: 3,
+              separatorBuilder: (context, index) => Divider(
+                key: ValueKey('sep-$index'),
+                height: 1,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // 3 items + 2 separators
+      for (int i = 0; i < 3; i++) {
+        expect(find.byKey(ValueKey('item-$i')), findsOneWidget);
+      }
+      expect(find.byKey(ValueKey('sep-0')), findsOneWidget);
+      expect(find.byKey(ValueKey('sep-1')), findsOneWidget);
+    });
+
+    testWidgets('used as firstPageLoadingBuilder with controlled mode',
+        (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: PaginationListView<int, String>.controlled(
+              items: const [],
+              status: PaginationStatus.loadingFirstPage,
+              firstPageLoadingBuilder: (context) =>
+                  DefaultFirstPageLoading.fromItemBuilder<String>(
+                itemBuilder: (context, item, index) => ListTile(
+                  key: ValueKey('skeleton-$index'),
+                  title: Text(item),
+                ),
+                placeholderItem: '',
+                itemCount: 4,
+              ),
+              itemBuilder: (context, item, index) => Text(item),
+            ),
+          ),
+        ),
+      );
+
+      // Skeletons rendered
+      for (int i = 0; i < 4; i++) {
+        expect(find.byKey(ValueKey('skeleton-$i')), findsOneWidget);
+      }
+      // All wrapped in ColorFiltered
+      expect(find.byType(ColorFiltered), findsNWidgets(4));
+    });
+
+    testWidgets('works with complex widget trees', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: DefaultFirstPageLoading.fromItemBuilder<Map<String, String>>(
+              itemBuilder: (context, item, index) => Card(
+                key: ValueKey('card-$index'),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(item['title'] ?? ''),
+                      const SizedBox(height: 8),
+                      Text(item['subtitle'] ?? ''),
+                    ],
+                  ),
+                ),
+              ),
+              placeholderItem: const {'title': 'Loading...', 'subtitle': '...'},
+              itemCount: 3,
+            ),
+          ),
+        ),
+      );
+
+      for (int i = 0; i < 3; i++) {
+        expect(find.byKey(ValueKey('card-$i')), findsOneWidget);
+      }
+      expect(find.byType(ColorFiltered), findsNWidgets(3));
+    });
+  });
+
   // ═══════════════════════════════════════════════════════════════════════════
   // Feature 9: Header / Footer Convenience Parameters
   // ═══════════════════════════════════════════════════════════════════════════

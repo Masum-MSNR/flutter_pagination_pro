@@ -2,6 +2,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import '../core/typedefs.dart';
 
 /// Default loading indicator for first page loading.
 ///
@@ -54,6 +55,54 @@ class DefaultFirstPageLoading extends StatelessWidget {
   final IndexedWidgetBuilder? _separatorBuilder;
   final EdgeInsetsGeometry? _padding;
   final Axis _scrollDirection;
+
+  /// Creates a skeleton placeholder from the **real** [itemBuilder]
+  /// by rendering it with a [placeholderItem] and applying a color overlay
+  /// so it looks like a grey skeleton.
+  ///
+  /// This lets you reuse your existing item widget without building a
+  /// separate skeleton widget — just provide a dummy instance of `T`:
+  ///
+  /// ```dart
+  /// PagedListView<User>(
+  ///   fetchPage: (page) => api.getUsers(page: page),
+  ///   itemBuilder: (context, user, index) => UserTile(user: user),
+  ///   firstPageLoadingBuilder: (context) =>
+  ///       DefaultFirstPageLoading.fromItemBuilder<User>(
+  ///     itemBuilder: (context, user, index) => UserTile(user: user),
+  ///     placeholderItem: User(name: '', email: ''),
+  ///     itemCount: 8,
+  ///   ),
+  /// )
+  /// ```
+  ///
+  /// The [overlayColor] defaults to `Colors.grey.shade300` and is applied
+  /// using `BlendMode.srcATop` — every visible pixel becomes that colour,
+  /// producing a uniform skeleton effect.
+  static Widget fromItemBuilder<T>({
+    Key? key,
+    required ItemBuilder<T> itemBuilder,
+    required T placeholderItem,
+    int itemCount = 6,
+    Color? overlayColor,
+    IndexedWidgetBuilder? separatorBuilder,
+    EdgeInsetsGeometry? padding,
+    Axis scrollDirection = Axis.vertical,
+  }) {
+    final color = overlayColor ?? Colors.grey.shade300;
+
+    return DefaultFirstPageLoading.builder(
+      key: key,
+      itemCount: itemCount,
+      separatorBuilder: separatorBuilder,
+      padding: padding,
+      scrollDirection: scrollDirection,
+      itemBuilder: (context, index) => ColorFiltered(
+        colorFilter: ColorFilter.mode(color, BlendMode.srcATop),
+        child: itemBuilder(context, placeholderItem, index),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
