@@ -81,6 +81,8 @@ class PaginationListView<K, T> extends StatefulWidget {
     this.onPageLoaded,
     this.onError,
     this.enablePullToRefresh = false,
+    this.header,
+    this.footer,
     this.scrollController,
     this.scrollDirection = Axis.vertical,
     this.reverse = false,
@@ -125,6 +127,8 @@ class PaginationListView<K, T> extends StatefulWidget {
     this.onPageLoaded,
     this.onError,
     this.enablePullToRefresh = false,
+    this.header,
+    this.footer,
     this.scrollController,
     this.scrollDirection = Axis.vertical,
     this.reverse = false,
@@ -192,6 +196,8 @@ class PaginationListView<K, T> extends StatefulWidget {
     this.endOfListBuilder,
     this.loadMoreButtonBuilder,
     this.enablePullToRefresh = false,
+    this.header,
+    this.footer,
     this.scrollController,
     this.scrollDirection = Axis.vertical,
     this.reverse = false,
@@ -288,6 +294,28 @@ class PaginationListView<K, T> extends StatefulWidget {
   /// When true, wraps the list in a [RefreshIndicator] that triggers
   /// a refresh on pull.
   final bool enablePullToRefresh;
+
+  /// Optional widget displayed above the paginated items.
+  ///
+  /// When provided, the list switches internally to a [CustomScrollView]
+  /// layout so the header scrolls with the items.
+  ///
+  /// ```dart
+  /// PagedListView<User>(
+  ///   fetchPage: (page) => api.getUsers(page: page),
+  ///   header: const Padding(
+  ///     padding: EdgeInsets.all(16),
+  ///     child: Text('All Users', style: TextStyle(fontSize: 24)),
+  ///   ),
+  ///   itemBuilder: (context, user, index) => UserTile(user: user),
+  /// )
+  /// ```
+  final Widget? header;
+
+  /// Optional widget displayed below all paginated items and the footer.
+  ///
+  /// Scrolls together with the items.
+  final Widget? footer;
 
   // ListView properties
   final ScrollController? scrollController;
@@ -414,6 +442,17 @@ class _PaginationListViewState<K, T> extends State<PaginationListView<K, T>>
   }
 
   Widget _buildList(PaginationState<K, T> state) {
+    final hasHeaderOrFooter =
+        widget.header != null || widget.footer != null;
+
+    if (hasHeaderOrFooter) {
+      return _buildCustomScrollViewList(state);
+    }
+
+    return _buildPlainList(state);
+  }
+
+  Widget _buildPlainList(PaginationState<K, T> state) {
     final itemCount = _calculateItemCount(state);
     final hasSeparator = widget.separatorBuilder != null;
 
@@ -454,6 +493,78 @@ class _PaginationListViewState<K, T> extends State<PaginationListView<K, T>>
         }
         return _buildItem(context, index, state);
       },
+    );
+  }
+
+  Widget _buildCustomScrollViewList(PaginationState<K, T> state) {
+    final hasSeparator = widget.separatorBuilder != null;
+
+    final slivers = <Widget>[];
+
+    // Header sliver
+    if (widget.header != null) {
+      slivers.add(SliverToBoxAdapter(child: widget.header));
+    }
+
+    // Main content sliver
+    final itemCount = _calculateItemCount(state);
+    int totalCount;
+    if (hasSeparator) {
+      final itemsWithSeparators =
+          state.items.isEmpty ? 0 : state.items.length * 2 - 1;
+      final footerCount = shouldShowFooter(state) ? 1 : 0;
+      totalCount = itemsWithSeparators + footerCount;
+    } else {
+      totalCount = itemCount;
+    }
+
+    Widget contentSliver = SliverList(
+      delegate: SliverChildBuilderDelegate(
+        (context, index) {
+          if (hasSeparator) {
+            return _buildSeparatedItem(context, index, state);
+          }
+          return _buildItem(context, index, state);
+        },
+        childCount: totalCount,
+        findChildIndexCallback:
+            widget.findChildIndexCallback != null && hasSeparator
+                ? (Key key) {
+                    final itemIndex = widget.findChildIndexCallback!(key);
+                    return itemIndex != null ? itemIndex * 2 : null;
+                  }
+                : widget.findChildIndexCallback,
+      ),
+    );
+
+    // Apply padding to content sliver only
+    if (widget.padding != null) {
+      contentSliver = SliverPadding(
+        padding: widget.padding!,
+        sliver: contentSliver,
+      );
+    }
+
+    slivers.add(contentSliver);
+
+    // Footer sliver (user-provided footer widget, not pagination footer)
+    if (widget.footer != null) {
+      slivers.add(SliverToBoxAdapter(child: widget.footer));
+    }
+
+    return CustomScrollView(
+      controller: activeScrollController,
+      scrollDirection: widget.scrollDirection,
+      reverse: widget.reverse,
+      primary: widget.primary,
+      physics: widget.physics,
+      shrinkWrap: widget.shrinkWrap,
+      cacheExtent: widget.cacheExtent,
+      dragStartBehavior: widget.dragStartBehavior,
+      keyboardDismissBehavior: widget.keyboardDismissBehavior,
+      restorationId: widget.restorationId,
+      clipBehavior: widget.clipBehavior,
+      slivers: slivers,
     );
   }
 

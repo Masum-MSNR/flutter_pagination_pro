@@ -7,6 +7,7 @@ import 'load_more_screen.dart';
 import 'grid_view_screen.dart';
 import 'numbered_pagination_screen.dart';
 import 'state_simulator_screen.dart';
+import 'header_footer_screen.dart';
 
 /// Home screen with navigation to all demo screens
 class HomeScreen extends StatelessWidget {
@@ -194,6 +195,17 @@ class HomeScreen extends StatelessWidget {
                     Color(0xFFA78BFA),
                   ],
                   onTap: () => _navigate(context, const GridViewScreen()),
+                ),
+                DemoCard(
+                  title: 'Header / Footer',
+                  subtitle: 'Header, footer & skeleton loading builder',
+                  icon: Icons.view_agenda_outlined,
+                  gradientColors: const [
+                    Color(0xFFF97316),
+                    Color(0xFFFBBF24),
+                  ],
+                  onTap: () =>
+                      _navigate(context, const HeaderFooterScreen()),
                 ),
                 const SectionHeader(
                   title: 'NUMBERED PAGINATION',

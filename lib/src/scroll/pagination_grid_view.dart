@@ -47,6 +47,8 @@ class PaginationGridView<K, T> extends StatefulWidget {
     this.onPageLoaded,
     this.onError,
     this.enablePullToRefresh = false,
+    this.header,
+    this.footer,
     this.scrollController,
     this.scrollDirection = Axis.vertical,
     this.reverse = false,
@@ -89,6 +91,8 @@ class PaginationGridView<K, T> extends StatefulWidget {
     this.onPageLoaded,
     this.onError,
     this.enablePullToRefresh = false,
+    this.header,
+    this.footer,
     this.scrollController,
     this.scrollDirection = Axis.vertical,
     this.reverse = false,
@@ -141,6 +145,8 @@ class PaginationGridView<K, T> extends StatefulWidget {
     this.endOfListBuilder,
     this.loadMoreButtonBuilder,
     this.enablePullToRefresh = false,
+    this.header,
+    this.footer,
     this.scrollController,
     this.scrollDirection = Axis.vertical,
     this.reverse = false,
@@ -221,6 +227,16 @@ class PaginationGridView<K, T> extends StatefulWidget {
 
   /// Whether pull-to-refresh is enabled.
   final bool enablePullToRefresh;
+
+  /// Optional widget displayed above the paginated grid items.
+  ///
+  /// Scrolls together with the grid. Useful for titles, filters, or banners.
+  final Widget? header;
+
+  /// Optional widget displayed below all paginated items and the footer.
+  ///
+  /// Scrolls together with the items.
+  final Widget? footer;
 
   // GridView properties
   final ScrollController? scrollController;
@@ -357,6 +373,8 @@ class _PaginationGridViewState<K, T> extends State<PaginationGridView<K, T>>
       restorationId: widget.restorationId,
       clipBehavior: widget.clipBehavior,
       slivers: [
+        if (widget.header != null)
+          SliverToBoxAdapter(child: widget.header),
         SliverPadding(
           padding: widget.padding ?? EdgeInsets.zero,
           sliver: SliverGrid(
@@ -379,6 +397,8 @@ class _PaginationGridViewState<K, T> extends State<PaginationGridView<K, T>>
               child: buildFooter(state),
             ),
           ),
+        if (widget.footer != null)
+          SliverToBoxAdapter(child: widget.footer),
       ],
     );
   }

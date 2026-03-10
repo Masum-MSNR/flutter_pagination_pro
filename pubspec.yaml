@@ -1,6 +1,6 @@
 name: flutter_pagination_pro
-description: "Zero-dependency Flutter pagination: generic page keys (int, cursor, offset), infinite scroll, load more button, grid view, slivers, numbered pagination, controlled mode, updateFetchPage for search/filter, built-in loading/error/empty states, pull-to-refresh, initialItems, pageSize auto-detection, and totalItems tracking."
-version: 0.3.0
+description: "Flutter pagination: generic page keys (int, cursor, offset), infinite scroll, load more button, grid view, slivers, numbered pagination, controlled mode, updateFetchPage for search/filter, built-in loading/error/empty states, pull-to-refresh, initialItems, pageSize auto-detection, totalItems tracking, header/footer params, skeleton loading builder, and testing utilities."
+version: 0.4.0
 homepage: https://github.com/Masum-MSNR/flutter_pagination_pro
 repository: https://github.com/Masum-MSNR/flutter_pagination_pro
 issue_tracker: https://github.com/Masum-MSNR/flutter_pagination_pro/issues
@@ -19,6 +19,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  matcher: ">=0.12.0 <1.0.0"
 
 dev_dependencies:
   flutter_test:

@@ -6,16 +6,83 @@ import 'package:flutter/material.dart';
 /// Default loading indicator for first page loading.
 ///
 /// Shows a centered [CircularProgressIndicator].
+///
+/// Use the [DefaultFirstPageLoading.builder] constructor to show
+/// skeleton / shimmer placeholder items instead of a spinner:
+///
+/// ```dart
+/// PaginationListView<User>(
+///   fetchPage: (page) => api.getUsers(page: page),
+///   itemBuilder: (context, user, index) => UserTile(user: user),
+///   firstPageLoadingBuilder: (context) => DefaultFirstPageLoading.builder(
+///     itemBuilder: (context, index) => const ShimmerUserTile(),
+///     itemCount: 10,
+///   ),
+/// )
+/// ```
 class DefaultFirstPageLoading extends StatelessWidget {
-  const DefaultFirstPageLoading({super.key});
+  /// Shows a centered [CircularProgressIndicator].
+  const DefaultFirstPageLoading({super.key})
+      : _itemBuilder = null,
+        _itemCount = 0,
+        _separatorBuilder = null,
+        _padding = null,
+        _scrollDirection = Axis.vertical;
+
+  /// Creates a skeleton / shimmer placeholder list.
+  ///
+  /// [itemBuilder] builds each placeholder widget (e.g. a shimmer tile).
+  /// [itemCount] is the number of placeholders to show (default 6).
+  /// [separatorBuilder] optionally adds separators between placeholders.
+  /// [padding] is the padding around the list.
+  /// [scrollDirection] is the scroll direction of the list.
+  const DefaultFirstPageLoading.builder({
+    super.key,
+    required IndexedWidgetBuilder itemBuilder,
+    int itemCount = 6,
+    IndexedWidgetBuilder? separatorBuilder,
+    EdgeInsetsGeometry? padding,
+    Axis scrollDirection = Axis.vertical,
+  })  : _itemBuilder = itemBuilder,
+        _itemCount = itemCount,
+        _separatorBuilder = separatorBuilder,
+        _padding = padding,
+        _scrollDirection = scrollDirection;
+
+  final IndexedWidgetBuilder? _itemBuilder;
+  final int _itemCount;
+  final IndexedWidgetBuilder? _separatorBuilder;
+  final EdgeInsetsGeometry? _padding;
+  final Axis _scrollDirection;
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Padding(
-        padding: EdgeInsets.all(32.0),
-        child: CircularProgressIndicator.adaptive(),
-      ),
+    if (_itemBuilder == null) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(32.0),
+          child: CircularProgressIndicator.adaptive(),
+        ),
+      );
+    }
+
+    final hasSeparator = _separatorBuilder != null;
+    final totalCount = hasSeparator && _itemCount > 0
+        ? _itemCount * 2 - 1
+        : _itemCount;
+
+    return ListView.builder(
+      padding: _padding,
+      physics: const NeverScrollableScrollPhysics(),
+      scrollDirection: _scrollDirection,
+      itemCount: totalCount,
+      itemBuilder: (context, index) {
+        if (hasSeparator) {
+          if (index.isOdd) return _separatorBuilder!(context, index ~/ 2);
+          return _itemBuilder!(context, index ~/ 2);
+        }
+        return _itemBuilder!(context, index);
+      },
     );
   }
 }

@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.4.0
+
+### New Features
+
+- **Skeleton / Shimmer first-page loading**: `DefaultFirstPageLoading.builder()` — a named constructor that renders a list of placeholder widgets during the initial load. Accepts `itemBuilder`, `itemCount` (default 6), optional `separatorBuilder`, `padding`, and `scrollDirection`. Works seamlessly as a `firstPageLoadingBuilder` for shimmer/skeleton patterns without adding any dependencies.
+
+- **Header & Footer convenience parameters**: Both `PaginationListView` and `PaginationGridView` (all 3 constructors) now accept optional `header` and `footer` widgets. The header scrolls above the paginated items; the footer scrolls below all items. Internally switches to `CustomScrollView` when either is provided — transparent to the user.
+
+- **Testing utilities** (`package:flutter_pagination_pro/testing.dart`):
+  - `testPaginationController<K, T>()` — creates a pre-seeded controller with known state for fast, deterministic widget tests.
+  - Custom matchers: `hasItemCount(n)`, `isOnPage(key)`, `hasStatus(status)`, `isPaginationCompleted`, `hasPaginationError([error])`, `isPaginationEmpty`.
+  - Separate entry point — import `testing.dart` in test files only.
+
+### Dependencies
+
+- Added `matcher` (^0.12.0) as a dependency for the testing utilities custom matchers. This package is already a transitive dependency of `flutter_test` in every Flutter project.
+
 ## 0.3.0
 
 ### Breaking Changes

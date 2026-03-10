@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-A lightweight, <b>zero-dependency</b> Flutter pagination package.<br/>
+A lightweight Flutter pagination package.<br/>
 Infinite scroll, load more, grid, slivers, numbered pages — all in one.
 </p>
 
@@ -34,6 +34,9 @@ Infinite scroll, load more, grid, slivers, numbered pages — all in one.
 | `pageSize` auto last-page | ✅ | ❌ |
 | `totalItems` tracking | ✅ | ❌ |
 | `findChildIndexCallback` | ✅ | ✅ |
+| Header / Footer params | ✅ | ❌ |
+| Skeleton loading builder | ✅ | ❌ |
+| Testing utilities & matchers | ✅ | ❌ |
 | Separator support | ✅ | ✅ |
 | Item mutation helpers | ✅ (`updateItems`, `removeWhere`, `insertItem`) | ❌ |
 | Type-safe generics | ✅ | ✅ |
@@ -43,7 +46,7 @@ Infinite scroll, load more, grid, slivers, numbered pages — all in one.
 
 ```yaml
 dependencies:
-  flutter_pagination_pro: ^0.3.0
+  flutter_pagination_pro: ^0.4.0
 ```
 
 ### 4 Lines to Paginated List
@@ -182,6 +185,65 @@ PagedListView<User>(
   enablePullToRefresh: true,
   separatorBuilder: (context, index) => Divider(),
 )
+```
+
+## Header & Footer
+
+Add a header or footer that scrolls with the items — no need to switch to
+`CustomScrollView` yourself:
+
+```dart
+PagedListView<User>(
+  fetchPage: (page) => api.getUsers(page: page),
+  itemBuilder: (context, user, index) => UserTile(user: user),
+  header: Padding(
+    padding: EdgeInsets.all(16),
+    child: Text('All Users', style: TextStyle(fontSize: 24)),
+  ),
+  footer: Center(child: Text('End of list')),
+)
+```
+
+Available on both `PaginationListView` and `PaginationGridView` (all constructors).
+
+## Skeleton / Shimmer Loading
+
+Use `DefaultFirstPageLoading.builder()` for skeleton placeholder loading:
+
+```dart
+PagedListView<User>(
+  fetchPage: (page) => api.getUsers(page: page),
+  itemBuilder: (context, user, index) => UserTile(user: user),
+  firstPageLoadingBuilder: (context) => DefaultFirstPageLoading.builder(
+    itemBuilder: (context, index) => ShimmerUserTile(),
+    itemCount: 10,
+    separatorBuilder: (context, index) => Divider(height: 1),
+  ),
+)
+```
+
+Pair with the [`shimmer`](https://pub.dev/packages/shimmer) package for
+animated shimmer effects — this package stays lightweight.
+
+## Testing Utilities
+
+Import `testing.dart` for pre-built test helpers and matchers:
+
+```dart
+import 'package:flutter_pagination_pro/testing.dart';
+
+final controller = testPaginationController<int, User>(
+  items: [user1, user2, user3],
+  status: PaginationStatus.loaded,
+  currentPageKey: 1,
+);
+
+expect(controller, hasItemCount(3));
+expect(controller, isOnPage(1));
+expect(controller, hasStatus(PaginationStatus.loaded));
+expect(controller, isPaginationCompleted);  // status + hasMorePages
+expect(controller, hasPaginationError());   // any error status
+expect(controller, isPaginationEmpty);      // empty status + no items
 ```
 
 ## Configuration
