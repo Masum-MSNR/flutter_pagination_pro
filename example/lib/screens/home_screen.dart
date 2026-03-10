@@ -7,6 +7,7 @@ import 'load_more_screen.dart';
 import 'grid_view_screen.dart';
 import 'numbered_pagination_screen.dart';
 import 'state_simulator_screen.dart';
+import 'bidirectional_screen.dart';
 import 'header_footer_screen.dart';
 
 /// Home screen with navigation to all demo screens
@@ -206,6 +207,17 @@ class HomeScreen extends StatelessWidget {
                   ],
                   onTap: () =>
                       _navigate(context, const HeaderFooterScreen()),
+                ),
+                DemoCard(
+                  title: 'Bidirectional',
+                  subtitle: 'Two-way scrolling — chat-style older/newer loading',
+                  icon: Icons.swap_vert_rounded,
+                  gradientColors: const [
+                    Color(0xFFEC4899),
+                    Color(0xFFF472B6),
+                  ],
+                  onTap: () =>
+                      _navigate(context, const BidirectionalScreen()),
                 ),
                 const SectionHeader(
                   title: 'NUMBERED PAGINATION',

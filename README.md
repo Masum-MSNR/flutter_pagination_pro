@@ -27,12 +27,14 @@ Infinite scroll, load more, grid, slivers, numbered pages — all in one.
 | Sliver variants | ✅ | ✅ |
 | Numbered pagination | ✅ | ❌ |
 | Load more button mode | ✅ | ❌ |
+| Bidirectional (two-way) scroll | ✅ | ❌ |
 | Controlled mode (BYO state) | ✅ `.controlled()` | ❌ |
 | `updateFetchPage` (search/filter) | ✅ | ❌ |
 | Pull-to-refresh | ✅ built-in | Manual |
 | `initialItems` (cache-first) | ✅ | ❌ |
 | `pageSize` auto last-page | ✅ | ❌ |
 | `totalItems` tracking | ✅ | ❌ |
+| Auto-retry with backoff | ✅ | ❌ |
 | `findChildIndexCallback` | ✅ | ✅ |
 | Header / Footer params | ✅ | ❌ |
 | Skeleton loading builder | ✅ | ❌ |
@@ -105,6 +107,60 @@ NumberedPagination(
   onPageChanged: (page) => setState(() => _page = page),
 )
 ```
+
+## Bidirectional (Two-Way) Pagination
+
+Load items in both directions — ideal for chat apps, timelines, and log viewers.
+Uses `CustomScrollView(center:)` so backward items grow upward without
+disturbing scroll position.
+
+```dart
+// Chat-style: start at page 10, load older (backward) and newer (forward)
+BidirectionalPagedListView<Message>(
+  fetchPage: (page) => api.getMessages(page: page),
+  fetchPreviousPage: (page) => api.getOlderMessages(before: page),
+  initialPageKey: 10,
+  itemBuilder: (context, msg, index) => MessageBubble(msg),
+)
+```
+
+### With Controller
+
+```dart
+final controller = BidirectionalPagedController<Message>(
+  fetchPage: (page) => api.getMessages(page: page),
+  fetchPreviousPage: (page) => api.getOlderMessages(before: page),
+  initialPageKey: 10,
+);
+
+BidirectionalPagedListView<Message>.withController(
+  controller: controller,
+  itemBuilder: (context, msg, index) => MessageBubble(msg),
+)
+```
+
+### Cursor-Based Bidirectional
+
+```dart
+BidirectionalPaginationListView<String, Message>(
+  fetchPage: (cursor) => api.getNewerMessages(after: cursor),
+  fetchPreviousPage: (cursor) => api.getOlderMessages(before: cursor),
+  initialPageKey: latestCursor,
+  nextPageKeyBuilder: (_, items) => items.last.cursor,
+  previousPageKeyBuilder: (_, items) => items.first.cursor,
+  itemBuilder: (context, msg, index) => MessageBubble(msg),
+)
+```
+
+| Controller Method | Description |
+|-------------------|-------------|
+| `loadInitialPage()` | Load the anchor page |
+| `loadNextPage()` | Load next forward page |
+| `loadPreviousPage()` | Load next backward page |
+| `refresh()` | Cancel all, reload from anchor |
+| `retry()` | Retry the last failed direction |
+| `reset()` | Clear to initial state |
+| `items` | All items: `[...backward, ...forward]` |
 
 ## Slivers (CustomScrollView)
 

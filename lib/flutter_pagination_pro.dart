@@ -76,10 +76,13 @@ export 'src/core/pagination_config.dart';
 export 'src/core/pagination_state.dart';
 export 'src/core/pagination_status.dart';
 export 'src/core/typedefs.dart';
+export 'src/core/bidirectional_state.dart';
+export 'src/core/bidirectional_controller.dart';
 
 // Scroll-based pagination
 export 'src/scroll/pagination_list_view.dart';
 export 'src/scroll/pagination_grid_view.dart';
+export 'src/scroll/bidirectional_pagination_list_view.dart';
 
 // Sliver-based pagination (for CustomScrollView)
 export 'src/scroll/sliver_paginated_list.dart';

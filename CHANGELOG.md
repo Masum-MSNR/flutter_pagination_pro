@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.6.0
+
+### New Features
+
+- **Bidirectional (two-way) pagination**: New `BidirectionalPaginationListView` widget and `BidirectionalPaginationController` for loading items in both forward (append) and backward (prepend) directions. Uses Flutter's `CustomScrollView(center:)` for scroll-stable prepending — ideal for chat apps, timelines, and log viewers.
+
+  ```dart
+  BidirectionalPagedListView<Message>(
+    fetchPage: (page) => api.getMessages(page: page),
+    fetchPreviousPage: (page) => api.getOlderMessages(before: page),
+    initialPageKey: 10,
+    itemBuilder: (context, msg, index) => MessageBubble(msg),
+  )
+  ```
+
+  Key features:
+  - Separate forward/backward loading states and error handling
+  - Auto-scroll-threshold triggers in both directions
+  - Support for int page keys (auto-defaults) and cursor/string keys via `nextPageKeyBuilder`/`previousPageKeyBuilder`
+  - `BidirectionalPaginationListView.withController()` for external controller management
+  - Custom builders: `forwardLoadingBuilder`, `backwardLoadingBuilder`, `forwardErrorBuilder`, `backwardErrorBuilder`
+  - Convenience typedefs: `BidirectionalPagedListView<T>`, `BidirectionalPagedController<T>`
+
 ## 0.5.0
 
 ### New Features
