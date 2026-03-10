@@ -1,5 +1,41 @@
 # Changelog
 
+## 0.3.0
+
+### Breaking Changes
+
+- **Generic page keys (`K`)**: All controllers and widgets now require two type parameters: `PaginationController<K, T>`, `PaginationListView<K, T>`, etc. where `K` is the page key type and `T` is the item type. For integer pages, use `<int, T>` or the new convenience aliases.
+- **`FetchPage<T>` → `FetchPage<K, T>`**: The fetch callback now receives `K pageKey` instead of `int page`.
+- **`OnPageLoaded<T>` → `OnPageLoaded<K, T>`**: The page-loaded callback now provides `K pageKey` instead of `int page`.
+- **`PaginationState.currentPage` → `PaginationState.pageKey`**: The `int currentPage` field is replaced by `K? pageKey`.
+- **`PaginationConfig.initialPage` removed**: Use `initialPageKey` on the controller or widget constructor instead.
+
+### New Features
+
+- **`initialPageKey` is optional for int keys**: When `K` is `int`, `initialPageKey` defaults to `1` — you no longer need to pass it for the common case.
+- **Convenience typedefs**: `PagedListView<T>`, `PagedGridView<T>`, `PagedController<T>`, `SliverPagedList<T>`, `SliverPagedGrid<T>` — these alias the `<int, T>` variants so you can write `PagedListView<User>(...)` instead of `PaginationListView<int, User>(...)`.
+- **Cursor-based pagination**: Use `PaginationController<String, T>` with `nextPageKeyBuilder: (_, items) => items.last.cursor` for cursor/token-based APIs.
+- **Offset-based pagination**: Use `PaginationController<int, T>` with `initialPageKey: 0` and `nextPageKeyBuilder: (offset, items) => offset + items.length`.
+- **`updateFetchPage()`**: Replace the data source at runtime — ideal for search/filter scenarios. Cancels any ongoing fetch, resets state, and reloads from the first page.
+- **Controlled mode (`.controlled()` constructors)**: All four widget types (`PaginationListView`, `PaginationGridView`, `SliverPaginatedList`, `SliverPaginatedGrid`) now support a `.controlled()` named constructor for BYO state management — provide items, status, and callbacks directly without a `PaginationController`.
+- **`NextPageKeyBuilder<K, T>` typedef**: New callback type for computing the next page key from the current key and loaded items. Defaults to `(k, _) => k + 1` for `int` keys.
+
+### Migration Guide (0.2.0 → 0.3.0)
+
+```dart
+// Before (0.2.0)
+PaginationController<User>(fetchPage: (page) => api.getUsers(page: page));
+PaginationListView<User>(fetchPage: (page) => ..., itemBuilder: ...);
+
+// After (0.3.0) — simplest with aliases
+PagedController<User>(fetchPage: (page) => api.getUsers(page: page));
+PagedListView<User>(fetchPage: (page) => ..., itemBuilder: ...);
+
+// After (0.3.0) — explicit generic form (also valid)
+PaginationController<int, User>(fetchPage: (page) => api.getUsers(page: page));
+PaginationListView<int, User>(fetchPage: (page) => ..., itemBuilder: ...);
+```
+
 ## 0.2.0
 
 ### New Features

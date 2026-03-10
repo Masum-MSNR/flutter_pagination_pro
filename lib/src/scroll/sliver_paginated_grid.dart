@@ -15,22 +15,24 @@ import 'pagination_state_mixin.dart';
 
 /// A paginated [SliverGrid] for use inside a [CustomScrollView].
 ///
-/// Drop-in replacement for `SliverGrid` that adds automatic pagination.
-/// Requires an external [PaginationController] since the parent
-/// [CustomScrollView] owns the scroll controller.
+/// `K` is the page key type. `T` is the item type.
 ///
-/// ## Usage
+/// Requires an external [PaginationController] (or controlled mode) since
+/// the parent [CustomScrollView] owns the scroll controller.
+///
+/// ## With Controller
 ///
 /// ```dart
-/// final controller = PaginationController<Photo>(
+/// final controller = PaginationController<int, Photo>(
 ///   fetchPage: (page) => api.getPhotos(page: page),
+///   initialPageKey: 1,
 /// );
 ///
 /// CustomScrollView(
 ///   controller: scrollController,
 ///   slivers: [
 ///     SliverAppBar(title: Text('Gallery')),
-///     SliverPaginatedGrid<Photo>(
+///     SliverPaginatedGrid<int, Photo>(
 ///       controller: controller,
 ///       scrollController: scrollController,
 ///       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -41,11 +43,8 @@ import 'pagination_state_mixin.dart';
 ///   ],
 /// )
 /// ```
-class SliverPaginatedGrid<T> extends StatefulWidget {
-  /// Creates a [SliverPaginatedGrid].
-  ///
-  /// Requires an external [controller], the parent [scrollController],
-  /// and a [gridDelegate] that controls the grid layout.
+class SliverPaginatedGrid<K, T> extends StatefulWidget {
+  /// Creates a [SliverPaginatedGrid] with an external controller.
   const SliverPaginatedGrid({
     super.key,
     required this.controller,
@@ -63,15 +62,78 @@ class SliverPaginatedGrid<T> extends StatefulWidget {
     this.onPageLoaded,
     this.onError,
     this.findChildIndexCallback,
-  }) : assert(
-         paginationType != PaginationType.infiniteScroll ||
-             scrollController != null,
-         'scrollController is required for infiniteScroll mode in slivers. '
-         'Pass the parent CustomScrollView\'s ScrollController.',
-       );
+  })  : assert(
+          paginationType != PaginationType.infiniteScroll ||
+              scrollController != null,
+          'scrollController is required for infiniteScroll mode in slivers. '
+          'Pass the parent CustomScrollView\'s ScrollController.',
+        ),
+        _isControlled = false,
+        _controlledItems = null,
+        _controlledStatus = null,
+        _controlledHasMorePages = true,
+        _controlledError = null,
+        _controlledOnLoadMore = null,
+        _controlledOnRefresh = null,
+        _controlledOnRetry = null,
+        config = PaginationConfig.defaults;
+
+  /// Creates a [SliverPaginatedGrid] in controlled mode.
+  ///
+  /// You provide items and status directly — no controller is used.
+  const SliverPaginatedGrid.controlled({
+    super.key,
+    required List<T> items,
+    required PaginationStatus status,
+    required this.itemBuilder,
+    required this.gridDelegate,
+    bool hasMorePages = true,
+    Object? error,
+    VoidCallback? onLoadMore,
+    Future<void> Function()? onRefresh,
+    VoidCallback? onRetry,
+    this.scrollController,
+    this.paginationType = PaginationType.infiniteScroll,
+    this.config = PaginationConfig.defaults,
+    this.firstPageLoadingBuilder,
+    this.loadMoreLoadingBuilder,
+    this.firstPageErrorBuilder,
+    this.loadMoreErrorBuilder,
+    this.emptyBuilder,
+    this.endOfListBuilder,
+    this.loadMoreButtonBuilder,
+    this.findChildIndexCallback,
+  })  : assert(
+          paginationType != PaginationType.infiniteScroll ||
+              scrollController != null,
+          'scrollController is required for infiniteScroll mode in slivers. '
+          'Pass the parent CustomScrollView\'s ScrollController.',
+        ),
+        controller = null,
+        _isControlled = true,
+        onPageLoaded = null,
+        onError = null,
+        _controlledItems = items,
+        _controlledStatus = status,
+        _controlledHasMorePages = hasMorePages,
+        _controlledError = error,
+        _controlledOnLoadMore = onLoadMore,
+        _controlledOnRefresh = onRefresh,
+        _controlledOnRetry = onRetry;
 
   /// The pagination controller. You are responsible for creating and disposing it.
-  final PaginationController<T> controller;
+  final PaginationController<K, T>? controller;
+
+  final bool _isControlled;
+
+  // Controlled mode fields
+  final List<T>? _controlledItems;
+  final PaginationStatus? _controlledStatus;
+  final bool _controlledHasMorePages;
+  final Object? _controlledError;
+  final VoidCallback? _controlledOnLoadMore;
+  final Future<void> Function()? _controlledOnRefresh;
+  final VoidCallback? _controlledOnRetry;
 
   /// Builder for each item in the grid.
   final ItemBuilder<T> itemBuilder;
@@ -80,66 +142,54 @@ class SliverPaginatedGrid<T> extends StatefulWidget {
   final SliverGridDelegate gridDelegate;
 
   /// The scroll controller from the parent [CustomScrollView].
-  ///
-  /// Required for infinite scroll mode to detect when the user scrolls
-  /// near the bottom. Can be omitted if only using [PaginationType.loadMore].
   final ScrollController? scrollController;
 
   /// The type of pagination (infiniteScroll or loadMore).
   final PaginationType paginationType;
 
+  /// Configuration for pagination behavior (used for scrollThreshold).
+  final PaginationConfig config;
+
   // Custom builders for different states
-  /// Builder for the first page loading indicator.
   final LoadingBuilder? firstPageLoadingBuilder;
-
-  /// Builder for the load more loading indicator.
   final LoadingBuilder? loadMoreLoadingBuilder;
-
-  /// Builder for first page errors.
   final ErrorBuilder? firstPageErrorBuilder;
-
-  /// Builder for load more errors.
   final ErrorBuilder? loadMoreErrorBuilder;
-
-  /// Builder for empty state.
   final EmptyBuilder? emptyBuilder;
-
-  /// Builder for end of list indicator.
   final EndOfListBuilder? endOfListBuilder;
-
-  /// Builder for the load more button (when using loadMore mode).
   final LoadMoreBuilder? loadMoreButtonBuilder;
 
   // Callbacks
-  /// Called when a page is successfully loaded with only the new items.
-  final OnPageLoaded<T>? onPageLoaded;
-
-  /// Called when an error occurs.
+  final OnPageLoaded<K, T>? onPageLoaded;
   final OnError? onError;
 
   /// Optional callback to find a child's index by its key.
-  ///
-  /// Improves performance when items are inserted, removed, or reordered
-  /// by helping Flutter reuse existing widgets.
   final ChildIndexGetter? findChildIndexCallback;
 
   @override
-  State<SliverPaginatedGrid<T>> createState() =>
-      _SliverPaginatedGridState<T>();
+  State<SliverPaginatedGrid<K, T>> createState() =>
+      _SliverPaginatedGridState<K, T>();
 }
 
-class _SliverPaginatedGridState<T> extends State<SliverPaginatedGrid<T>>
-    with PaginationStateMixin<T, SliverPaginatedGrid<T>> {
+class _SliverPaginatedGridState<K, T> extends State<SliverPaginatedGrid<K, T>>
+    with PaginationStateMixin<K, T, SliverPaginatedGrid<K, T>> {
   // ── Mixin bridge ────────────────────────────────────────────────────────
 
   @override
-  PaginationController<T>? get widgetExternalController => widget.controller;
+  bool get isControlledMode => widget._isControlled;
   @override
-  bool get isExternalController => true;
+  PaginationController<K, T>? get widgetExternalController => widget.controller;
   @override
-  FetchPage<T>? get widgetFetchPage => null;
+  bool get isExternalController => !widget._isControlled;
   @override
-  PaginationConfig get widgetConfig => widget.controller.config;
+  FetchPage<K, T>? get widgetFetchPage => null;
+  @override
+  K? get widgetInitialPageKey => null;
+  @override
+  NextPageKeyBuilder<K, T>? get widgetNextPageKeyBuilder => null;
+  @override
+  PaginationConfig get widgetConfig =>
+      isControlledMode ? widget.config : (widget.controller?.config ?? widget.config);
   @override
   PaginationType get widgetPaginationType => widget.paginationType;
   @override
@@ -165,9 +215,27 @@ class _SliverPaginatedGridState<T> extends State<SliverPaginatedGrid<T>>
   LoadMoreBuilder? get widgetLoadMoreButtonBuilder =>
       widget.loadMoreButtonBuilder;
   @override
-  OnPageLoaded<T>? get widgetOnPageLoaded => widget.onPageLoaded;
+  OnPageLoaded<K, T>? get widgetOnPageLoaded => widget.onPageLoaded;
   @override
   OnError? get widgetOnError => widget.onError;
+
+  // Controlled mode bridge
+  @override
+  List<T> get controlledItems => widget._controlledItems ?? const [];
+  @override
+  PaginationStatus get controlledStatus =>
+      widget._controlledStatus ?? PaginationStatus.initial;
+  @override
+  bool get controlledHasMorePages => widget._controlledHasMorePages;
+  @override
+  Object? get controlledError => widget._controlledError;
+  @override
+  VoidCallback? get controlledOnLoadMore => widget._controlledOnLoadMore;
+  @override
+  Future<void> Function()? get controlledOnRefresh =>
+      widget._controlledOnRefresh;
+  @override
+  VoidCallback? get controlledOnRetry => widget._controlledOnRetry;
 
   // ── Lifecycle ───────────────────────────────────────────────────────────
 
@@ -178,7 +246,7 @@ class _SliverPaginatedGridState<T> extends State<SliverPaginatedGrid<T>>
   }
 
   @override
-  void didUpdateWidget(covariant SliverPaginatedGrid<T> oldWidget) {
+  void didUpdateWidget(covariant SliverPaginatedGrid<K, T> oldWidget) {
     super.didUpdateWidget(oldWidget);
     didUpdatePagination(
       oldExternalController: oldWidget.controller,
@@ -197,7 +265,14 @@ class _SliverPaginatedGridState<T> extends State<SliverPaginatedGrid<T>>
 
   @override
   Widget build(BuildContext context) {
-    final state = paginationController.state;
+    final state = isControlledMode
+        ? PaginationState<K, T>(
+            items: controlledItems,
+            status: controlledStatus,
+            hasMorePages: controlledHasMorePages,
+            error: controlledError,
+          )
+        : paginationController!.state;
 
     // Full-area states returned as SliverFillRemaining
     if (state.status.isInitialLoading) {
@@ -209,16 +284,19 @@ class _SliverPaginatedGridState<T> extends State<SliverPaginatedGrid<T>>
     }
 
     if (state.status.isFirstPageError) {
+      final retryAction = isControlledMode
+          ? (controlledOnRetry ?? () {})
+          : paginationController!.retry;
       return SliverFillRemaining(
         hasScrollBody: false,
         child: widgetFirstPageErrorBuilder?.call(
               context,
               state.error!,
-              paginationController.retry,
+              retryAction,
             ) ??
             DefaultFirstPageError(
               error: state.error!,
-              onRetry: paginationController.retry,
+              onRetry: retryAction,
             ),
       );
     }
@@ -234,7 +312,7 @@ class _SliverPaginatedGridState<T> extends State<SliverPaginatedGrid<T>>
     return _buildSliverContent(state);
   }
 
-  Widget _buildSliverContent(PaginationState<T> state) {
+  Widget _buildSliverContent(PaginationState<K, T> state) {
     final hasFooter = shouldShowFooter(state);
 
     final sliverGrid = SliverGrid(
@@ -251,9 +329,6 @@ class _SliverPaginatedGridState<T> extends State<SliverPaginatedGrid<T>>
       return sliverGrid;
     }
 
-    // Use a MultiSliver-like approach: wrap grid + footer in a SliverMainAxisGroup
-    // SliverMainAxisGroup is available from Flutter 3.13+
-    // For broader compatibility, we return a MultiSliver wrapper.
     return SliverMainAxisGroup(
       slivers: [
         sliverGrid,

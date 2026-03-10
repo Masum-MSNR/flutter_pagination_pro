@@ -8,15 +8,15 @@ import 'pagination_status.dart';
 ///
 /// Contains all the state needed to render a paginated list:
 /// - [items]: The list of loaded items
-/// - [currentPage]: The current page number (1-indexed)
+/// - [pageKey]: The key of the last loaded page
 /// - [status]: The current pagination status
 /// - [error]: The last error that occurred (if any)
 @immutable
-class PaginationState<T> {
+class PaginationState<K, T> {
   /// Creates a new pagination state.
   const PaginationState({
     List<T>? items,
-    this.currentPage = 0,
+    this.pageKey,
     this.status = PaginationStatus.initial,
     this.error,
     this.hasMorePages = true,
@@ -26,8 +26,11 @@ class PaginationState<T> {
   /// The list of loaded items.
   final List<T> items;
 
-  /// The current page number (1-indexed, 0 means no page loaded yet).
-  final int currentPage;
+  /// The key of the last loaded page, or null if no page has been loaded.
+  ///
+  /// For integer-based pagination, this is the page number (e.g. 1, 2, 3).
+  /// For cursor-based APIs, this might be a cursor string or document snapshot.
+  final K? pageKey;
 
   /// The current pagination status.
   final PaginationStatus status;
@@ -46,18 +49,18 @@ class PaginationState<T> {
   final int? totalItems;
 
   /// Creates a copy of this state with the given fields replaced.
-  PaginationState<T> copyWith({
+  PaginationState<K, T> copyWith({
     List<T>? items,
-    int? currentPage,
+    K? pageKey,
     PaginationStatus? status,
     Object? error,
     bool? hasMorePages,
     bool clearError = false,
     int? totalItems,
   }) {
-    return PaginationState<T>(
+    return PaginationState<K, T>(
       items: items ?? this.items,
-      currentPage: currentPage ?? this.currentPage,
+      pageKey: pageKey ?? this.pageKey,
       status: status ?? this.status,
       error: clearError ? null : (error ?? this.error),
       hasMorePages: hasMorePages ?? this.hasMorePages,
@@ -66,7 +69,7 @@ class PaginationState<T> {
   }
 
   /// Resets the state to initial values.
-  PaginationState<T> reset() => PaginationState<T>();
+  PaginationState<K, T> reset() => PaginationState<K, T>();
 
   /// The total number of items loaded.
   int get itemCount => items.length;
@@ -80,9 +83,9 @@ class PaginationState<T> {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is PaginationState<T> &&
+    return other is PaginationState<K, T> &&
         listEquals(other.items, items) &&
-        other.currentPage == currentPage &&
+        other.pageKey == pageKey &&
         other.status == status &&
         other.error == error &&
         other.hasMorePages == hasMorePages &&
@@ -92,7 +95,7 @@ class PaginationState<T> {
   @override
   int get hashCode => Object.hash(
         Object.hashAll(items),
-        currentPage,
+        pageKey,
         status,
         error,
         hasMorePages,
@@ -103,7 +106,7 @@ class PaginationState<T> {
   String toString() {
     return 'PaginationState('
         'itemCount: ${items.length}, '
-        'currentPage: $currentPage, '
+        'pageKey: $pageKey, '
         'status: $status, '
         'hasMorePages: $hasMorePages, '
         'totalItems: $totalItems, '

@@ -15,7 +15,7 @@ class GridViewScreen extends StatefulWidget {
 }
 
 class _GridViewScreenState extends State<GridViewScreen> {
-  late final PaginationController<MockItem> _controller;
+  late final PagedController<MockItem> _controller;
   late MockDataService _service;
   PaginationType _paginationType = PaginationType.infiniteScroll;
   int _crossAxisCount = 2;
@@ -24,7 +24,7 @@ class _GridViewScreenState extends State<GridViewScreen> {
   void initState() {
     super.initState();
     _service = MockServicePresets.success();
-    _controller = PaginationController<MockItem>(
+    _controller = PagedController<MockItem>(
       fetchPage: _fetchPage,
     );
   }
@@ -138,7 +138,7 @@ class _GridViewScreenState extends State<GridViewScreen> {
           ),
           const SizedBox(height: 16),
           Expanded(
-            child: PaginationGridView<MockItem>.withController(
+            child: PagedGridView<MockItem>.withController(
               controller: _controller,
               paginationType: _paginationType,
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(

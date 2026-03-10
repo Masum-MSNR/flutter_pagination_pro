@@ -15,7 +15,7 @@ class StateSimulatorScreen extends StatefulWidget {
 }
 
 class _StateSimulatorScreenState extends State<StateSimulatorScreen> {
-  late PaginationController<MockItem> _controller;
+  late PagedController<MockItem> _controller;
   _SimulationScenario _scenario = _SimulationScenario.success;
   PaginationType _paginationType = PaginationType.infiniteScroll;
   Key _listKey = UniqueKey();
@@ -27,7 +27,7 @@ class _StateSimulatorScreenState extends State<StateSimulatorScreen> {
   }
 
   void _createController() {
-    _controller = PaginationController<MockItem>(
+    _controller = PagedController<MockItem>(
       fetchPage: _fetchPage,
     );
   }
@@ -176,7 +176,7 @@ class _StateSimulatorScreenState extends State<StateSimulatorScreen> {
             ),
           ),
           Expanded(
-            child: PaginationListView<MockItem>.withController(
+            child: PagedListView<MockItem>.withController(
               key: _listKey,
               controller: _controller,
               paginationType: _paginationType,

@@ -14,14 +14,10 @@ enum PaginationType {
 class PaginationConfig {
   /// Creates a pagination configuration.
   const PaginationConfig({
-    this.initialPage = 1,
     this.scrollThreshold = 200.0,
     this.autoLoadFirstPage = true,
     this.pageSize,
   });
-
-  /// The initial page number (default: 1).
-  final int initialPage;
 
   /// Distance in pixels from the bottom of the scrollable area that triggers
   /// loading the next page in infinite scroll mode.
@@ -52,13 +48,11 @@ class PaginationConfig {
 
   /// Creates a copy with the given fields replaced.
   PaginationConfig copyWith({
-    int? initialPage,
     double? scrollThreshold,
     bool? autoLoadFirstPage,
     int? pageSize,
   }) {
     return PaginationConfig(
-      initialPage: initialPage ?? this.initialPage,
       scrollThreshold: scrollThreshold ?? this.scrollThreshold,
       autoLoadFirstPage: autoLoadFirstPage ?? this.autoLoadFirstPage,
       pageSize: pageSize ?? this.pageSize,
@@ -69,7 +63,6 @@ class PaginationConfig {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is PaginationConfig &&
-        other.initialPage == initialPage &&
         other.scrollThreshold == scrollThreshold &&
         other.autoLoadFirstPage == autoLoadFirstPage &&
         other.pageSize == pageSize;
@@ -77,5 +70,5 @@ class PaginationConfig {
 
   @override
   int get hashCode =>
-      Object.hash(initialPage, scrollThreshold, autoLoadFirstPage, pageSize);
+      Object.hash(scrollThreshold, autoLoadFirstPage, pageSize);
 }

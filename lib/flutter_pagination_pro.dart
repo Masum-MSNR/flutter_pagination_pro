@@ -12,8 +12,20 @@
 /// ```dart
 /// import 'package:flutter_pagination_pro/flutter_pagination_pro.dart';
 ///
-/// PaginationListView<User>(
+/// // Simplest form — uses PagedListView (alias for PaginationListView<int, T>)
+/// PagedListView<User>(
 ///   fetchPage: (page) => api.getUsers(page: page),
+///   itemBuilder: (context, user, index) => ListTile(title: Text(user.name)),
+/// )
+/// ```
+///
+/// ### Cursor-Based Pagination
+///
+/// ```dart
+/// PaginationListView<String, User>(
+///   fetchPage: (cursor) => api.getUsers(cursor: cursor),
+///   initialPageKey: '',
+///   nextPageKeyBuilder: (_, items) => items.last.cursor,
 ///   itemBuilder: (context, user, index) => ListTile(title: Text(user.name)),
 /// )
 /// ```
@@ -21,7 +33,7 @@
 /// ### Load More Button
 ///
 /// ```dart
-/// PaginationListView<Product>(
+/// PagedListView<Product>(
 ///   fetchPage: (page) => api.getProducts(page: page),
 ///   itemBuilder: (context, product, index) => ProductCard(product: product),
 ///   paginationType: PaginationType.loadMore,
@@ -31,7 +43,7 @@
 /// ### Grid View
 ///
 /// ```dart
-/// PaginationGridView<Photo>(
+/// PagedGridView<Photo>(
 ///   fetchPage: (page) => api.getPhotos(page: page),
 ///   itemBuilder: (context, photo, index) => PhotoTile(photo: photo),
 ///   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
@@ -82,3 +94,6 @@ export 'src/widgets/default_error.dart';
 export 'src/widgets/default_empty.dart';
 export 'src/widgets/default_end_of_list.dart';
 export 'src/widgets/default_load_more.dart';
+
+// Convenience typedefs for the common int-key case
+export 'src/paged_aliases.dart';

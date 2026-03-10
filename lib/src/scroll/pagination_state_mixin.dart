@@ -22,19 +22,33 @@ void _doNothing() {}
 /// Handles controller lifecycle, scroll detection, state change callbacks,
 /// and builds shared UI states (loading, error, empty, footer).
 ///
+/// Supports three modes:
+/// - **Internal controller**: Widget creates and manages a controller
+/// - **External controller**: User provides a controller via `.withController()`
+/// - **Controlled mode**: User provides items + status directly via `.controlled()`
+///
 /// Concrete [State] classes must implement the abstract getters to bridge
 /// between their specific widget properties and the mixin's shared logic.
-mixin PaginationStateMixin<T, W extends StatefulWidget> on State<W> {
+mixin PaginationStateMixin<K, T, W extends StatefulWidget> on State<W> {
   // ── Abstract getters for widget properties ──────────────────────────────
 
+  /// Whether this widget is in controlled mode (no internal controller).
+  bool get isControlledMode;
+
   /// The external controller provided via `.withController()`, if any.
-  PaginationController<T>? get widgetExternalController;
+  PaginationController<K, T>? get widgetExternalController;
 
   /// Whether an external controller is being used.
   bool get isExternalController;
 
   /// The fetch function when using an internally managed controller.
-  FetchPage<T>? get widgetFetchPage;
+  FetchPage<K, T>? get widgetFetchPage;
+
+  /// The initial page key when using an internally managed controller.
+  K? get widgetInitialPageKey;
+
+  /// The next page key builder when using an internally managed controller.
+  NextPageKeyBuilder<K, T>? get widgetNextPageKeyBuilder;
 
   /// The pagination config from the widget.
   PaginationConfig get widgetConfig;
@@ -58,18 +72,41 @@ mixin PaginationStateMixin<T, W extends StatefulWidget> on State<W> {
   LoadMoreBuilder? get widgetLoadMoreButtonBuilder;
 
   // Callback getters
-  OnPageLoaded<T>? get widgetOnPageLoaded;
+  OnPageLoaded<K, T>? get widgetOnPageLoaded;
   OnError? get widgetOnError;
+
+  // ── Controlled mode getters ─────────────────────────────────────────────
+
+  /// Items provided in controlled mode.
+  List<T> get controlledItems => const [];
+
+  /// Status in controlled mode.
+  PaginationStatus get controlledStatus => PaginationStatus.initial;
+
+  /// Whether there are more pages in controlled mode.
+  bool get controlledHasMorePages => true;
+
+  /// Error object in controlled mode.
+  Object? get controlledError;
+
+  /// Callback when more items should be loaded (controlled mode).
+  VoidCallback? get controlledOnLoadMore;
+
+  /// Callback when the list should be refreshed (controlled mode).
+  Future<void> Function()? get controlledOnRefresh;
+
+  /// Callback when a failed operation should be retried (controlled mode).
+  VoidCallback? get controlledOnRetry;
 
   // ── Internal state ──────────────────────────────────────────────────────
 
-  late PaginationController<T> _paginationController;
+  PaginationController<K, T>? _paginationController;
   late ScrollController _internalScrollController;
   bool _ownsScrollController = false;
   int _previousItemCount = 0;
 
-  /// The active pagination controller.
-  PaginationController<T> get paginationController => _paginationController;
+  /// The active pagination controller (null in controlled mode).
+  PaginationController<K, T>? get paginationController => _paginationController;
 
   /// The active scroll controller.
   ScrollController get activeScrollController => _internalScrollController;
@@ -78,8 +115,43 @@ mixin PaginationStateMixin<T, W extends StatefulWidget> on State<W> {
   bool get ownsScrollController => _ownsScrollController;
 
   /// The effective config — from the controller when external, from widget otherwise.
-  PaginationConfig get _effectiveConfig =>
-      isExternalController ? _paginationController.config : widgetConfig;
+  PaginationConfig get _effectiveConfig {
+    if (isControlledMode) return widgetConfig;
+    return isExternalController ? _paginationController!.config : widgetConfig;
+  }
+
+  // ── State accessors (work in both controller and controlled modes) ──────
+
+  /// The current pagination state, from controller or controlled props.
+  PaginationState<K, T> get _currentState {
+    if (isControlledMode) {
+      return PaginationState<K, T>(
+        items: controlledItems,
+        status: controlledStatus,
+        hasMorePages: controlledHasMorePages,
+        error: controlledError,
+      );
+    }
+    return _paginationController!.state;
+  }
+
+  /// Retry action for the current mode.
+  VoidCallback get _retryAction {
+    if (isControlledMode) return controlledOnRetry ?? _doNothing;
+    return _paginationController!.retry;
+  }
+
+  /// Load-more action for the current mode.
+  VoidCallback get _loadMoreAction {
+    if (isControlledMode) return controlledOnLoadMore ?? _doNothing;
+    return _paginationController!.loadNextPage;
+  }
+
+  /// Refresh action for the current mode.
+  Future<void> Function() get _refreshAction {
+    if (isControlledMode) return controlledOnRefresh ?? () async {};
+    return _paginationController!.refresh;
+  }
 
   // ── Lifecycle ───────────────────────────────────────────────────────────
 
@@ -87,7 +159,9 @@ mixin PaginationStateMixin<T, W extends StatefulWidget> on State<W> {
   ///
   /// Call from [State.initState].
   void initPagination() {
-    _initController();
+    if (!isControlledMode) {
+      _initController();
+    }
     _initScrollController();
   }
 
@@ -95,17 +169,19 @@ mixin PaginationStateMixin<T, W extends StatefulWidget> on State<W> {
   ///
   /// Call from [State.didUpdateWidget].
   void didUpdatePagination({
-    required PaginationController<T>? oldExternalController,
+    required PaginationController<K, T>? oldExternalController,
     required ScrollController? oldScrollController,
     required PaginationType oldPaginationType,
   }) {
-    // Handle controller changes
-    if (isExternalController &&
-        widgetExternalController != oldExternalController) {
-      oldExternalController?.removeListener(_onStateChanged);
-      _paginationController = widgetExternalController!;
-      _paginationController.addListener(_onStateChanged);
-      _previousItemCount = _paginationController.items.length;
+    if (!isControlledMode) {
+      // Handle controller changes
+      if (isExternalController &&
+          widgetExternalController != oldExternalController) {
+        oldExternalController?.removeListener(_onStateChanged);
+        _paginationController = widgetExternalController!;
+        _paginationController!.addListener(_onStateChanged);
+        _previousItemCount = _paginationController!.items.length;
+      }
     }
 
     // Handle scroll controller changes
@@ -135,9 +211,11 @@ mixin PaginationStateMixin<T, W extends StatefulWidget> on State<W> {
   ///
   /// Call from [State.dispose] **before** `super.dispose()`.
   void disposePagination() {
-    _paginationController.removeListener(_onStateChanged);
-    if (!isExternalController) {
-      _paginationController.dispose();
+    if (!isControlledMode && _paginationController != null) {
+      _paginationController!.removeListener(_onStateChanged);
+      if (!isExternalController) {
+        _paginationController!.dispose();
+      }
     }
 
     _internalScrollController.removeListener(_onScroll);
@@ -152,18 +230,20 @@ mixin PaginationStateMixin<T, W extends StatefulWidget> on State<W> {
     if (isExternalController) {
       _paginationController = widgetExternalController!;
     } else {
-      _paginationController = PaginationController<T>(
+      _paginationController = PaginationController<K, T>(
         fetchPage: widgetFetchPage!,
+        initialPageKey: widgetInitialPageKey,
+        nextPageKeyBuilder: widgetNextPageKeyBuilder,
         config: widgetConfig,
       );
     }
 
-    _paginationController.addListener(_onStateChanged);
+    _paginationController!.addListener(_onStateChanged);
 
     if (_effectiveConfig.autoLoadFirstPage &&
-        _paginationController.status == PaginationStatus.initial) {
+        _paginationController!.status == PaginationStatus.initial) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _paginationController.loadFirstPage();
+        if (mounted) _paginationController!.loadFirstPage();
       });
     }
   }
@@ -182,7 +262,7 @@ mixin PaginationStateMixin<T, W extends StatefulWidget> on State<W> {
   }
 
   void _onStateChanged() {
-    final state = _paginationController.state;
+    final state = _paginationController!.state;
 
     // Fire onPageLoaded with only the NEW items from the latest page
     if (state.status == PaginationStatus.loaded ||
@@ -190,7 +270,9 @@ mixin PaginationStateMixin<T, W extends StatefulWidget> on State<W> {
       final newItems = state.items.length > _previousItemCount
           ? state.items.sublist(_previousItemCount)
           : <T>[];
-      widgetOnPageLoaded?.call(state.currentPage, newItems);
+      if (state.pageKey != null) {
+        widgetOnPageLoaded?.call(state.pageKey as K, newItems);
+      }
     }
 
     // Reset tracking when starting fresh fetches
@@ -211,10 +293,18 @@ mixin PaginationStateMixin<T, W extends StatefulWidget> on State<W> {
   }
 
   void _onScroll() {
-    if (!_paginationController.status.canLoadMore ||
-        !_paginationController.hasMorePages) {
-      return;
+    final bool canLoad;
+    final bool hasMore;
+
+    if (isControlledMode) {
+      canLoad = controlledStatus.canLoadMore;
+      hasMore = controlledHasMorePages;
+    } else {
+      canLoad = _paginationController!.status.canLoadMore;
+      hasMore = _paginationController!.hasMorePages;
     }
+
+    if (!canLoad || !hasMore) return;
 
     final position = _internalScrollController.position;
     final maxScroll = position.maxScrollExtent;
@@ -222,7 +312,7 @@ mixin PaginationStateMixin<T, W extends StatefulWidget> on State<W> {
     final threshold = _effectiveConfig.scrollThreshold;
 
     if (currentScroll >= maxScroll - threshold) {
-      _paginationController.loadNextPage();
+      _loadMoreAction();
     }
   }
 
@@ -234,9 +324,9 @@ mixin PaginationStateMixin<T, W extends StatefulWidget> on State<W> {
   /// When items are available, calls [contentBuilder] and optionally
   /// wraps the result in a [RefreshIndicator].
   Widget buildPaginationState({
-    required Widget Function(PaginationState<T> state) contentBuilder,
+    required Widget Function(PaginationState<K, T> state) contentBuilder,
   }) {
-    final state = _paginationController.state;
+    final state = _currentState;
 
     if (state.status.isInitialLoading) {
       return widgetFirstPageLoadingBuilder?.call(context) ??
@@ -247,11 +337,11 @@ mixin PaginationStateMixin<T, W extends StatefulWidget> on State<W> {
       return widgetFirstPageErrorBuilder?.call(
             context,
             state.error!,
-            _paginationController.retry,
+            _retryAction,
           ) ??
           DefaultFirstPageError(
             error: state.error!,
-            onRetry: _paginationController.retry,
+            onRetry: _retryAction,
           );
     }
 
@@ -263,7 +353,7 @@ mixin PaginationStateMixin<T, W extends StatefulWidget> on State<W> {
 
     if (widgetEnablePullToRefresh) {
       return RefreshIndicator(
-        onRefresh: _paginationController.refresh,
+        onRefresh: _refreshAction,
         child: content,
       );
     }
@@ -272,7 +362,7 @@ mixin PaginationStateMixin<T, W extends StatefulWidget> on State<W> {
   }
 
   /// Whether a footer widget should be displayed below items.
-  bool shouldShowFooter(PaginationState<T> state) {
+  bool shouldShowFooter(PaginationState<K, T> state) {
     return state.status == PaginationStatus.loadingMore ||
         state.status == PaginationStatus.loadMoreError ||
         state.status == PaginationStatus.completed ||
@@ -283,7 +373,7 @@ mixin PaginationStateMixin<T, W extends StatefulWidget> on State<W> {
 
   /// Builds the footer widget (loading indicator, error, end-of-list, or
   /// load-more button) based on the current [state].
-  Widget buildFooter(PaginationState<T> state) {
+  Widget buildFooter(PaginationState<K, T> state) {
     if (state.status == PaginationStatus.loadingMore) {
       if (widgetPaginationType == PaginationType.loadMore) {
         return widgetLoadMoreButtonBuilder?.call(context, _doNothing, true) ??
@@ -297,11 +387,11 @@ mixin PaginationStateMixin<T, W extends StatefulWidget> on State<W> {
       return widgetLoadMoreErrorBuilder?.call(
             context,
             state.error!,
-            _paginationController.retry,
+            _retryAction,
           ) ??
           DefaultLoadMoreError(
             error: state.error!,
-            onRetry: _paginationController.retry,
+            onRetry: _retryAction,
           );
     }
 
@@ -314,11 +404,11 @@ mixin PaginationStateMixin<T, W extends StatefulWidget> on State<W> {
         state.hasMorePages) {
       return widgetLoadMoreButtonBuilder?.call(
             context,
-            _paginationController.loadNextPage,
+            _loadMoreAction,
             false,
           ) ??
           DefaultLoadMoreButton(
-            onPressed: _paginationController.loadNextPage,
+            onPressed: _loadMoreAction,
             isLoading: false,
           );
     }

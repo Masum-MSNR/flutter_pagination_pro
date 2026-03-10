@@ -20,8 +20,9 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: PaginationListView<String>(
+            body: PaginationListView<int, String>(
               fetchPage: (_) => completer.future,
+              initialPageKey: 1,
               itemBuilder: (context, item, index) =>
                   ListTile(title: Text(item)),
             ),
@@ -43,8 +44,9 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: PaginationListView<String>(
+            body: PaginationListView<int, String>(
               fetchPage: mockFetch,
+              initialPageKey: 1,
               itemBuilder: (context, item, index) => ListTile(title: Text(item)),
             ),
           ),
@@ -63,8 +65,9 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: PaginationListView<String>(
+            body: PaginationListView<int, String>(
               fetchPage: (_) => throw Exception('Test error'),
+              initialPageKey: 1,
               itemBuilder: (context, item, index) => ListTile(title: Text(item)),
             ),
           ),
@@ -82,8 +85,9 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: PaginationListView<String>(
+            body: PaginationListView<int, String>(
               fetchPage: (_) async => [],
+              initialPageKey: 1,
               itemBuilder: (context, item, index) => ListTile(title: Text(item)),
             ),
           ),
@@ -100,8 +104,9 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: PaginationListView<String>(
+            body: PaginationListView<int, String>(
               fetchPage: (_) async => [],
+              initialPageKey: 1,
               itemBuilder: (context, item, index) => ListTile(title: Text(item)),
               emptyBuilder: (context) => const Text('Nothing here!'),
             ),
@@ -118,8 +123,9 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: PaginationListView<String>(
+            body: PaginationListView<int, String>(
               fetchPage: mockFetch,
+              initialPageKey: 1,
               itemBuilder: (context, item, index) => ListTile(title: Text(item)),
               paginationType: PaginationType.loadMore,
             ),
@@ -137,8 +143,9 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: PaginationListView<String>(
+            body: PaginationListView<int, String>(
               fetchPage: mockFetch,
+              initialPageKey: 1,
               itemBuilder: (context, item, index) => ListTile(title: Text(item)),
               separatorBuilder: (context, index) => const Divider(),
             ),
@@ -153,12 +160,15 @@ void main() {
     });
 
     testWidgets('withController constructor works', (tester) async {
-      final controller = PaginationController<String>(fetchPage: mockFetch);
+      final controller = PaginationController<int, String>(
+        fetchPage: mockFetch,
+        initialPageKey: 1,
+      );
 
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: PaginationListView<String>.withController(
+            body: PaginationListView<int, String>.withController(
               controller: controller,
               itemBuilder: (context, item, index) => ListTile(title: Text(item)),
             ),
@@ -181,8 +191,9 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: PaginationListView<String>(
+            body: PaginationListView<int, String>(
               fetchPage: mockFetch,
+              initialPageKey: 1,
               itemBuilder: (context, item, index) => ListTile(title: Text(item)),
               onPageLoaded: (page, items) {
                 loadedPage = page;
@@ -205,8 +216,9 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: PaginationListView<String>(
+            body: PaginationListView<int, String>(
               fetchPage: (_) => throw Exception('Test error'),
+              initialPageKey: 1,
               itemBuilder: (context, item, index) => ListTile(title: Text(item)),
               onError: (error) => receivedError = error,
             ),
@@ -232,8 +244,9 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: PaginationGridView<String>(
+            body: PaginationGridView<int, String>(
               fetchPage: mockFetch,
+              initialPageKey: 1,
               itemBuilder: (context, item, index) => Card(child: Center(child: Text(item))),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
@@ -252,8 +265,9 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: PaginationGridView<String>(
+            body: PaginationGridView<int, String>(
               fetchPage: (_) async => [],
+              initialPageKey: 1,
               itemBuilder: (context, item, index) => Card(child: Center(child: Text(item))),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
@@ -274,8 +288,9 @@ void main() {
           home: Scaffold(
             body: SizedBox(
               height: 600,
-              child: PaginationGridView<String>(
+              child: PaginationGridView<int, String>(
                 fetchPage: mockFetch,
+                initialPageKey: 1,
                 itemBuilder: (context, item, index) => SizedBox(
                   height: 50,
                   child: Card(child: Center(child: Text(item))),
@@ -297,12 +312,15 @@ void main() {
     });
 
     testWidgets('withController constructor works', (tester) async {
-      final controller = PaginationController<String>(fetchPage: mockFetch);
+      final controller = PaginationController<int, String>(
+        fetchPage: mockFetch,
+        initialPageKey: 1,
+      );
 
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: PaginationGridView<String>.withController(
+            body: PaginationGridView<int, String>.withController(
               controller: controller,
               itemBuilder: (context, item, index) => Card(child: Center(child: Text(item))),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(

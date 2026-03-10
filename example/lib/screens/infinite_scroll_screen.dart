@@ -15,7 +15,7 @@ class InfiniteScrollScreen extends StatefulWidget {
 }
 
 class _InfiniteScrollScreenState extends State<InfiniteScrollScreen> {
-  late final PaginationController<MockItem> _controller;
+  late final PagedController<MockItem> _controller;
   late MockDataService _service;
   bool _useSeparator = false;
 
@@ -23,7 +23,7 @@ class _InfiniteScrollScreenState extends State<InfiniteScrollScreen> {
   void initState() {
     super.initState();
     _service = MockServicePresets.success();
-    _controller = PaginationController<MockItem>(
+    _controller = PagedController<MockItem>(
       fetchPage: _fetchPage,
     );
   }
@@ -110,7 +110,7 @@ class _InfiniteScrollScreenState extends State<InfiniteScrollScreen> {
             ),
           ),
           Expanded(
-            child: PaginationListView<MockItem>.withController(
+            child: PagedListView<MockItem>.withController(
               controller: _controller,
               paginationType: PaginationType.infiniteScroll,
               itemBuilder: (context, item, index) => ItemTile(item: item),

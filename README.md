@@ -22,10 +22,13 @@ Infinite scroll, load more, grid, slivers, numbered pages — all in one.
 | Feature | flutter_pagination_pro | infinite_scroll_pagination |
 |---------|:---------------------:|:--------------------------:|
 | Zero dependencies | ✅ | ❌ (sliver_tools) |
+| Generic page keys (int/cursor/offset) | ✅ | ✅ |
 | ListView + GridView | ✅ | ✅ |
 | Sliver variants | ✅ | ✅ |
 | Numbered pagination | ✅ | ❌ |
 | Load more button mode | ✅ | ❌ |
+| Controlled mode (BYO state) | ✅ `.controlled()` | ❌ |
+| `updateFetchPage` (search/filter) | ✅ | ❌ |
 | Pull-to-refresh | ✅ built-in | Manual |
 | `initialItems` (cache-first) | ✅ | ❌ |
 | `pageSize` auto last-page | ✅ | ❌ |
@@ -40,35 +43,56 @@ Infinite scroll, load more, grid, slivers, numbered pages — all in one.
 
 ```yaml
 dependencies:
-  flutter_pagination_pro: ^0.2.0
+  flutter_pagination_pro: ^0.3.0
 ```
 
-### 3 Lines to Paginated List
+### 4 Lines to Paginated List
 
 ```dart
-PaginationListView<User>(
+PagedListView<User>(
   fetchPage: (page) => api.getUsers(page: page),
   itemBuilder: (context, user, index) => ListTile(title: Text(user.name)),
 )
 ```
 
-That's it. Handles loading, errors, empty state, and infinite scroll automatically.
+That's it. No `initialPageKey`, no extra type parameter. Handles loading, errors, empty state, and infinite scroll automatically.
+
+> `PagedListView<T>` is a shorthand for `PaginationListView<int, T>` with `initialPageKey` defaulting to `1`. Same for `PagedGridView<T>`, `PagedController<T>`, `SliverPagedList<T>`, `SliverPagedGrid<T>`.
+
+### Cursor-Based (e.g. Firestore, GraphQL)
+
+```dart
+PaginationListView<String, User>(
+  fetchPage: (cursor) => api.getUsers(cursor: cursor),
+  initialPageKey: '',
+  nextPageKeyBuilder: (_, items) => items.last.cursor,
+  itemBuilder: (context, user, index) => ListTile(title: Text(user.name)),
+)
+```
 
 ## All Modes
 
 ```dart
 // Grid
-PaginationGridView<Photo>(
+PagedGridView<Photo>(
   fetchPage: (page) => api.getPhotos(page: page),
   itemBuilder: (context, photo, index) => PhotoCard(photo: photo),
   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
 )
 
 // Load More Button
-PaginationListView<User>(
+PagedListView<User>(
   fetchPage: (page) => api.getUsers(page: page),
   itemBuilder: (context, user, index) => UserCard(user: user),
   paginationType: PaginationType.loadMore,
+)
+
+// Controlled Mode (BYO state)
+PaginationListView<int, User>.controlled(
+  items: users,
+  status: PaginationStatus.loaded,
+  onLoadMore: () => bloc.add(LoadNextPage()),
+  itemBuilder: (context, user, index) => UserCard(user: user),
 )
 
 // Numbered Pagination
@@ -86,7 +110,7 @@ CustomScrollView(
   controller: scrollController,
   slivers: [
     SliverAppBar(title: Text('Users'), floating: true),
-    SliverPaginatedList<User>(
+    SliverPaginatedList<int, User>(
       controller: controller,
       scrollController: scrollController,
       itemBuilder: (context, user, index) => ListTile(title: Text(user.name)),
@@ -100,17 +124,22 @@ CustomScrollView(
 ## Controller
 
 ```dart
-final controller = PaginationController<User>(
+final controller = PagedController<User>(
   fetchPage: (page) => api.getUsers(page: page),
   config: PaginationConfig(pageSize: 20),  // auto-detects last page
   initialItems: cachedUsers,                // show cached data instantly
 );
 
 // Use with widget
-PaginationListView<User>.withController(
+PagedListView<User>.withController(
   controller: controller,
   itemBuilder: (context, user, index) => UserTile(user: user),
 )
+
+// Search / filter: swap the data source at runtime
+controller.updateFetchPage(
+  (page) => api.searchUsers(page: page, query: 'john'),
+);
 ```
 
 | Method | Description |
@@ -119,6 +148,7 @@ PaginationListView<User>.withController(
 | `retry()` | Retry last failed request |
 | `reset()` | Clear everything to initial state |
 | `loadNextPage()` | Manually trigger next page |
+| `updateFetchPage(fn)` | Replace data source + reload (search/filter) |
 | `setTotalItems(n)` | Set total for "Showing X of Y" + auto-complete |
 | `updateItems(fn)` | Transform items in-place |
 | `removeWhere(fn)` | Remove matching items |
@@ -129,7 +159,8 @@ PaginationListView<User>.withController(
 | Property | Type | Description |
 |----------|------|-------------|
 | `items` | `List<T>` | All loaded items |
-| `currentPage` | `int` | Current page number |
+| `currentPageKey` | `K?` | Last loaded page key |
+| `initialPageKey` | `K` | First page key |
 | `status` | `PaginationStatus` | Current state |
 | `hasMorePages` | `bool` | More pages available? |
 | `state.totalItems` | `int?` | Total from API (if set) |
@@ -139,7 +170,7 @@ PaginationListView<User>.withController(
 Override any state widget:
 
 ```dart
-PaginationListView<User>(
+PagedListView<User>(
   fetchPage: (page) => api.getUsers(page: page),
   itemBuilder: (context, user, index) => UserTile(user: user),
   firstPageLoadingBuilder: (context) => MyShimmer(),
@@ -159,7 +190,6 @@ PaginationListView<User>(
 
 | Param | Default | Description |
 |-------|---------|-------------|
-| `initialPage` | `1` | Starting page number |
 | `scrollThreshold` | `200.0` | Pixels from bottom to trigger load |
 | `autoLoadFirstPage` | `true` | Auto-load on build |
 | `pageSize` | `null` | Items per page — auto-detects last page |

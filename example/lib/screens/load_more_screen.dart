@@ -14,14 +14,16 @@ class LoadMoreScreen extends StatefulWidget {
 }
 
 class _LoadMoreScreenState extends State<LoadMoreScreen> {
-  late final PaginationController<MockItem> _controller;
+  late final PagedController<MockItem> _controller;
   late MockDataService _service;
 
   @override
   void initState() {
     super.initState();
     _service = MockServicePresets.success();
-    _controller = PaginationController<MockItem>(fetchPage: _fetchPage);
+    _controller = PagedController<MockItem>(
+      fetchPage: _fetchPage,
+    );
   }
 
   Future<List<MockItem>> _fetchPage(int page) {
@@ -92,7 +94,7 @@ class _LoadMoreScreenState extends State<LoadMoreScreen> {
             ),
           ),
           Expanded(
-            child: PaginationListView<MockItem>.withController(
+            child: PagedListView<MockItem>.withController(
               controller: _controller,
               paginationType: PaginationType.loadMore,
               itemBuilder: (context, item, index) => ItemTile(item: item),

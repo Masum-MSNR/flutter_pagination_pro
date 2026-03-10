@@ -8,69 +8,136 @@ import 'pagination_status.dart';
 import 'pagination_config.dart';
 import 'typedefs.dart';
 
-/// Controller for managing pagination state.
+/// Controller for managing pagination state with generic page keys.
+///
+/// `K` is the page key type (int, String, cursor, offset, etc.).
+/// `T` is the item type.
 ///
 /// This controller handles:
-/// - Fetching pages
+/// - Fetching pages using any key type
 /// - Managing state transitions
 /// - Error handling
-/// - Refresh and reset operations
+/// - Refresh, reset, and search/filter operations
 ///
-/// Example:
+/// ## Integer Pages (most common — just provide fetchPage!)
+///
 /// ```dart
-/// final controller = PaginationController<User>(
+/// final controller = PaginationController<int, User>(
 ///   fetchPage: (page) => api.getUsers(page: page),
 /// );
-///
-/// // Use in widget
-/// PaginationListView<User>.withController(
-///   controller: controller,
-///   itemBuilder: (context, user, index) => UserTile(user: user),
-/// )
-///
-/// // Programmatic control
-/// controller.refresh();
-/// controller.loadNextPage();
 /// ```
-class PaginationController<T> extends ValueNotifier<PaginationState<T>> {
+///
+/// ## Cursor-Based Pagination
+///
+/// ```dart
+/// final controller = PaginationController<String, User>(
+///   fetchPage: (cursor) => api.getUsers(cursor: cursor),
+///   initialPageKey: '',
+///   nextPageKeyBuilder: (_, items) => items.last.cursor,
+/// );
+/// ```
+///
+/// ## Offset-Based Pagination
+///
+/// ```dart
+/// final controller = PaginationController<int, Product>(
+///   fetchPage: (offset) => api.getProducts(offset: offset, limit: 20),
+///   initialPageKey: 0,
+///   nextPageKeyBuilder: (offset, items) => offset + items.length,
+/// );
+/// ```
+class PaginationController<K, T> extends ValueNotifier<PaginationState<K, T>> {
   /// Creates a pagination controller.
   ///
   /// [fetchPage] is required and will be called to fetch each page.
+  /// [initialPageKey] is the key for the first page. **Defaults to `1` for
+  /// `int` keys**, so you can omit it for simple page-number pagination.
+  /// Required for non-int keys (cursors, offsets, etc.).
+  /// [nextPageKeyBuilder] computes the next page key from the current key
+  /// and loaded items. Defaults to `(key, _) => key + 1` for `int` keys.
   /// [config] provides pagination behavior settings.
   /// [initialItems] optionally prepopulates the list with cached data,
   /// skipping the initial load. The controller starts in
-  /// [PaginationStatus.loaded] state at [PaginationConfig.initialPage].
+  /// [PaginationStatus.loaded] state.
   PaginationController({
-    required FetchPage<T> fetchPage,
+    required FetchPage<K, T> fetchPage,
+    K? initialPageKey,
+    NextPageKeyBuilder<K, T>? nextPageKeyBuilder,
     PaginationConfig config = PaginationConfig.defaults,
     List<T>? initialItems,
   })  : _fetchPage = fetchPage,
+        _initialPageKey = _resolveInitialPageKey<K>(initialPageKey),
         _config = config,
+        _nextPageKey = _resolveInitialPageKey<K>(initialPageKey),
+        _nextPageKeyBuilder = nextPageKeyBuilder ?? _intDefaultOrThrow<K, T>(),
         super(
           initialItems != null && initialItems.isNotEmpty
-              ? PaginationState<T>(
+              ? PaginationState<K, T>(
                   items: List<T>.of(initialItems),
-                  currentPage: config.initialPage,
+                  pageKey: _resolveInitialPageKey<K>(initialPageKey),
                   status: PaginationStatus.loaded,
                   hasMorePages: true,
                 )
-              : PaginationState<T>(),
-        );
+              : PaginationState<K, T>(),
+        ) {
+    assert(
+      nextPageKeyBuilder != null || _initialPageKey is int,
+      'nextPageKeyBuilder is required when the page key type is not int. '
+      'Provide a function that computes the next page key from the current '
+      'key and the loaded items.',
+    );
 
-  final FetchPage<T> _fetchPage;
+    // When initialItems are provided, advance _nextPageKey past the first page
+    // so that loadNextPage fetches page 2 (not page 1 again).
+    if (initialItems != null && initialItems.isNotEmpty) {
+      _nextPageKey = _nextPageKeyBuilder(_initialPageKey, initialItems);
+    }
+  }
+
+  /// Resolves the initial page key, defaulting to `1` for int keys.
+  ///
+  /// Throws [ArgumentError] if `K` is not `int` and no key is provided.
+  static K _resolveInitialPageKey<K>(K? key) {
+    if (key != null) return key;
+    if (K == int) return 1 as K;
+    throw ArgumentError(
+      'initialPageKey is required when the page key type is not int. '
+      'For int keys, it defaults to 1.',
+    );
+  }
+
+  FetchPage<K, T> _fetchPage;
+  final K _initialPageKey;
   final PaginationConfig _config;
+  final NextPageKeyBuilder<K, T> _nextPageKeyBuilder;
+
+  /// The key for the next page to be fetched.
+  K _nextPageKey;
 
   /// Tracks the current async operation to handle cancellation.
   Object? _currentOperation;
 
+  /// Returns a default [NextPageKeyBuilder] that increments int keys by 1.
+  ///
+  /// Throws a [StateError] at call-time if K is not int.
+  static NextPageKeyBuilder<K, T> _intDefaultOrThrow<K, T>() {
+    return (K key, List<T> _) {
+      if (key is int) return (key + 1) as K;
+      // Should not reach here due to constructor assert
+      throw StateError(
+        'nextPageKeyBuilder is required for non-int page keys.',
+      );
+    };
+  }
+
   /// The current state.
-  PaginationState<T> get state => value;
+  PaginationState<K, T> get state => value;
 
   /// The list of loaded items.
   List<T> get items => value.items;
 
-  /// The current page number.
-  int get currentPage => value.currentPage;
+  /// The key of the last loaded page, or null if no page has been loaded.
+  K? get currentPageKey => value.pageKey;
 
   /// The current status.
   PaginationStatus get status => value.status;
@@ -83,6 +150,9 @@ class PaginationController<T> extends ValueNotifier<PaginationState<T>> {
 
   /// The configuration.
   PaginationConfig get config => _config;
+
+  /// The initial page key.
+  K get initialPageKey => _initialPageKey;
 
   /// Loads the first page.
   ///
@@ -99,23 +169,26 @@ class PaginationController<T> extends ValueNotifier<PaginationState<T>> {
     );
 
     try {
-      final items = await _fetchPage(_config.initialPage);
+      final items = await _fetchPage(_initialPageKey);
 
       if (operation != _currentOperation) return; // Cancelled
 
       if (items.isEmpty) {
-        value = PaginationState<T>(
+        value = PaginationState<K, T>(
           items: [],
-          currentPage: _config.initialPage,
+          pageKey: _initialPageKey,
           status: PaginationStatus.empty,
           hasMorePages: false,
         );
       } else {
         final isLastPage =
             _config.pageSize != null && items.length < _config.pageSize!;
-        value = PaginationState<T>(
+        if (!isLastPage) {
+          _nextPageKey = _nextPageKeyBuilder(_initialPageKey, items);
+        }
+        value = PaginationState<K, T>(
           items: items,
-          currentPage: _config.initialPage,
+          pageKey: _initialPageKey,
           status: isLastPage
               ? PaginationStatus.completed
               : PaginationStatus.loaded,
@@ -145,7 +218,7 @@ class PaginationController<T> extends ValueNotifier<PaginationState<T>> {
     if (!value.status.canLoadMore || !value.hasMorePages) return;
 
     final operation = _currentOperation = Object();
-    final nextPage = value.currentPage + 1;
+    final pageKey = _nextPageKey;
 
     value = value.copyWith(
       status: PaginationStatus.loadingMore,
@@ -153,22 +226,25 @@ class PaginationController<T> extends ValueNotifier<PaginationState<T>> {
     );
 
     try {
-      final newItems = await _fetchPage(nextPage);
+      final newItems = await _fetchPage(pageKey);
 
       if (operation != _currentOperation) return; // Cancelled
 
       if (newItems.isEmpty) {
         value = value.copyWith(
-          currentPage: nextPage,
+          pageKey: pageKey,
           status: PaginationStatus.completed,
           hasMorePages: false,
         );
       } else {
         final isLastPage =
             _config.pageSize != null && newItems.length < _config.pageSize!;
+        if (!isLastPage) {
+          _nextPageKey = _nextPageKeyBuilder(pageKey, newItems);
+        }
         value = value.copyWith(
           items: [...value.items, ...newItems],
-          currentPage: nextPage,
+          pageKey: pageKey,
           status: isLastPage
               ? PaginationStatus.completed
               : PaginationStatus.loaded,
@@ -193,6 +269,7 @@ class PaginationController<T> extends ValueNotifier<PaginationState<T>> {
   /// This clears all existing items and starts fresh.
   Future<void> refresh() async {
     _currentOperation = null; // Cancel any ongoing operation
+    _nextPageKey = _initialPageKey;
 
     value = value.copyWith(
       status: PaginationStatus.refreshing,
@@ -202,23 +279,26 @@ class PaginationController<T> extends ValueNotifier<PaginationState<T>> {
     final operation = _currentOperation = Object();
 
     try {
-      final items = await _fetchPage(_config.initialPage);
+      final items = await _fetchPage(_initialPageKey);
 
       if (operation != _currentOperation) return; // Cancelled
 
       if (items.isEmpty) {
-        value = PaginationState<T>(
+        value = PaginationState<K, T>(
           items: [],
-          currentPage: _config.initialPage,
+          pageKey: _initialPageKey,
           status: PaginationStatus.empty,
           hasMorePages: false,
         );
       } else {
         final isLastPage =
             _config.pageSize != null && items.length < _config.pageSize!;
-        value = PaginationState<T>(
+        if (!isLastPage) {
+          _nextPageKey = _nextPageKeyBuilder(_initialPageKey, items);
+        }
+        value = PaginationState<K, T>(
           items: items,
-          currentPage: _config.initialPage,
+          pageKey: _initialPageKey,
           status: isLastPage
               ? PaginationStatus.completed
               : PaginationStatus.loaded,
@@ -247,6 +327,26 @@ class PaginationController<T> extends ValueNotifier<PaginationState<T>> {
     }
   }
 
+  /// Replaces the fetch function and automatically resets + reloads.
+  ///
+  /// Use this for search/filter scenarios where the data source changes.
+  /// The controller cancels any ongoing operation, resets state, and
+  /// loads the first page with the new fetch function.
+  ///
+  /// ```dart
+  /// // Update search query
+  /// controller.updateFetchPage(
+  ///   (page) => api.searchUsers(page: page, query: 'john'),
+  /// );
+  /// ```
+  Future<void> updateFetchPage(FetchPage<K, T> newFetchPage) async {
+    _fetchPage = newFetchPage;
+    _currentOperation = null; // Cancel ongoing
+    _nextPageKey = _initialPageKey;
+    value = PaginationState<K, T>();
+    return loadFirstPage();
+  }
+
   /// Sets the total number of items available.
   ///
   /// Call this when your API provides a total count in the response.
@@ -254,7 +354,7 @@ class PaginationController<T> extends ValueNotifier<PaginationState<T>> {
   /// [PaginationStatus.completed] when all items have been loaded.
   ///
   /// ```dart
-  /// PaginationListView<User>.withController(
+  /// PaginationListView<int, User>.withController(
   ///   controller: controller,
   ///   onPageLoaded: (page, items) {
   ///     controller.setTotalItems(apiTotalFromResponse);
@@ -276,7 +376,8 @@ class PaginationController<T> extends ValueNotifier<PaginationState<T>> {
   /// Resets the controller to initial state.
   void reset() {
     _currentOperation = null;
-    value = PaginationState<T>();
+    _nextPageKey = _initialPageKey;
+    value = PaginationState<K, T>();
   }
 
   /// Updates items using a mapper function.

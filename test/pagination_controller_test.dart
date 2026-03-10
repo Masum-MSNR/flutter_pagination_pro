@@ -3,7 +3,7 @@ import 'package:flutter_pagination_pro/flutter_pagination_pro.dart';
 
 void main() {
   group('PaginationController', () {
-    late PaginationController<int> controller;
+    late PaginationController<int, int> controller;
 
     Future<List<int>> mockFetch(int page) async {
       await Future<void>.delayed(const Duration(milliseconds: 10));
@@ -14,7 +14,10 @@ void main() {
     }
 
     setUp(() {
-      controller = PaginationController<int>(fetchPage: mockFetch);
+      controller = PaginationController<int, int>(
+        fetchPage: mockFetch,
+        initialPageKey: 1,
+      );
     });
 
     tearDown(() {
@@ -24,7 +27,7 @@ void main() {
     test('initial state is correct', () {
       expect(controller.status, PaginationStatus.initial);
       expect(controller.items, isEmpty);
-      expect(controller.currentPage, 0);
+      expect(controller.currentPageKey, isNull);
       expect(controller.hasMorePages, true);
     });
 
@@ -33,7 +36,7 @@ void main() {
 
       expect(controller.status, PaginationStatus.loaded);
       expect(controller.items.length, 10);
-      expect(controller.currentPage, 1);
+      expect(controller.currentPageKey, 1);
       expect(controller.hasMorePages, true);
     });
 
@@ -42,7 +45,7 @@ void main() {
       await controller.loadNextPage();
 
       expect(controller.items.length, 20);
-      expect(controller.currentPage, 2);
+      expect(controller.currentPageKey, 2);
     });
 
     test('completed status when no more items', () async {
@@ -63,7 +66,7 @@ void main() {
       await controller.refresh();
 
       expect(controller.items.length, 10);
-      expect(controller.currentPage, 1);
+      expect(controller.currentPageKey, 1);
     });
 
     test('reset clears all state', () {
@@ -71,12 +74,13 @@ void main() {
 
       expect(controller.status, PaginationStatus.initial);
       expect(controller.items, isEmpty);
-      expect(controller.currentPage, 0);
+      expect(controller.currentPageKey, isNull);
     });
 
     test('error handling works', () async {
-      final errorController = PaginationController<int>(
+      final errorController = PaginationController<int, int>(
         fetchPage: (_) => throw Exception('Test error'),
+        initialPageKey: 1,
       );
 
       await errorController.loadFirstPage();
@@ -133,24 +137,24 @@ void main() {
 
   group('PaginationState', () {
     test('copyWith works correctly', () {
-      const state = PaginationState<int>(
+      const state = PaginationState<int, int>(
         items: [1, 2, 3],
-        currentPage: 1,
+        pageKey: 1,
         status: PaginationStatus.loaded,
         hasMorePages: true,
       );
 
-      final newState = state.copyWith(currentPage: 2);
+      final newState = state.copyWith(pageKey: 2);
 
-      expect(newState.currentPage, 2);
+      expect(newState.pageKey, 2);
       expect(newState.items, state.items);
       expect(newState.status, state.status);
     });
 
     test('reset returns initial state', () {
-      const state = PaginationState<int>(
+      const state = PaginationState<int, int>(
         items: [1, 2, 3],
-        currentPage: 5,
+        pageKey: 5,
         status: PaginationStatus.completed,
         hasMorePages: false,
         error: 'Some error',
@@ -159,7 +163,7 @@ void main() {
       final resetState = state.reset();
 
       expect(resetState.items, isEmpty);
-      expect(resetState.currentPage, 0);
+      expect(resetState.pageKey, isNull);
       expect(resetState.status, PaginationStatus.initial);
       expect(resetState.hasMorePages, true);
       expect(resetState.error, isNull);
@@ -217,21 +221,21 @@ void main() {
     test('defaults are sensible', () {
       const config = PaginationConfig.defaults;
 
-      expect(config.initialPage, 1);
       expect(config.scrollThreshold, 200.0);
       expect(config.autoLoadFirstPage, true);
+      expect(config.pageSize, isNull);
     });
 
     test('custom config works', () {
       const config = PaginationConfig(
-        initialPage: 0,
         scrollThreshold: 500.0,
         autoLoadFirstPage: false,
+        pageSize: 20,
       );
 
-      expect(config.initialPage, 0);
       expect(config.scrollThreshold, 500.0);
       expect(config.autoLoadFirstPage, false);
+      expect(config.pageSize, 20);
     });
   });
 }

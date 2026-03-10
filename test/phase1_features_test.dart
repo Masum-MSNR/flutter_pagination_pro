@@ -10,8 +10,9 @@ void main() {
   group('pageSize auto-detection', () {
     test('detects last page when first page returns fewer items than pageSize',
         () async {
-      final controller = PaginationController<int>(
+      final controller = PaginationController<int, int>(
         fetchPage: (_) async => [1, 2, 3], // 3 items, pageSize = 10
+        initialPageKey: 1,
         config: const PaginationConfig(pageSize: 10),
       );
 
@@ -25,8 +26,9 @@ void main() {
     });
 
     test('does not mark last page when items == pageSize', () async {
-      final controller = PaginationController<int>(
+      final controller = PaginationController<int, int>(
         fetchPage: (_) async => List.generate(10, (i) => i),
+        initialPageKey: 1,
         config: const PaginationConfig(pageSize: 10),
       );
 
@@ -40,12 +42,13 @@ void main() {
 
     test('detects last page on subsequent loadNextPage', () async {
       int callCount = 0;
-      final controller = PaginationController<int>(
+      final controller = PaginationController<int, int>(
         fetchPage: (page) async {
           callCount++;
           if (callCount == 1) return List.generate(10, (i) => i);
           return [100, 101, 102]; // partial page
         },
+        initialPageKey: 1,
         config: const PaginationConfig(pageSize: 10),
       );
 
@@ -62,8 +65,9 @@ void main() {
     });
 
     test('detects last page on refresh with partial page', () async {
-      final controller = PaginationController<int>(
+      final controller = PaginationController<int, int>(
         fetchPage: (_) async => [1, 2, 3],
+        initialPageKey: 1,
         config: const PaginationConfig(pageSize: 10),
       );
 
@@ -78,8 +82,9 @@ void main() {
 
     test('empty first page still returns empty status (not completed)',
         () async {
-      final controller = PaginationController<int>(
+      final controller = PaginationController<int, int>(
         fetchPage: (_) async => [],
+        initialPageKey: 1,
         config: const PaginationConfig(pageSize: 10),
       );
 
@@ -92,8 +97,9 @@ void main() {
     });
 
     test('without pageSize, full-page responses still show loaded', () async {
-      final controller = PaginationController<int>(
+      final controller = PaginationController<int, int>(
         fetchPage: (_) async => List.generate(5, (i) => i),
+        initialPageKey: 1,
         // No pageSize — default behavior
       );
 
@@ -138,22 +144,24 @@ void main() {
 
   group('initialItems', () {
     test('starts in loaded state with initial items', () {
-      final controller = PaginationController<String>(
+      final controller = PaginationController<int, String>(
         fetchPage: (_) async => [],
+        initialPageKey: 1,
         initialItems: ['a', 'b', 'c'],
       );
 
       expect(controller.status, PaginationStatus.loaded);
       expect(controller.items, ['a', 'b', 'c']);
-      expect(controller.currentPage, 1); // config.initialPage
+      expect(controller.currentPageKey, 1);
       expect(controller.hasMorePages, true);
 
       controller.dispose();
     });
 
     test('empty initialItems list is treated as no initial items', () {
-      final controller = PaginationController<String>(
+      final controller = PaginationController<int, String>(
         fetchPage: (_) async => [],
+        initialPageKey: 1,
         initialItems: [],
       );
 
@@ -164,8 +172,9 @@ void main() {
     });
 
     test('null initialItems is treated as no initial items', () {
-      final controller = PaginationController<String>(
+      final controller = PaginationController<int, String>(
         fetchPage: (_) async => [],
+        initialPageKey: 1,
       );
 
       expect(controller.status, PaginationStatus.initial);
@@ -173,14 +182,14 @@ void main() {
       controller.dispose();
     });
 
-    test('initialItems with custom initialPage uses config page', () {
-      final controller = PaginationController<int>(
+    test('initialItems with custom initialPageKey', () {
+      final controller = PaginationController<int, int>(
         fetchPage: (_) async => [],
-        config: const PaginationConfig(initialPage: 0),
+        initialPageKey: 0,
         initialItems: [10, 20, 30],
       );
 
-      expect(controller.currentPage, 0);
+      expect(controller.currentPageKey, 0);
       expect(controller.items, [10, 20, 30]);
 
       controller.dispose();
@@ -191,11 +200,12 @@ void main() {
       // With initialItems, status is `loaded` (not `initial`),
       // so the auto-load guard skips.
       int fetchCallCount = 0;
-      final controller = PaginationController<int>(
+      final controller = PaginationController<int, int>(
         fetchPage: (_) async {
           fetchCallCount++;
           return [1, 2, 3];
         },
+        initialPageKey: 1,
         initialItems: [10, 20],
       );
 
@@ -209,18 +219,19 @@ void main() {
     });
 
     test('loadNextPage works after initialItems', () async {
-      final controller = PaginationController<int>(
+      final controller = PaginationController<int, int>(
         fetchPage: (page) async {
           return List.generate(5, (i) => page * 100 + i);
         },
+        initialPageKey: 1,
         initialItems: [1, 2, 3],
       );
 
-      expect(controller.currentPage, 1);
+      expect(controller.currentPageKey, 1);
 
       await controller.loadNextPage();
 
-      expect(controller.currentPage, 2);
+      expect(controller.currentPageKey, 2);
       expect(controller.items.length, 8); // 3 initial + 5 from page 2
       expect(controller.items.sublist(0, 3), [1, 2, 3]);
 
@@ -228,8 +239,9 @@ void main() {
     });
 
     test('refresh replaces initialItems with fresh data', () async {
-      final controller = PaginationController<String>(
+      final controller = PaginationController<int, String>(
         fetchPage: (_) async => ['fresh1', 'fresh2'],
+        initialPageKey: 1,
         initialItems: ['cached1', 'cached2'],
       );
 
@@ -244,8 +256,9 @@ void main() {
 
     test('initialItems are defensively copied', () {
       final original = ['a', 'b', 'c'];
-      final controller = PaginationController<String>(
+      final controller = PaginationController<int, String>(
         fetchPage: (_) async => [],
+        initialPageKey: 1,
         initialItems: original,
       );
 
@@ -259,18 +272,19 @@ void main() {
 
     testWidgets('widget skips initial load with initialItems', (tester) async {
       int fetchCount = 0;
-      final controller = PaginationController<String>(
+      final controller = PaginationController<int, String>(
         fetchPage: (_) async {
           fetchCount++;
           return ['fetched'];
         },
+        initialPageKey: 1,
         initialItems: ['cached item 1', 'cached item 2'],
       );
 
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: PaginationListView<String>.withController(
+            body: PaginationListView<int, String>.withController(
               controller: controller,
               itemBuilder: (context, item, index) =>
                   ListTile(title: Text(item)),
@@ -297,14 +311,15 @@ void main() {
   group('findChildIndexCallback', () {
     testWidgets('PaginationListView passes findChildIndexCallback',
         (tester) async {
-      final controller = PaginationController<String>(
+      final controller = PaginationController<int, String>(
         fetchPage: (_) async => ['A', 'B', 'C'],
+        initialPageKey: 1,
       );
 
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: PaginationListView<String>.withController(
+            body: PaginationListView<int, String>.withController(
               controller: controller,
               itemBuilder: (context, item, index) =>
                   ListTile(key: ValueKey(item), title: Text(item)),
@@ -328,14 +343,15 @@ void main() {
 
     testWidgets('PaginationGridView passes findChildIndexCallback',
         (tester) async {
-      final controller = PaginationController<String>(
+      final controller = PaginationController<int, String>(
         fetchPage: (_) async => ['A', 'B', 'C', 'D'],
+        initialPageKey: 1,
       );
 
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: PaginationGridView<String>.withController(
+            body: PaginationGridView<int, String>.withController(
               controller: controller,
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
@@ -367,8 +383,9 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: PaginationListView<String>(
+            body: PaginationListView<int, String>(
               fetchPage: (_) async => ['X', 'Y'],
+              initialPageKey: 1,
               itemBuilder: (context, item, index) =>
                   ListTile(title: Text(item)),
               // findChildIndexCallback not provided (null)
@@ -390,8 +407,9 @@ void main() {
 
   group('totalItems / setTotalItems', () {
     test('totalItems is null by default', () {
-      final controller = PaginationController<int>(
+      final controller = PaginationController<int, int>(
         fetchPage: (_) async => [],
+        initialPageKey: 1,
       );
 
       expect(controller.state.totalItems, isNull);
@@ -400,8 +418,9 @@ void main() {
     });
 
     test('setTotalItems stores the value', () async {
-      final controller = PaginationController<int>(
+      final controller = PaginationController<int, int>(
         fetchPage: (_) async => List.generate(10, (i) => i),
+        initialPageKey: 1,
       );
 
       await controller.loadFirstPage();
@@ -414,8 +433,9 @@ void main() {
     });
 
     test('setTotalItems sets completed when all items loaded', () async {
-      final controller = PaginationController<int>(
+      final controller = PaginationController<int, int>(
         fetchPage: (_) async => List.generate(10, (i) => i),
+        initialPageKey: 1,
       );
 
       await controller.loadFirstPage();
@@ -431,8 +451,9 @@ void main() {
     });
 
     test('setTotalItems keeps loaded status when more items exist', () async {
-      final controller = PaginationController<int>(
+      final controller = PaginationController<int, int>(
         fetchPage: (_) async => List.generate(10, (i) => i),
+        initialPageKey: 1,
       );
 
       await controller.loadFirstPage();
@@ -446,11 +467,12 @@ void main() {
 
     test('totalItems preserved through loadNextPage', () async {
       int callCount = 0;
-      final controller = PaginationController<int>(
+      final controller = PaginationController<int, int>(
         fetchPage: (_) async {
           callCount++;
           return List.generate(10, (i) => callCount * 100 + i);
         },
+        initialPageKey: 1,
       );
 
       await controller.loadFirstPage();
@@ -465,8 +487,9 @@ void main() {
     });
 
     test('totalItems cleared on reset', () async {
-      final controller = PaginationController<int>(
+      final controller = PaginationController<int, int>(
         fetchPage: (_) async => [1, 2, 3],
+        initialPageKey: 1,
       );
 
       await controller.loadFirstPage();
@@ -480,18 +503,18 @@ void main() {
     });
 
     test('PaginationState.copyWith preserves totalItems', () {
-      const state = PaginationState<int>(
+      const state = PaginationState<int, int>(
         items: [1, 2],
         totalItems: 100,
       );
 
-      final updated = state.copyWith(currentPage: 2);
+      final updated = state.copyWith(pageKey: 2);
 
       expect(updated.totalItems, 100);
     });
 
     test('PaginationState.copyWith can update totalItems', () {
-      const state = PaginationState<int>(
+      const state = PaginationState<int, int>(
         items: [1, 2],
       );
 
@@ -501,9 +524,9 @@ void main() {
     });
 
     test('PaginationState equality includes totalItems', () {
-      const a = PaginationState<int>(items: [1], totalItems: 50);
-      const b = PaginationState<int>(items: [1], totalItems: 50);
-      const c = PaginationState<int>(items: [1], totalItems: 100);
+      const a = PaginationState<int, int>(items: [1], totalItems: 50);
+      const b = PaginationState<int, int>(items: [1], totalItems: 50);
+      const c = PaginationState<int, int>(items: [1], totalItems: 100);
 
       expect(a, equals(b));
       expect(a.hashCode, b.hashCode);
@@ -511,15 +534,16 @@ void main() {
     });
 
     test('PaginationState.toString includes totalItems', () {
-      const state = PaginationState<int>(items: [1, 2], totalItems: 42);
+      const state = PaginationState<int, int>(items: [1, 2], totalItems: 42);
       expect(state.toString(), contains('totalItems: 42'));
     });
 
     test('setTotalItems does not loop infinitely', () async {
       // Regression: setTotalItems triggers _onStateChanged → onPageLoaded →
       // user calls setTotalItems again → should be a no-op (state unchanged).
-      final controller = PaginationController<int>(
+      final controller = PaginationController<int, int>(
         fetchPage: (_) async => List.generate(10, (i) => i),
+        initialPageKey: 1,
       );
 
       await controller.loadFirstPage();
@@ -540,8 +564,9 @@ void main() {
 
     testWidgets('totalItems accessible in widget via controller',
         (tester) async {
-      final controller = PaginationController<String>(
+      final controller = PaginationController<int, String>(
         fetchPage: (_) async => ['A', 'B', 'C'],
+        initialPageKey: 1,
       );
 
       String? displayText;
@@ -549,7 +574,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: PaginationListView<String>.withController(
+            body: PaginationListView<int, String>.withController(
               controller: controller,
               itemBuilder: (context, item, index) =>
                   ListTile(title: Text(item)),
@@ -578,11 +603,12 @@ void main() {
   group('Feature combinations', () {
     test('initialItems + pageSize: loadNextPage detects partial page',
         () async {
-      final controller = PaginationController<int>(
+      final controller = PaginationController<int, int>(
         fetchPage: (page) async {
           if (page == 2) return [100, 101]; // partial page
           return List.generate(10, (i) => i);
         },
+        initialPageKey: 1,
         config: const PaginationConfig(pageSize: 10),
         initialItems: List.generate(10, (i) => i),
       );
@@ -599,8 +625,9 @@ void main() {
     });
 
     test('initialItems + setTotalItems', () {
-      final controller = PaginationController<int>(
+      final controller = PaginationController<int, int>(
         fetchPage: (_) async => [],
+        initialPageKey: 1,
         initialItems: [1, 2, 3],
       );
 
@@ -613,8 +640,9 @@ void main() {
     });
 
     test('pageSize + setTotalItems: both mechanisms coexist', () async {
-      final controller = PaginationController<int>(
+      final controller = PaginationController<int, int>(
         fetchPage: (_) async => List.generate(10, (i) => i),
+        initialPageKey: 1,
         config: const PaginationConfig(pageSize: 10),
       );
 

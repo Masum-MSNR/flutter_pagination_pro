@@ -4,8 +4,9 @@ import 'package:flutter_pagination_pro/flutter_pagination_pro.dart';
 void main() {
   group('Library exports', () {
     test('PaginationController is accessible', () {
-      final controller = PaginationController<String>(
+      final controller = PaginationController<int, String>(
         fetchPage: (_) async => [],
+        initialPageKey: 1,
       );
       expect(controller, isNotNull);
       expect(controller.status, PaginationStatus.initial);
@@ -14,16 +15,16 @@ void main() {
 
     test('PaginationConfig defaults are accessible', () {
       const config = PaginationConfig.defaults;
-      expect(config.initialPage, 1);
       expect(config.scrollThreshold, 200.0);
       expect(config.autoLoadFirstPage, true);
+      expect(config.pageSize, isNull);
     });
 
     test('PaginationConfig copyWith works', () {
       const config = PaginationConfig.defaults;
       final custom = config.copyWith(scrollThreshold: 500.0);
       expect(custom.scrollThreshold, 500.0);
-      expect(custom.initialPage, 1);
+      expect(custom.autoLoadFirstPage, true);
     });
 
     test('PaginationStatus values are accessible', () {
@@ -48,9 +49,9 @@ void main() {
     });
 
     test('PaginationState reset works', () {
-      const state = PaginationState<int>(
+      const state = PaginationState<int, int>(
         items: [1, 2, 3],
-        currentPage: 5,
+        pageKey: 5,
         status: PaginationStatus.completed,
       );
       final reset = state.reset();
