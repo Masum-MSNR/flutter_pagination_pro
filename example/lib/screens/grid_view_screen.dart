@@ -148,6 +148,11 @@ class _GridViewScreenState extends State<GridViewScreen> {
                 childAspectRatio: 0.75,
               ),
               itemBuilder: (context, item, index) => GridCard(item: item),
+              placeholderItem: const MockItem(
+                id: 0,
+                title: '',
+                subtitle: '',
+              ),
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
               loadMoreButtonBuilder: _paginationType == PaginationType.loadMore
                   ? (context, onLoadMore, isLoading) => Padding(

@@ -208,7 +208,25 @@ Available on both `PaginationListView` and `PaginationGridView` (all constructor
 
 ## Skeleton / Shimmer Loading
 
-Use `DefaultFirstPageLoading.builder()` for skeleton placeholder loading:
+### Zero-config (recommended)
+
+Add `placeholderItem` to your widget — it reuses your existing `itemBuilder` with a grey overlay:
+
+```dart
+PagedListView<User>(
+  fetchPage: (page) => api.getUsers(page: page),
+  itemBuilder: (context, user, index) => UserTile(user: user),
+  placeholderItem: User(name: '', email: ''),  // just add this!
+  placeholderCount: 8,                          // optional, default 6
+  skeletonOverlayColor: Colors.grey.shade200,   // optional
+)
+```
+
+Available on all four widget types: `PaginationListView`, `PaginationGridView`, `SliverPaginatedList`, and `SliverPaginatedGrid`.
+
+### Custom skeleton builder
+
+For full control, use `DefaultFirstPageLoading.builder()`:
 
 ```dart
 PagedListView<User>(

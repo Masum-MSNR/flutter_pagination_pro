@@ -44,6 +44,9 @@ class PaginationGridView<K, T> extends StatefulWidget {
     this.emptyBuilder,
     this.endOfListBuilder,
     this.loadMoreButtonBuilder,
+    this.placeholderItem,
+    this.placeholderCount = 6,
+    this.skeletonOverlayColor,
     this.onPageLoaded,
     this.onError,
     this.enablePullToRefresh = false,
@@ -88,6 +91,9 @@ class PaginationGridView<K, T> extends StatefulWidget {
     this.emptyBuilder,
     this.endOfListBuilder,
     this.loadMoreButtonBuilder,
+    this.placeholderItem,
+    this.placeholderCount = 6,
+    this.skeletonOverlayColor,
     this.onPageLoaded,
     this.onError,
     this.enablePullToRefresh = false,
@@ -144,6 +150,9 @@ class PaginationGridView<K, T> extends StatefulWidget {
     this.emptyBuilder,
     this.endOfListBuilder,
     this.loadMoreButtonBuilder,
+    this.placeholderItem,
+    this.placeholderCount = 6,
+    this.skeletonOverlayColor,
     this.enablePullToRefresh = false,
     this.header,
     this.footer,
@@ -217,6 +226,19 @@ class PaginationGridView<K, T> extends StatefulWidget {
   final EmptyBuilder? emptyBuilder;
   final EndOfListBuilder? endOfListBuilder;
   final LoadMoreBuilder? loadMoreButtonBuilder;
+
+  /// A dummy instance of `T` for automatic skeleton loading.
+  ///
+  /// When provided (and [firstPageLoadingBuilder] is not set), the widget
+  /// automatically renders your [itemBuilder] with this placeholder item,
+  /// applying a grey [ColorFiltered] overlay to produce a skeleton effect.
+  final T? placeholderItem;
+
+  /// Number of skeleton placeholder items to display (default 6).
+  final int placeholderCount;
+
+  /// Overlay color for skeleton items (defaults to `Colors.grey.shade300`).
+  final Color? skeletonOverlayColor;
 
   // Callbacks
   /// Called when a page is successfully loaded with only the new items.
@@ -307,6 +329,16 @@ class _PaginationGridViewState<K, T> extends State<PaginationGridView<K, T>>
   OnPageLoaded<K, T>? get widgetOnPageLoaded => widget.onPageLoaded;
   @override
   OnError? get widgetOnError => widget.onError;
+  @override
+  ItemBuilder<T> get widgetItemBuilder => widget.itemBuilder;
+  @override
+  SeparatorBuilder? get widgetSeparatorBuilder => null;
+  @override
+  T? get widgetPlaceholderItem => widget.placeholderItem;
+  @override
+  int get widgetPlaceholderCount => widget.placeholderCount;
+  @override
+  Color? get widgetSkeletonOverlayColor => widget.skeletonOverlayColor;
 
   // Controlled mode bridge
   @override

@@ -782,4 +782,202 @@ void main() {
       expect(controller, hasStatus(PaginationStatus.loaded));
     });
   });
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // placeholderItem widget param — auto-skeleton from itemBuilder
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  group('placeholderItem on widget constructors', () {
+    testWidgets('PaginationListView shows skeleton via placeholderItem',
+        (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: PaginationListView<int, String>.controlled(
+              items: const [],
+              status: PaginationStatus.loadingFirstPage,
+              itemBuilder: (context, item, index) => ListTile(
+                key: ValueKey('item-$index'),
+                title: Text(item),
+              ),
+              placeholderItem: 'Placeholder',
+              placeholderCount: 4,
+            ),
+          ),
+        ),
+      );
+
+      // Each item is rendered (via the real itemBuilder) and wrapped in ColorFiltered
+      expect(find.byType(ColorFiltered), findsNWidgets(4));
+      expect(find.text('Placeholder'), findsNWidgets(4));
+    });
+
+    testWidgets('PaginationListView defaults to 6 placeholders',
+        (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: PaginationListView<int, String>.controlled(
+              items: const [],
+              status: PaginationStatus.loadingFirstPage,
+              itemBuilder: (context, item, index) => Text(item),
+              placeholderItem: 'X',
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(ColorFiltered), findsNWidgets(6));
+    });
+
+    testWidgets('firstPageLoadingBuilder takes priority over placeholderItem',
+        (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: PaginationListView<int, String>.controlled(
+              items: const [],
+              status: PaginationStatus.loadingFirstPage,
+              itemBuilder: (context, item, index) => Text(item),
+              placeholderItem: 'X',
+              firstPageLoadingBuilder: (context) =>
+                  const Text('Custom Loading'),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Custom Loading'), findsOneWidget);
+      expect(find.byType(ColorFiltered), findsNothing);
+    });
+
+    testWidgets('PaginationGridView shows skeleton via placeholderItem',
+        (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: PaginationGridView<int, String>.controlled(
+              items: const [],
+              status: PaginationStatus.loadingFirstPage,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+              ),
+              itemBuilder: (context, item, index) => Text(item),
+              placeholderItem: 'Grid',
+              placeholderCount: 4,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(ColorFiltered), findsNWidgets(4));
+      expect(find.text('Grid'), findsNWidgets(4));
+    });
+
+    testWidgets('SliverPaginatedList shows skeleton via placeholderItem',
+        (tester) async {
+      final scrollController = ScrollController();
+      addTearDown(scrollController.dispose);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: CustomScrollView(
+              controller: scrollController,
+              slivers: [
+                SliverPaginatedList<int, String>.controlled(
+                  items: const [],
+                  status: PaginationStatus.loadingFirstPage,
+                  scrollController: scrollController,
+                  itemBuilder: (context, item, index) => ListTile(
+                    title: Text(item),
+                  ),
+                  placeholderItem: 'Sliver',
+                  placeholderCount: 3,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(ColorFiltered), findsNWidgets(3));
+      expect(find.text('Sliver'), findsNWidgets(3));
+    });
+
+    testWidgets('SliverPaginatedGrid shows skeleton via placeholderItem',
+        (tester) async {
+      final scrollController = ScrollController();
+      addTearDown(scrollController.dispose);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: CustomScrollView(
+              controller: scrollController,
+              slivers: [
+                SliverPaginatedGrid<int, String>.controlled(
+                  items: const [],
+                  status: PaginationStatus.loadingFirstPage,
+                  scrollController: scrollController,
+                  gridDelegate:
+                      const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                  ),
+                  itemBuilder: (context, item, index) => Text(item),
+                  placeholderItem: 'SliverGrid',
+                  placeholderCount: 4,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(ColorFiltered), findsNWidgets(4));
+      expect(find.text('SliverGrid'), findsNWidgets(4));
+    });
+
+    testWidgets('skeletonOverlayColor is applied', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: PaginationListView<int, String>.controlled(
+              items: const [],
+              status: PaginationStatus.loadingFirstPage,
+              itemBuilder: (context, item, index) => Text(item),
+              placeholderItem: 'X',
+              placeholderCount: 2,
+              skeletonOverlayColor: Colors.red,
+            ),
+          ),
+        ),
+      );
+
+      final colorFiltered = tester.widgetList<ColorFiltered>(
+        find.byType(ColorFiltered),
+      );
+      for (final widget in colorFiltered) {
+        // The color filter should be present on each skeleton item
+        expect(widget.colorFilter, isNotNull);
+      }
+      expect(find.byType(ColorFiltered), findsNWidgets(2));
+    });
+
+    testWidgets('no skeleton when placeholderItem is null', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: PaginationListView<int, String>.controlled(
+              items: const [],
+              status: PaginationStatus.loadingFirstPage,
+              itemBuilder: (context, item, index) => Text(item),
+            ),
+          ),
+        ),
+      );
+
+      // Should show default spinner, not skeleton
+      expect(find.byType(ColorFiltered), findsNothing);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    });
+  });
 }

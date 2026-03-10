@@ -114,6 +114,11 @@ class _InfiniteScrollScreenState extends State<InfiniteScrollScreen> {
               controller: _controller,
               paginationType: PaginationType.infiniteScroll,
               itemBuilder: (context, item, index) => ItemTile(item: item),
+              placeholderItem: const MockItem(
+                id: 0,
+                title: '',
+                subtitle: '',
+              ),
               separatorBuilder: _useSeparator
                   ? (context, index) => Divider(
                         indent: 84,

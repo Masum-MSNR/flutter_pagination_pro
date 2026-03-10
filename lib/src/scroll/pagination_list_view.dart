@@ -78,6 +78,9 @@ class PaginationListView<K, T> extends StatefulWidget {
     this.emptyBuilder,
     this.endOfListBuilder,
     this.loadMoreButtonBuilder,
+    this.placeholderItem,
+    this.placeholderCount = 6,
+    this.skeletonOverlayColor,
     this.onPageLoaded,
     this.onError,
     this.enablePullToRefresh = false,
@@ -124,6 +127,9 @@ class PaginationListView<K, T> extends StatefulWidget {
     this.emptyBuilder,
     this.endOfListBuilder,
     this.loadMoreButtonBuilder,
+    this.placeholderItem,
+    this.placeholderCount = 6,
+    this.skeletonOverlayColor,
     this.onPageLoaded,
     this.onError,
     this.enablePullToRefresh = false,
@@ -195,6 +201,9 @@ class PaginationListView<K, T> extends StatefulWidget {
     this.emptyBuilder,
     this.endOfListBuilder,
     this.loadMoreButtonBuilder,
+    this.placeholderItem,
+    this.placeholderCount = 6,
+    this.skeletonOverlayColor,
     this.enablePullToRefresh = false,
     this.header,
     this.footer,
@@ -281,6 +290,32 @@ class PaginationListView<K, T> extends StatefulWidget {
 
   /// Builder for the load more button (when using loadMore mode).
   final LoadMoreBuilder? loadMoreButtonBuilder;
+
+  /// A dummy instance of `T` used to auto-generate skeleton loading.
+  ///
+  /// When provided (and [firstPageLoadingBuilder] is not set), the widget
+  /// automatically renders your [itemBuilder] with this placeholder item,
+  /// applying a grey [ColorFiltered] overlay to produce a skeleton effect.
+  ///
+  /// ```dart
+  /// PagedListView<User>(
+  ///   fetchPage: (page) => api.getUsers(page: page),
+  ///   itemBuilder: (context, user, index) => UserTile(user: user),
+  ///   placeholderItem: User(name: '', email: ''),  // just add this!
+  ///   placeholderCount: 8,
+  /// )
+  /// ```
+  final T? placeholderItem;
+
+  /// Number of skeleton placeholder items to display (default 6).
+  ///
+  /// Only used when [placeholderItem] is provided.
+  final int placeholderCount;
+
+  /// Overlay color for skeleton items (defaults to `Colors.grey.shade300`).
+  ///
+  /// Only used when [placeholderItem] is provided.
+  final Color? skeletonOverlayColor;
 
   // Callbacks
   /// Called when a page is successfully loaded with only the new items.
@@ -391,6 +426,16 @@ class _PaginationListViewState<K, T> extends State<PaginationListView<K, T>>
   OnPageLoaded<K, T>? get widgetOnPageLoaded => widget.onPageLoaded;
   @override
   OnError? get widgetOnError => widget.onError;
+  @override
+  ItemBuilder<T> get widgetItemBuilder => widget.itemBuilder;
+  @override
+  SeparatorBuilder? get widgetSeparatorBuilder => widget.separatorBuilder;
+  @override
+  T? get widgetPlaceholderItem => widget.placeholderItem;
+  @override
+  int get widgetPlaceholderCount => widget.placeholderCount;
+  @override
+  Color? get widgetSkeletonOverlayColor => widget.skeletonOverlayColor;
 
   // Controlled mode bridge
   @override

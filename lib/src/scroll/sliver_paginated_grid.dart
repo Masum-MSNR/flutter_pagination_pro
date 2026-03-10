@@ -62,6 +62,9 @@ class SliverPaginatedGrid<K, T> extends StatefulWidget {
     this.onPageLoaded,
     this.onError,
     this.findChildIndexCallback,
+    this.placeholderItem,
+    this.placeholderCount = 6,
+    this.skeletonOverlayColor,
   })  : assert(
           paginationType != PaginationType.infiniteScroll ||
               scrollController != null,
@@ -103,6 +106,9 @@ class SliverPaginatedGrid<K, T> extends StatefulWidget {
     this.endOfListBuilder,
     this.loadMoreButtonBuilder,
     this.findChildIndexCallback,
+    this.placeholderItem,
+    this.placeholderCount = 6,
+    this.skeletonOverlayColor,
   })  : assert(
           paginationType != PaginationType.infiniteScroll ||
               scrollController != null,
@@ -166,6 +172,23 @@ class SliverPaginatedGrid<K, T> extends StatefulWidget {
   /// Optional callback to find a child's index by its key.
   final ChildIndexGetter? findChildIndexCallback;
 
+  /// A placeholder instance of `T` used to auto-generate skeleton loading.
+  ///
+  /// When provided (and [firstPageLoadingBuilder] is not set), the widget
+  /// automatically renders your [itemBuilder] with this placeholder item,
+  /// applying a grey [ColorFiltered] overlay to produce a skeleton effect.
+  final T? placeholderItem;
+
+  /// Number of skeleton placeholder items to display (default 6).
+  ///
+  /// Only used when [placeholderItem] is provided.
+  final int placeholderCount;
+
+  /// Overlay color for skeleton items (defaults to `Colors.grey.shade300`).
+  ///
+  /// Only used when [placeholderItem] is provided.
+  final Color? skeletonOverlayColor;
+
   @override
   State<SliverPaginatedGrid<K, T>> createState() =>
       _SliverPaginatedGridState<K, T>();
@@ -218,6 +241,16 @@ class _SliverPaginatedGridState<K, T> extends State<SliverPaginatedGrid<K, T>>
   OnPageLoaded<K, T>? get widgetOnPageLoaded => widget.onPageLoaded;
   @override
   OnError? get widgetOnError => widget.onError;
+  @override
+  ItemBuilder<T> get widgetItemBuilder => widget.itemBuilder;
+  @override
+  SeparatorBuilder? get widgetSeparatorBuilder => null;
+  @override
+  T? get widgetPlaceholderItem => widget.placeholderItem;
+  @override
+  int get widgetPlaceholderCount => widget.placeholderCount;
+  @override
+  Color? get widgetSkeletonOverlayColor => widget.skeletonOverlayColor;
 
   // Controlled mode bridge
   @override
@@ -276,10 +309,18 @@ class _SliverPaginatedGridState<K, T> extends State<SliverPaginatedGrid<K, T>>
 
     // Full-area states returned as SliverFillRemaining
     if (state.status.isInitialLoading) {
+      if (widgetFirstPageLoadingBuilder != null) {
+        return SliverFillRemaining(
+          hasScrollBody: false,
+          child: widgetFirstPageLoadingBuilder!.call(context),
+        );
+      }
+      if (widgetPlaceholderItem != null) {
+        return _buildSkeletonSliver();
+      }
       return SliverFillRemaining(
         hasScrollBody: false,
-        child: widgetFirstPageLoadingBuilder?.call(context) ??
-            const DefaultFirstPageLoading(),
+        child: const DefaultFirstPageLoading(),
       );
     }
 
@@ -334,6 +375,22 @@ class _SliverPaginatedGridState<K, T> extends State<SliverPaginatedGrid<K, T>>
         sliverGrid,
         SliverToBoxAdapter(child: buildFooter(state)),
       ],
+    );
+  }
+
+  Widget _buildSkeletonSliver() {
+    final color = widgetSkeletonOverlayColor ?? Colors.grey.shade300;
+    final placeholder = widgetPlaceholderItem as T;
+
+    return SliverGrid(
+      gridDelegate: widget.gridDelegate,
+      delegate: SliverChildBuilderDelegate(
+        (context, index) => ColorFiltered(
+          colorFilter: ColorFilter.mode(color, BlendMode.srcATop),
+          child: widgetItemBuilder(context, placeholder, index),
+        ),
+        childCount: widgetPlaceholderCount,
+      ),
     );
   }
 }

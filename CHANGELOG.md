@@ -6,6 +6,19 @@
 
 - **Skeleton / Shimmer first-page loading**: `DefaultFirstPageLoading.builder()` — a named constructor that renders a list of placeholder widgets during the initial load. Accepts `itemBuilder`, `itemCount` (default 6), optional `separatorBuilder`, `padding`, and `scrollDirection`. Works seamlessly as a `firstPageLoadingBuilder` for shimmer/skeleton patterns without adding any dependencies.
 
+- **Zero-config skeleton loading via `placeholderItem`**: All four widget types (`PaginationListView`, `PaginationGridView`, `SliverPaginatedList`, `SliverPaginatedGrid`) now accept `placeholderItem`, `placeholderCount` (default 6), and `skeletonOverlayColor` directly as constructor parameters. When `placeholderItem` is provided, the widget automatically reuses your existing `itemBuilder` with a `ColorFiltered` grey overlay to produce a skeleton effect — no duplication of `itemBuilder` or separate builder required.
+
+  ```dart
+  PagedListView<User>(
+    fetchPage: (page) => api.getUsers(page: page),
+    itemBuilder: (context, user, index) => UserTile(user: user),
+    placeholderItem: User(name: '', email: ''),  // just add this!
+    placeholderCount: 8,
+  )
+  ```
+
+- **`DefaultFirstPageLoading.fromItemBuilder<T>()`**: A static factory that reuses your real `ItemBuilder<T>` with a placeholder item and applies `ColorFiltered(BlendMode.srcATop)` for skeleton-style loading. Used internally by the `placeholderItem` param, but also available for direct use.
+
 - **Header & Footer convenience parameters**: Both `PaginationListView` and `PaginationGridView` (all 3 constructors) now accept optional `header` and `footer` widgets. The header scrolls above the paginated items; the footer scrolls below all items. Internally switches to `CustomScrollView` when either is provided — transparent to the user.
 
 - **Testing utilities** (`package:flutter_pagination_pro/testing.dart`):

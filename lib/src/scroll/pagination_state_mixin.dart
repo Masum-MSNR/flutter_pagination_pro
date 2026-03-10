@@ -75,6 +75,22 @@ mixin PaginationStateMixin<K, T, W extends StatefulWidget> on State<W> {
   OnPageLoaded<K, T>? get widgetOnPageLoaded;
   OnError? get widgetOnError;
 
+  // Skeleton / placeholder loading getters
+  /// The item builder used by the widget.
+  ItemBuilder<T> get widgetItemBuilder;
+
+  /// Optional separator builder.
+  SeparatorBuilder? get widgetSeparatorBuilder;
+
+  /// Placeholder item for automatic skeleton loading.
+  T? get widgetPlaceholderItem;
+
+  /// Number of skeleton items to show (default 6).
+  int get widgetPlaceholderCount;
+
+  /// Overlay color for skeleton items.
+  Color? get widgetSkeletonOverlayColor;
+
   // ── Controlled mode getters ─────────────────────────────────────────────
 
   /// Items provided in controlled mode.
@@ -329,8 +345,21 @@ mixin PaginationStateMixin<K, T, W extends StatefulWidget> on State<W> {
     final state = _currentState;
 
     if (state.status.isInitialLoading) {
-      return widgetFirstPageLoadingBuilder?.call(context) ??
-          const DefaultFirstPageLoading();
+      if (widgetFirstPageLoadingBuilder != null) {
+        return widgetFirstPageLoadingBuilder!.call(context);
+      }
+      if (widgetPlaceholderItem != null) {
+        return DefaultFirstPageLoading.fromItemBuilder<T>(
+          itemBuilder: widgetItemBuilder,
+          placeholderItem: widgetPlaceholderItem as T,
+          itemCount: widgetPlaceholderCount,
+          overlayColor: widgetSkeletonOverlayColor,
+          separatorBuilder: widgetSeparatorBuilder != null
+              ? (context, index) => widgetSeparatorBuilder!(context, index)
+              : null,
+        );
+      }
+      return const DefaultFirstPageLoading();
     }
 
     if (state.status.isFirstPageError) {

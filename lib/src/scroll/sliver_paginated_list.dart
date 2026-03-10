@@ -73,6 +73,9 @@ class SliverPaginatedList<K, T> extends StatefulWidget {
     this.onPageLoaded,
     this.onError,
     this.findChildIndexCallback,
+    this.placeholderItem,
+    this.placeholderCount = 6,
+    this.skeletonOverlayColor,
   })  : assert(
           paginationType != PaginationType.infiniteScroll ||
               scrollController != null,
@@ -114,6 +117,9 @@ class SliverPaginatedList<K, T> extends StatefulWidget {
     this.endOfListBuilder,
     this.loadMoreButtonBuilder,
     this.findChildIndexCallback,
+    this.placeholderItem,
+    this.placeholderCount = 6,
+    this.skeletonOverlayColor,
   })  : assert(
           paginationType != PaginationType.infiniteScroll ||
               scrollController != null,
@@ -177,6 +183,23 @@ class SliverPaginatedList<K, T> extends StatefulWidget {
   /// Optional callback to find a child's index by its key.
   final ChildIndexGetter? findChildIndexCallback;
 
+  /// A placeholder instance of `T` used to auto-generate skeleton loading.
+  ///
+  /// When provided (and [firstPageLoadingBuilder] is not set), the widget
+  /// automatically renders your [itemBuilder] with this placeholder item,
+  /// applying a grey [ColorFiltered] overlay to produce a skeleton effect.
+  final T? placeholderItem;
+
+  /// Number of skeleton placeholder items to display (default 6).
+  ///
+  /// Only used when [placeholderItem] is provided.
+  final int placeholderCount;
+
+  /// Overlay color for skeleton items (defaults to `Colors.grey.shade300`).
+  ///
+  /// Only used when [placeholderItem] is provided.
+  final Color? skeletonOverlayColor;
+
   @override
   State<SliverPaginatedList<K, T>> createState() =>
       _SliverPaginatedListState<K, T>();
@@ -229,6 +252,16 @@ class _SliverPaginatedListState<K, T> extends State<SliverPaginatedList<K, T>>
   OnPageLoaded<K, T>? get widgetOnPageLoaded => widget.onPageLoaded;
   @override
   OnError? get widgetOnError => widget.onError;
+  @override
+  ItemBuilder<T> get widgetItemBuilder => widget.itemBuilder;
+  @override
+  SeparatorBuilder? get widgetSeparatorBuilder => widget.separatorBuilder;
+  @override
+  T? get widgetPlaceholderItem => widget.placeholderItem;
+  @override
+  int get widgetPlaceholderCount => widget.placeholderCount;
+  @override
+  Color? get widgetSkeletonOverlayColor => widget.skeletonOverlayColor;
 
   // Controlled mode bridge
   @override
@@ -287,10 +320,18 @@ class _SliverPaginatedListState<K, T> extends State<SliverPaginatedList<K, T>>
 
     // Full-area states returned as SliverFillRemaining
     if (state.status.isInitialLoading) {
+      if (widgetFirstPageLoadingBuilder != null) {
+        return SliverFillRemaining(
+          hasScrollBody: false,
+          child: widgetFirstPageLoadingBuilder!.call(context),
+        );
+      }
+      if (widgetPlaceholderItem != null) {
+        return _buildSkeletonSliver();
+      }
       return SliverFillRemaining(
         hasScrollBody: false,
-        child: widgetFirstPageLoadingBuilder?.call(context) ??
-            const DefaultFirstPageLoading(),
+        child: const DefaultFirstPageLoading(),
       );
     }
 
@@ -364,6 +405,31 @@ class _SliverPaginatedListState<K, T> extends State<SliverPaginatedList<K, T>>
                     return itemIndex != null ? itemIndex * 2 : null;
                   }
                 : widget.findChildIndexCallback,
+      ),
+    );
+  }
+
+  Widget _buildSkeletonSliver() {
+    final color = widgetSkeletonOverlayColor ?? Colors.grey.shade300;
+    final placeholder = widgetPlaceholderItem as T;
+    final hasSeparator = widgetSeparatorBuilder != null;
+    final count = widgetPlaceholderCount;
+
+    final int totalSlots = hasSeparator && count > 0 ? count * 2 - 1 : count;
+
+    return SliverList(
+      delegate: SliverChildBuilderDelegate(
+        (context, index) {
+          if (hasSeparator && index.isOdd) {
+            return widgetSeparatorBuilder!(context, index ~/ 2);
+          }
+          final itemIndex = hasSeparator ? index ~/ 2 : index;
+          return ColorFiltered(
+            colorFilter: ColorFilter.mode(color, BlendMode.srcATop),
+            child: widgetItemBuilder(context, placeholder, itemIndex),
+          );
+        },
+        childCount: totalSlots,
       ),
     );
   }
