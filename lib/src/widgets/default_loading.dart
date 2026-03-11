@@ -113,13 +113,15 @@ class DefaultFirstPageLoading extends StatelessWidget {
   /// 1. **Transparent backgrounds** — Card, ListTile, and Material surface
   ///    colours are overridden to transparent so only visible content
   ///    (text, icons, coloured containers) remains.
-  /// 2. **Animated shimmer** — a `ShaderMask` with a sliding
-  ///    `LinearGradient` sweeps a highlight band across the shapes,
-  ///    using `BlendMode.srcATop` so only non-transparent pixels show.
+  /// 2. **Solid fill** — a `ColorFiltered` with `BlendMode.srcATop` turns
+  ///    every visible pixel (text characters, icons, avatar colours) into
+  ///    a solid opaque block of the base colour, producing clean
+  ///    rectangular skeleton shapes.
+  /// 3. **Animated shimmer** — a `ShaderMask` with a sliding
+  ///    `LinearGradient` sweeps a highlight band across those solid shapes.
   ///
-  /// The result automatically mirrors the real widget's layout with an
-  /// animated shimmer: avatars → rounded rectangles, titles → text-shaped
-  /// blocks, chips → pills.
+  /// The result: text → solid bar (same height/width), avatar → solid
+  /// rectangle, chip → solid pill, all with an animated shimmer sweep.
   ///
   /// [overlayColor] sets the base skeleton colour.
   /// Defaults to `Colors.grey.shade700` in dark, `Colors.grey.shade300`
@@ -148,7 +150,10 @@ class DefaultFirstPageLoading extends StatelessWidget {
       ),
       child: _SkeletonShimmer(
         baseColor: baseColor,
-        child: IgnorePointer(child: child),
+        child: ColorFiltered(
+          colorFilter: ColorFilter.mode(baseColor, BlendMode.srcATop),
+          child: IgnorePointer(child: child),
+        ),
       ),
     );
   }
