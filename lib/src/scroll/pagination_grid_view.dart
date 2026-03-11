@@ -331,7 +331,8 @@ class _PaginationGridViewState<K, T> extends State<PaginationGridView<K, T>>
   @override
   bool get isControlledMode => widget._isControlled;
   @override
-  PaginationController<K, T>? get widgetExternalController => widget._controller;
+  PaginationController<K, T>? get widgetExternalController =>
+      widget._controller;
   @override
   bool get isExternalController => widget._externalController;
   @override
@@ -356,8 +357,7 @@ class _PaginationGridViewState<K, T> extends State<PaginationGridView<K, T>>
   LoadingBuilder? get widgetLoadMoreLoadingBuilder =>
       widget.loadMoreLoadingBuilder;
   @override
-  ErrorBuilder? get widgetFirstPageErrorBuilder =>
-      widget.firstPageErrorBuilder;
+  ErrorBuilder? get widgetFirstPageErrorBuilder => widget.firstPageErrorBuilder;
   @override
   ErrorBuilder? get widgetLoadMoreErrorBuilder => widget.loadMoreErrorBuilder;
   @override
@@ -449,8 +449,7 @@ class _PaginationGridViewState<K, T> extends State<PaginationGridView<K, T>>
       restorationId: widget.restorationId,
       clipBehavior: widget.clipBehavior,
       slivers: [
-        if (widget.header != null)
-          SliverToBoxAdapter(child: widget.header),
+        if (widget.header != null) SliverToBoxAdapter(child: widget.header),
         SliverPadding(
           padding: widget.padding ?? EdgeInsets.zero,
           sliver: SliverGrid(
@@ -478,8 +477,7 @@ class _PaginationGridViewState<K, T> extends State<PaginationGridView<K, T>>
               child: buildFooter(state),
             ),
           ),
-        if (widget.footer != null)
-          SliverToBoxAdapter(child: widget.footer),
+        if (widget.footer != null) SliverToBoxAdapter(child: widget.footer),
       ],
     );
   }

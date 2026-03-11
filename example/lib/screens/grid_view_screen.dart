@@ -163,7 +163,8 @@ class _GridViewScreenState extends State<GridViewScreen> {
                               ? const SizedBox(
                                   width: 20,
                                   height: 20,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                  child:
+                                      CircularProgressIndicator(strokeWidth: 2),
                                 )
                               : const Icon(Icons.add, size: 20),
                           label: Text(isLoading ? 'Loading...' : 'Load More'),

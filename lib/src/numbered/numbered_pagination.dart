@@ -127,10 +127,12 @@ class NumberedPaginationConfig {
   }) {
     return NumberedPaginationConfig(
       selectedButtonColor: selectedButtonColor ?? this.selectedButtonColor,
-      unselectedButtonColor: unselectedButtonColor ?? this.unselectedButtonColor,
+      unselectedButtonColor:
+          unselectedButtonColor ?? this.unselectedButtonColor,
       selectedTextColor: selectedTextColor ?? this.selectedTextColor,
       unselectedTextColor: unselectedTextColor ?? this.unselectedTextColor,
-      navigationButtonColor: navigationButtonColor ?? this.navigationButtonColor,
+      navigationButtonColor:
+          navigationButtonColor ?? this.navigationButtonColor,
       navigationIconColor: navigationIconColor ?? this.navigationIconColor,
       disabledButtonColor: disabledButtonColor ?? this.disabledButtonColor,
       disabledIconColor: disabledIconColor ?? this.disabledIconColor,
@@ -141,7 +143,8 @@ class NumberedPaginationConfig {
       fontSize: fontSize ?? this.fontSize,
       fontWeight: fontWeight ?? this.fontWeight,
       showFirstLastButtons: showFirstLastButtons ?? this.showFirstLastButtons,
-      showNavigationButtons: showNavigationButtons ?? this.showNavigationButtons,
+      showNavigationButtons:
+          showNavigationButtons ?? this.showNavigationButtons,
       navigationIconSize: navigationIconSize ?? this.navigationIconSize,
       firstIcon: firstIcon ?? this.firstIcon,
       lastIcon: lastIcon ?? this.lastIcon,
@@ -290,7 +293,8 @@ class NumberedPagination extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     // Resolve colors from theme
-    final selectedButtonColor = config.selectedButtonColor ?? colorScheme.primary;
+    final selectedButtonColor =
+        config.selectedButtonColor ?? colorScheme.primary;
     final unselectedButtonColor =
         config.unselectedButtonColor ?? colorScheme.surfaceContainerHighest;
     final selectedTextColor = config.selectedTextColor ?? colorScheme.onPrimary;
@@ -300,10 +304,10 @@ class NumberedPagination extends StatelessWidget {
         config.navigationButtonColor ?? colorScheme.surfaceContainerHighest;
     final navigationIconColor =
         config.navigationIconColor ?? colorScheme.onSurfaceVariant;
-    final disabledButtonColor =
-        config.disabledButtonColor ?? colorScheme.surfaceContainerHighest.withValues(alpha: 0.5);
-    final disabledIconColor =
-        config.disabledIconColor ?? colorScheme.onSurfaceVariant.withValues(alpha: 0.38);
+    final disabledButtonColor = config.disabledButtonColor ??
+        colorScheme.surfaceContainerHighest.withValues(alpha: 0.5);
+    final disabledIconColor = config.disabledIconColor ??
+        colorScheme.onSurfaceVariant.withValues(alpha: 0.38);
 
     final pageNumbers = _generatePageNumbers();
     final isFirstPage = currentPage == 1;
@@ -451,7 +455,8 @@ class NumberedPagination extends StatelessWidget {
     }
 
     final List<int> pages = [];
-    final int half = (visiblePages - 2) ~/ 2; // Pages on each side (excluding first/last)
+    final int half =
+        (visiblePages - 2) ~/ 2; // Pages on each side (excluding first/last)
     final int start;
     final int end;
 

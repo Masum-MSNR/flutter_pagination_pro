@@ -25,7 +25,8 @@ typedef FetchPage<K, T> = FutureOr<List<T>> Function(K pageKey);
 typedef NextPageKeyBuilder<K, T> = K Function(K currentKey, List<T> items);
 
 /// Callback to build an item widget.
-typedef ItemBuilder<T> = Widget Function(BuildContext context, T item, int index);
+typedef ItemBuilder<T> = Widget Function(
+    BuildContext context, T item, int index);
 
 /// Callback for building a loading indicator widget.
 typedef LoadingBuilder = Widget Function(BuildContext context);

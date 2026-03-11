@@ -78,8 +78,7 @@ class PaginationKeyboardHandler extends StatefulWidget {
       _PaginationKeyboardHandlerState();
 }
 
-class _PaginationKeyboardHandlerState
-    extends State<PaginationKeyboardHandler> {
+class _PaginationKeyboardHandlerState extends State<PaginationKeyboardHandler> {
   final _focusNode = FocusNode(debugLabel: 'PaginationKeyboardHandler');
 
   @override

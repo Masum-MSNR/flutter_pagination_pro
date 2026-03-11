@@ -101,7 +101,8 @@ class BidirectionalPaginationState<K, T> {
       status.isLoading || isLoadingForward || isLoadingBackward;
 
   /// Whether the initial page has been loaded successfully.
-  bool get isInitialized => status == PaginationStatus.loaded ||
+  bool get isInitialized =>
+      status == PaginationStatus.loaded ||
       status == PaginationStatus.completed ||
       status == PaginationStatus.refreshing;
 

@@ -111,7 +111,8 @@ void main() {
     });
 
     testWidgets('displays fetched items', (tester) async {
-      final controller = PaginationController<int, String>(fetchPage: mockFetch, initialPageKey: 1);
+      final controller = PaginationController<int, String>(
+          fetchPage: mockFetch, initialPageKey: 1);
       addTearDown(controller.dispose);
 
       await tester.pumpWidget(buildSliverList(controller: controller));
@@ -176,8 +177,7 @@ void main() {
       await tester.pumpWidget(
         buildSliverList(
           controller: controller,
-          firstPageErrorBuilder: (_, error, retry) =>
-              Text('Error: $error'),
+          firstPageErrorBuilder: (_, error, retry) => Text('Error: $error'),
         ),
       );
       await tester.pumpAndSettle();
@@ -186,7 +186,8 @@ void main() {
     });
 
     testWidgets('renders separators between items', (tester) async {
-      final controller = PaginationController<int, String>(fetchPage: mockFetch, initialPageKey: 1);
+      final controller = PaginationController<int, String>(
+          fetchPage: mockFetch, initialPageKey: 1);
       addTearDown(controller.dispose);
 
       await tester.pumpWidget(
@@ -202,7 +203,8 @@ void main() {
     });
 
     testWidgets('shows load more button in loadMore mode', (tester) async {
-      final controller = PaginationController<int, String>(fetchPage: mockFetch, initialPageKey: 1);
+      final controller = PaginationController<int, String>(
+          fetchPage: mockFetch, initialPageKey: 1);
       addTearDown(controller.dispose);
 
       await tester.pumpWidget(
@@ -267,7 +269,8 @@ void main() {
     });
 
     testWidgets('displays fetched items in grid', (tester) async {
-      final controller = PaginationController<int, String>(fetchPage: mockFetch, initialPageKey: 1);
+      final controller = PaginationController<int, String>(
+          fetchPage: mockFetch, initialPageKey: 1);
       addTearDown(controller.dispose);
 
       await tester.pumpWidget(buildSliverGrid(controller: controller));
@@ -348,7 +351,8 @@ void main() {
   group('Sliver composability', () {
     testWidgets('SliverPaginatedList works alongside other slivers',
         (tester) async {
-      final controller = PaginationController<int, String>(fetchPage: mockFetch, initialPageKey: 1);
+      final controller = PaginationController<int, String>(
+          fetchPage: mockFetch, initialPageKey: 1);
       final scrollController = ScrollController();
       addTearDown(() {
         controller.dispose();
@@ -381,7 +385,8 @@ void main() {
 
     testWidgets('SliverPaginatedGrid works alongside other slivers',
         (tester) async {
-      final controller = PaginationController<int, String>(fetchPage: mockFetch, initialPageKey: 1);
+      final controller = PaginationController<int, String>(
+          fetchPage: mockFetch, initialPageKey: 1);
       final scrollController = ScrollController();
       addTearDown(() {
         controller.dispose();
@@ -403,8 +408,7 @@ void main() {
                 SliverPaginatedGrid<int, String>(
                   controller: controller,
                   scrollController: scrollController,
-                  gridDelegate:
-                      const SliverGridDelegateWithFixedCrossAxisCount(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                   ),
                   itemBuilder: (context, item, index) =>

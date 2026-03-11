@@ -47,7 +47,8 @@ void main() {
             body: PaginationListView<int, String>(
               fetchPage: mockFetch,
               initialPageKey: 1,
-              itemBuilder: (context, item, index) => ListTile(title: Text(item)),
+              itemBuilder: (context, item, index) =>
+                  ListTile(title: Text(item)),
             ),
           ),
         ),
@@ -68,7 +69,8 @@ void main() {
             body: PaginationListView<int, String>(
               fetchPage: (_) => throw Exception('Test error'),
               initialPageKey: 1,
-              itemBuilder: (context, item, index) => ListTile(title: Text(item)),
+              itemBuilder: (context, item, index) =>
+                  ListTile(title: Text(item)),
             ),
           ),
         ),
@@ -88,7 +90,8 @@ void main() {
             body: PaginationListView<int, String>(
               fetchPage: (_) async => [],
               initialPageKey: 1,
-              itemBuilder: (context, item, index) => ListTile(title: Text(item)),
+              itemBuilder: (context, item, index) =>
+                  ListTile(title: Text(item)),
             ),
           ),
         ),
@@ -107,7 +110,8 @@ void main() {
             body: PaginationListView<int, String>(
               fetchPage: (_) async => [],
               initialPageKey: 1,
-              itemBuilder: (context, item, index) => ListTile(title: Text(item)),
+              itemBuilder: (context, item, index) =>
+                  ListTile(title: Text(item)),
               emptyBuilder: (context) => const Text('Nothing here!'),
             ),
           ),
@@ -126,7 +130,8 @@ void main() {
             body: PaginationListView<int, String>(
               fetchPage: mockFetch,
               initialPageKey: 1,
-              itemBuilder: (context, item, index) => ListTile(title: Text(item)),
+              itemBuilder: (context, item, index) =>
+                  ListTile(title: Text(item)),
               paginationType: PaginationType.loadMore,
             ),
           ),
@@ -146,7 +151,8 @@ void main() {
             body: PaginationListView<int, String>(
               fetchPage: mockFetch,
               initialPageKey: 1,
-              itemBuilder: (context, item, index) => ListTile(title: Text(item)),
+              itemBuilder: (context, item, index) =>
+                  ListTile(title: Text(item)),
               separatorBuilder: (context, index) => const Divider(),
             ),
           ),
@@ -170,7 +176,8 @@ void main() {
           home: Scaffold(
             body: PaginationListView<int, String>.withController(
               controller: controller,
-              itemBuilder: (context, item, index) => ListTile(title: Text(item)),
+              itemBuilder: (context, item, index) =>
+                  ListTile(title: Text(item)),
             ),
           ),
         ),
@@ -194,7 +201,8 @@ void main() {
             body: PaginationListView<int, String>(
               fetchPage: mockFetch,
               initialPageKey: 1,
-              itemBuilder: (context, item, index) => ListTile(title: Text(item)),
+              itemBuilder: (context, item, index) =>
+                  ListTile(title: Text(item)),
               onPageLoaded: (page, items) {
                 loadedPage = page;
                 loadedItems = items;
@@ -219,7 +227,8 @@ void main() {
             body: PaginationListView<int, String>(
               fetchPage: (_) => throw Exception('Test error'),
               initialPageKey: 1,
-              itemBuilder: (context, item, index) => ListTile(title: Text(item)),
+              itemBuilder: (context, item, index) =>
+                  ListTile(title: Text(item)),
               onError: (error) => receivedError = error,
             ),
           ),
@@ -247,7 +256,8 @@ void main() {
             body: PaginationGridView<int, String>(
               fetchPage: mockFetch,
               initialPageKey: 1,
-              itemBuilder: (context, item, index) => Card(child: Center(child: Text(item))),
+              itemBuilder: (context, item, index) =>
+                  Card(child: Center(child: Text(item))),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
               ),
@@ -268,7 +278,8 @@ void main() {
             body: PaginationGridView<int, String>(
               fetchPage: (_) async => [],
               initialPageKey: 1,
-              itemBuilder: (context, item, index) => Card(child: Center(child: Text(item))),
+              itemBuilder: (context, item, index) =>
+                  Card(child: Center(child: Text(item))),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
               ),
@@ -322,7 +333,8 @@ void main() {
           home: Scaffold(
             body: PaginationGridView<int, String>.withController(
               controller: controller,
-              itemBuilder: (context, item, index) => Card(child: Center(child: Text(item))),
+              itemBuilder: (context, item, index) =>
+                  Card(child: Center(child: Text(item))),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
               ),
@@ -360,7 +372,8 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
 
-    testWidgets('DefaultFirstPageError renders with retry button', (tester) async {
+    testWidgets('DefaultFirstPageError renders with retry button',
+        (tester) async {
       bool retried = false;
 
       await tester.pumpWidget(

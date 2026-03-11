@@ -59,7 +59,7 @@ typedef PaginatedAnimatedItemBuilder<T> = Widget Function(
 /// ```
 class AnimatedPaginationListView<K, T> extends StatefulWidget {
   /// Creates an animated paginated list with automatic controller management.
-  AnimatedPaginationListView({
+  const AnimatedPaginationListView({
     super.key,
     required this.fetchPage,
     K? initialPageKey,
@@ -115,7 +115,7 @@ class AnimatedPaginationListView<K, T> extends StatefulWidget {
         );
 
   /// Creates an animated paginated list with a user-provided controller.
-  AnimatedPaginationListView.withController({
+  const AnimatedPaginationListView.withController({
     super.key,
     required this.controller,
     this.itemBuilder,
@@ -614,8 +614,7 @@ class _AnimatedPaginationListViewState<K, T>
     }
 
     if (state.status == PaginationStatus.completed) {
-      return widget.endOfListBuilder?.call(context) ??
-          const DefaultEndOfList();
+      return widget.endOfListBuilder?.call(context) ?? const DefaultEndOfList();
     }
 
     return const SizedBox.shrink();

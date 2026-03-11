@@ -86,7 +86,6 @@ class _NumberedPaginationScreenState extends State<NumberedPaginationScreen> {
                       ),
                     ],
                   ),
-
                   Row(
                     children: [
                       SizedBox(
@@ -121,7 +120,6 @@ class _NumberedPaginationScreenState extends State<NumberedPaginationScreen> {
                       ),
                     ],
                   ),
-
                   Row(
                     children: [
                       Text(

@@ -124,7 +124,8 @@ class _InfiniteScrollScreenState extends State<InfiniteScrollScreen> {
                         indent: 84,
                         endIndent: 16,
                         height: 1,
-                        color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+                        color:
+                            colorScheme.outlineVariant.withValues(alpha: 0.5),
                       )
                   : null,
               padding: const EdgeInsets.only(bottom: 16),

@@ -395,8 +395,7 @@ mixin PaginationStateMixin<K, T, W extends StatefulWidget> on State<W> {
   /// Whether to use inline skeleton items for load-more loading
   /// instead of the default spinner footer.
   bool get _useLoadMoreSkeleton =>
-      widgetPlaceholderItem != null &&
-      widgetLoadMoreLoadingBuilder == null;
+      widgetPlaceholderItem != null && widgetLoadMoreLoadingBuilder == null;
 
   /// Returns the number of skeleton placeholder items to append when
   /// loading more items. Returns 0 when not applicable.
@@ -419,7 +418,8 @@ mixin PaginationStateMixin<K, T, W extends StatefulWidget> on State<W> {
   /// Whether a footer widget should be displayed below items.
   bool shouldShowFooter(PaginationState<K, T> state) {
     // When using inline skeleton items for load-more, skip the footer
-    if (state.status == PaginationStatus.loadingMore && _useLoadMoreSkeleton &&
+    if (state.status == PaginationStatus.loadingMore &&
+        _useLoadMoreSkeleton &&
         widgetPaginationType != PaginationType.loadMore) {
       return false;
     }

@@ -135,7 +135,6 @@ class _StateSimulatorScreenState extends State<StateSimulatorScreen> {
               },
             ),
           ),
-
           Container(
             width: double.infinity,
             margin: const EdgeInsets.all(16),
@@ -197,7 +196,8 @@ class _StateSimulatorScreenState extends State<StateSimulatorScreen> {
                 color: colorScheme.outlineVariant.withValues(alpha: 0.5),
               ),
               padding: const EdgeInsets.only(bottom: 16),
-              loadMoreButtonBuilder: (context, onLoadMore, isLoading) => Padding(
+              loadMoreButtonBuilder: (context, onLoadMore, isLoading) =>
+                  Padding(
                 padding: const EdgeInsets.all(16),
                 child: SizedBox(
                   width: double.infinity,
@@ -229,8 +229,7 @@ class _StateSimulatorScreenState extends State<StateSimulatorScreen> {
                   ],
                 ),
               ),
-              firstPageErrorBuilder: (context, error, onRetry) =>
-                  Center(
+              firstPageErrorBuilder: (context, error, onRetry) => Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -270,7 +269,8 @@ class _StateSimulatorScreenState extends State<StateSimulatorScreen> {
                     Icon(
                       Icons.inbox_outlined,
                       size: 64,
-                      color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                      color:
+                          colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                     ),
                     const SizedBox(height: 16),
                     Text(
@@ -337,7 +337,8 @@ enum _SimulationScenario {
   ),
   autoRetry(
     label: 'Auto-Retry',
-    description: 'Intermittent errors with exponential backoff retry (1s → 2s → 4s)',
+    description:
+        'Intermittent errors with exponential backoff retry (1s → 2s → 4s)',
     icon: Icons.replay_circle_filled_outlined,
     color: AppTheme.accentColor,
   );

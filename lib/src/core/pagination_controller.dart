@@ -382,9 +382,8 @@ class PaginationController<K, T> extends ValueNotifier<PaginationState<K, T>> {
         value = PaginationState<K, T>(
           items: items,
           pageKey: _initialPageKey,
-          status: isLastPage
-              ? PaginationStatus.completed
-              : PaginationStatus.loaded,
+          status:
+              isLastPage ? PaginationStatus.completed : PaginationStatus.loaded,
           hasMorePages: !isLastPage,
         );
       }
@@ -537,8 +536,7 @@ class PaginationController<K, T> extends ValueNotifier<PaginationState<K, T>> {
   }
 
   @override
-  String toString() =>
-      'PaginationController<$K, $T>(status: $status, '
+  String toString() => 'PaginationController<$K, $T>(status: $status, '
       'items: ${items.length}, pageKey: $currentPageKey, '
       'hasMore: $hasMorePages)';
 }

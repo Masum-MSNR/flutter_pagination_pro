@@ -64,8 +64,7 @@ class _HeaderFooterScreenState extends State<HeaderFooterScreen> {
             margin: const EdgeInsets.all(16),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerHighest
-                  .withValues(alpha: 0.5),
+              color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: colorScheme.outlineVariant.withValues(alpha: 0.3),
@@ -99,13 +98,11 @@ class _HeaderFooterScreenState extends State<HeaderFooterScreen> {
                 ),
                 SwitchListTile(
                   title: const Text('Skeleton loading'),
-                  subtitle: const Text(
-                      'DefaultFirstPageLoading.builder()'),
+                  subtitle: const Text('DefaultFirstPageLoading.builder()'),
                   value: _useSkeletonLoading,
                   dense: true,
                   contentPadding: EdgeInsets.zero,
-                  onChanged: (v) =>
-                      setState(() => _useSkeletonLoading = v),
+                  onChanged: (v) => setState(() => _useSkeletonLoading = v),
                 ),
               ],
             ),
@@ -123,8 +120,7 @@ class _HeaderFooterScreenState extends State<HeaderFooterScreen> {
                         gradient: LinearGradient(
                           colors: [
                             AppTheme.primaryColor.withValues(alpha: 0.15),
-                            AppTheme.secondaryColor
-                                .withValues(alpha: 0.08),
+                            AppTheme.secondaryColor.withValues(alpha: 0.08),
                           ],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
@@ -140,8 +136,7 @@ class _HeaderFooterScreenState extends State<HeaderFooterScreen> {
                               const SizedBox(width: 8),
                               Text(
                                 'Featured Items',
-                                style:
-                                    theme.textTheme.titleMedium?.copyWith(
+                                style: theme.textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -190,8 +185,7 @@ class _HeaderFooterScreenState extends State<HeaderFooterScreen> {
                             const Divider(height: 1),
                       )
                   : null,
-              separatorBuilder: (context, index) =>
-                  const Divider(height: 1),
+              separatorBuilder: (context, index) => const Divider(height: 1),
               itemBuilder: (context, item, index) => ItemTile(item: item),
             ),
           ),

@@ -34,11 +34,9 @@ void main() {
     Duration staggerDelay = Duration.zero,
     WidgetBuilder? firstPageLoadingBuilder,
     WidgetBuilder? emptyBuilder,
-    Widget Function(BuildContext, Object, VoidCallback)?
-        firstPageErrorBuilder,
+    Widget Function(BuildContext, Object, VoidCallback)? firstPageErrorBuilder,
     WidgetBuilder? loadMoreLoadingBuilder,
-    Widget Function(BuildContext, Object, VoidCallback)?
-        loadMoreErrorBuilder,
+    Widget Function(BuildContext, Object, VoidCallback)? loadMoreErrorBuilder,
     WidgetBuilder? endOfListBuilder,
     PaginationConfig config = const PaginationConfig(pageSize: 5),
   }) {
@@ -170,8 +168,7 @@ void main() {
       expect(find.textContaining('Custom Error'), findsOneWidget);
     });
 
-    testWidgets('uses plainItemBuilder with default animation',
-        (tester) async {
+    testWidgets('uses plainItemBuilder with default animation', (tester) async {
       await tester.pumpWidget(buildApp(
         plainItemBuilder: (context, item, index) =>
             Text('Plain $item', key: ValueKey(item)),
@@ -305,7 +302,7 @@ void main() {
 
     testWidgets('retry first page error reloads', (tester) async {
       var shouldFail = true;
-      final fetch = (int page) async {
+      Future<List<String>> fetch(int page) async {
         await Future.delayed(const Duration(milliseconds: 10));
         if (shouldFail && page == 1) {
           throw Exception('Failed');

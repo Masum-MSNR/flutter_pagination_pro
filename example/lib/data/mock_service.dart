@@ -50,7 +50,8 @@ class MockDataService {
     if (emptyResponse) return [];
 
     if (errorOnPage != null && page == errorOnPage) {
-      throw Exception('Simulated network error on page $page. Please try again.');
+      throw Exception(
+          'Simulated network error on page $page. Please try again.');
     }
 
     final startIndex = (page - 1) * pageSize;
@@ -69,18 +70,20 @@ class MockDataService {
 /// Predefined service configurations for different demo scenarios
 class MockServicePresets {
   static MockDataService success() => MockDataService();
-  
+
   static MockDataService empty() => MockDataService(emptyResponse: true);
-  
+
   static MockDataService firstPageError() => MockDataService(errorOnPage: 1);
-  
+
   static MockDataService loadMoreError() => MockDataService(errorOnPage: 2);
-  
+
   static MockDataService slowLoading() => MockDataService(delayMs: 3000);
-  
-  static MockDataService fewItems() => MockDataService(totalItems: 5, pageSize: 10);
-  
-  static MockDataService manyPages() => MockDataService(totalItems: 500, pageSize: 10);
+
+  static MockDataService fewItems() =>
+      MockDataService(totalItems: 5, pageSize: 10);
+
+  static MockDataService manyPages() =>
+      MockDataService(totalItems: 500, pageSize: 10);
 
   /// Intermittent errors on load-more — first 2 attempts fail, 3rd succeeds.
   /// Perfect for demoing auto-retry with exponential backoff.

@@ -126,7 +126,8 @@ class HomeScreen extends StatelessWidget {
                   margin: const EdgeInsets.symmetric(horizontal: 16),
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                    color: colorScheme.surfaceContainerHighest
+                        .withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Row(
@@ -175,7 +176,8 @@ class HomeScreen extends StatelessWidget {
                 ),
                 const SectionHeader(
                   title: 'SCROLL-BASED PAGINATION',
-                  subtitle: 'ListView and GridView with automatic or manual loading',
+                  subtitle:
+                      'ListView and GridView with automatic or manual loading',
                 ),
                 DemoCard(
                   title: 'Infinite Scroll',
@@ -226,8 +228,7 @@ class HomeScreen extends StatelessWidget {
                     AppTheme.successColor,
                     Color(0xFF34D399),
                   ],
-                  onTap: () =>
-                      _navigate(context, const PullToRefreshScreen()),
+                  onTap: () => _navigate(context, const PullToRefreshScreen()),
                 ),
                 DemoCard(
                   title: 'Search & Filter',
@@ -237,10 +238,8 @@ class HomeScreen extends StatelessWidget {
                     Color(0xFFF97316),
                     Color(0xFFFBBF24),
                   ],
-                  onTap: () =>
-                      _navigate(context, const SearchFilterScreen()),
+                  onTap: () => _navigate(context, const SearchFilterScreen()),
                 ),
-
                 const SectionHeader(
                   title: 'ADVANCED WIDGETS',
                   subtitle: 'Slivers, animated list, bidirectional & keyboard',
@@ -253,8 +252,7 @@ class HomeScreen extends StatelessWidget {
                     Color(0xFF8B5CF6),
                     Color(0xFFC084FC),
                   ],
-                  onTap: () =>
-                      _navigate(context, const SliverDemoScreen()),
+                  onTap: () => _navigate(context, const SliverDemoScreen()),
                 ),
                 DemoCard(
                   title: 'Skeleton Loading',
@@ -275,8 +273,7 @@ class HomeScreen extends StatelessWidget {
                     Color(0xFFEC4899),
                     Color(0xFFF472B6),
                   ],
-                  onTap: () =>
-                      _navigate(context, const HeaderFooterScreen()),
+                  onTap: () => _navigate(context, const HeaderFooterScreen()),
                 ),
                 DemoCard(
                   title: 'Bidirectional',
@@ -286,8 +283,7 @@ class HomeScreen extends StatelessWidget {
                     Color(0xFFEF4444),
                     Color(0xFFF87171),
                   ],
-                  onTap: () =>
-                      _navigate(context, const BidirectionalScreen()),
+                  onTap: () => _navigate(context, const BidirectionalScreen()),
                 ),
                 DemoCard(
                   title: 'Animated List',
@@ -297,8 +293,7 @@ class HomeScreen extends StatelessWidget {
                     AppTheme.primaryColor,
                     AppTheme.secondaryColor,
                   ],
-                  onTap: () =>
-                      _navigate(context, const AnimatedListScreen()),
+                  onTap: () => _navigate(context, const AnimatedListScreen()),
                 ),
                 DemoCard(
                   title: 'Keyboard Navigation',
@@ -308,24 +303,23 @@ class HomeScreen extends StatelessWidget {
                     AppTheme.accentColor,
                     Color(0xFF22D3EE),
                   ],
-                  onTap: () =>
-                      _navigate(context, const KeyboardNavScreen()),
+                  onTap: () => _navigate(context, const KeyboardNavScreen()),
                 ),
-
                 const SectionHeader(
                   title: 'CONTROLLER & MUTATIONS',
-                  subtitle: 'Programmatic control, mutations, and custom builders',
+                  subtitle:
+                      'Programmatic control, mutations, and custom builders',
                 ),
                 DemoCard(
                   title: 'Item Mutations',
-                  subtitle: 'insert, remove, update, removeWhere, setTotalItems',
+                  subtitle:
+                      'insert, remove, update, removeWhere, setTotalItems',
                   icon: Icons.edit_note,
                   gradientColors: const [
                     AppTheme.successColor,
                     AppTheme.accentColor,
                   ],
-                  onTap: () =>
-                      _navigate(context, const ItemMutationsScreen()),
+                  onTap: () => _navigate(context, const ItemMutationsScreen()),
                 ),
                 DemoCard(
                   title: 'Controlled Mode',
@@ -335,21 +329,19 @@ class HomeScreen extends StatelessWidget {
                     AppTheme.warningColor,
                     Color(0xFFFBBF24),
                   ],
-                  onTap: () =>
-                      _navigate(context, const ControlledModeScreen()),
+                  onTap: () => _navigate(context, const ControlledModeScreen()),
                 ),
                 DemoCard(
                   title: 'Custom Builders',
-                  subtitle: 'Override every state widget (error, empty, loading…)',
+                  subtitle:
+                      'Override every state widget (error, empty, loading…)',
                   icon: Icons.widgets,
                   gradientColors: const [
                     AppTheme.secondaryColor,
                     AppTheme.primaryColor,
                   ],
-                  onTap: () =>
-                      _navigate(context, const CustomBuildersScreen()),
+                  onTap: () => _navigate(context, const CustomBuildersScreen()),
                 ),
-
                 const SectionHeader(
                   title: 'NUMBERED PAGINATION',
                   subtitle: 'Traditional page navigation with page numbers',

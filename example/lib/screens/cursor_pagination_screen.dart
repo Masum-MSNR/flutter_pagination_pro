@@ -10,8 +10,7 @@ class CursorPaginationScreen extends StatefulWidget {
   const CursorPaginationScreen({super.key});
 
   @override
-  State<CursorPaginationScreen> createState() =>
-      _CursorPaginationScreenState();
+  State<CursorPaginationScreen> createState() => _CursorPaginationScreenState();
 }
 
 class _CursorPaginationScreenState extends State<CursorPaginationScreen> {
@@ -89,8 +88,7 @@ class _CursorPaginationScreenState extends State<CursorPaginationScreen> {
             child: PaginationListView<String, _CursorItem>.withController(
               controller: _controller,
               itemBuilder: (context, item, index) => Card(
-                margin:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 child: ListTile(
                   leading: CircleAvatar(
                     backgroundColor: item.color.withValues(alpha: 0.15),

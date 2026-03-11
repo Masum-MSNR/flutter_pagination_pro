@@ -53,8 +53,7 @@ class _KeyboardNavScreenState extends State<KeyboardNavScreen> {
               _keyboardEnabled ? Icons.keyboard : Icons.keyboard_hide,
               color: colorScheme.primary,
             ),
-            tooltip:
-                _keyboardEnabled ? 'Disable keyboard' : 'Enable keyboard',
+            tooltip: _keyboardEnabled ? 'Disable keyboard' : 'Enable keyboard',
             onPressed: () =>
                 setState(() => _keyboardEnabled = !_keyboardEnabled),
           ),
@@ -119,8 +118,7 @@ class _KeyboardNavScreenState extends State<KeyboardNavScreen> {
               child: PagedListView<MockItem>.withController(
                 controller: _controller,
                 scrollController: _scrollController,
-                itemBuilder: (context, item, index) =>
-                    ItemTile(item: item),
+                itemBuilder: (context, item, index) => ItemTile(item: item),
               ),
             ),
           ),

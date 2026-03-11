@@ -231,8 +231,9 @@ class _SliverPaginatedGridState<K, T> extends State<SliverPaginatedGrid<K, T>>
   @override
   NextPageKeyBuilder<K, T>? get widgetNextPageKeyBuilder => null;
   @override
-  PaginationConfig get widgetConfig =>
-      isControlledMode ? widget.config : (widget.controller?.config ?? widget.config);
+  PaginationConfig get widgetConfig => isControlledMode
+      ? widget.config
+      : (widget.controller?.config ?? widget.config);
   @override
   PaginationType get widgetPaginationType => widget.paginationType;
   @override
@@ -246,8 +247,7 @@ class _SliverPaginatedGridState<K, T> extends State<SliverPaginatedGrid<K, T>>
   LoadingBuilder? get widgetLoadMoreLoadingBuilder =>
       widget.loadMoreLoadingBuilder;
   @override
-  ErrorBuilder? get widgetFirstPageErrorBuilder =>
-      widget.firstPageErrorBuilder;
+  ErrorBuilder? get widgetFirstPageErrorBuilder => widget.firstPageErrorBuilder;
   @override
   ErrorBuilder? get widgetLoadMoreErrorBuilder => widget.loadMoreErrorBuilder;
   @override

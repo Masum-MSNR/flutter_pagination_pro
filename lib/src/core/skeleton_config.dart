@@ -32,21 +32,15 @@ class SkeletonConfig {
     this.shimmerDuration = const Duration(milliseconds: 1500),
   }) : assert(borderRadius >= 0, 'borderRadius must be >= 0');
 
-  /// Base colour used for the skeleton shapes.
+  /// Base colour for skeleton shapes.
   ///
-  /// If the colour has an alpha channel (semi-transparent), it is
-  /// automatically made fully opaque internally so that the skeleton
-  /// shapes are solid and the original content is completely hidden.
-  ///
-  /// Defaults to `Colors.grey.shade700` in dark mode and
-  /// `Colors.grey.shade300` in light mode.
+  /// Made fully opaque internally. Defaults to a theme-appropriate grey.
   final Color? overlayColor;
 
-  /// Corner radius applied to skeleton text bars.
+  /// Corner radius applied to skeleton bones (text bars, containers).
   ///
-  /// Each text span's bounding-box gets softened edges that look
-  /// like rounded corners. Containers that already have their own
-  /// [BorderRadius] (avatars, chips, etc.) keep their original shape.
+  /// Containers that already have their own [BorderRadius]
+  /// keep their original shape.
   ///
   /// Defaults to `4.0`. Set to `0` for sharp corners.
   final double borderRadius;
@@ -69,8 +63,7 @@ class SkeletonConfig {
   int get hashCode => Object.hash(overlayColor, borderRadius, shimmerDuration);
 
   @override
-  String toString() =>
-      'SkeletonConfig(overlayColor: $overlayColor, '
+  String toString() => 'SkeletonConfig(overlayColor: $overlayColor, '
       'borderRadius: $borderRadius, '
       'shimmerDuration: $shimmerDuration)';
 }

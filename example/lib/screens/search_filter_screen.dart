@@ -50,8 +50,7 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
     if (_activeCategory != 'All') {
       filtered = filtered
           .where((item) =>
-              item.category?.toLowerCase() ==
-              _activeCategory.toLowerCase())
+              item.category?.toLowerCase() == _activeCategory.toLowerCase())
           .toList();
     }
 
@@ -113,8 +112,8 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 filled: true,
-                fillColor: colorScheme.surfaceContainerHighest
-                    .withValues(alpha: 0.3),
+                fillColor:
+                    colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
               ),
               onSubmitted: (_) => _onSearch(),
             ),

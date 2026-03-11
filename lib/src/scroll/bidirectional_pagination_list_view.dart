@@ -317,8 +317,7 @@ class _BidirectionalPaginationListViewState<K, T>
     );
   }
 
-  Widget _buildBidirectionalList(
-      BidirectionalPaginationState<K, T> state) {
+  Widget _buildBidirectionalList(BidirectionalPaginationState<K, T> state) {
     final threshold = _controller.config.scrollThreshold;
 
     return NotificationListener<ScrollNotification>(
@@ -457,8 +456,7 @@ class _BidirectionalPaginationListViewState<K, T>
               return widget.itemBuilder(
                   context, backwardItems[itemIndex], itemIndex);
             } else {
-              return widget.separatorBuilder!(
-                  context, reversedIndex ~/ 2);
+              return widget.separatorBuilder!(context, reversedIndex ~/ 2);
             }
           },
           childCount: totalCount,
@@ -504,8 +502,7 @@ class _BidirectionalPaginationListViewState<K, T>
               return widget.itemBuilder(
                   context, forwardItems[itemIndex], itemIndex);
             } else {
-              return widget.separatorBuilder!(
-                  context, adjustedIndex ~/ 2);
+              return widget.separatorBuilder!(context, adjustedIndex ~/ 2);
             }
           },
           childCount: totalCount,

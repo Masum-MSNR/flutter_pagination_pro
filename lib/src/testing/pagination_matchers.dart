@@ -161,8 +161,7 @@ class _IsPaginationCompleted extends Matcher {
   @override
   bool matches(Object? item, Map<dynamic, dynamic> matchState) {
     if (item is PaginationController) {
-      return item.status == PaginationStatus.completed &&
-          !item.hasMorePages;
+      return item.status == PaginationStatus.completed && !item.hasMorePages;
     }
     return false;
   }
@@ -196,8 +195,7 @@ class _HasPaginationError extends Matcher {
   @override
   bool matches(Object? item, Map<dynamic, dynamic> matchState) {
     if (item is PaginationController) {
-      final hasError =
-          item.status == PaginationStatus.firstPageError ||
+      final hasError = item.status == PaginationStatus.firstPageError ||
           item.status == PaginationStatus.loadMoreError;
       if (!hasError) return false;
       if (_expectedError != null) {
@@ -241,8 +239,7 @@ class _IsPaginationEmpty extends Matcher {
   @override
   bool matches(Object? item, Map<dynamic, dynamic> matchState) {
     if (item is PaginationController) {
-      return item.items.isEmpty &&
-          item.status == PaginationStatus.empty;
+      return item.items.isEmpty && item.status == PaginationStatus.empty;
     }
     return false;
   }

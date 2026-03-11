@@ -80,7 +80,8 @@ class ItemTile extends StatelessWidget {
               const SizedBox(width: 8),
               // Category chip
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   color: _getCategoryColor(category).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),

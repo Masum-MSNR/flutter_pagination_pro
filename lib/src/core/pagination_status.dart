@@ -44,7 +44,9 @@ extension PaginationStatusX on PaginationStatus {
 
   /// Whether the status indicates an error occurred.
   bool get isError => switch (this) {
-        PaginationStatus.firstPageError || PaginationStatus.loadMoreError => true,
+        PaginationStatus.firstPageError ||
+        PaginationStatus.loadMoreError =>
+          true,
         _ => false,
       };
 

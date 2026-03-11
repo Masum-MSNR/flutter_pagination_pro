@@ -221,8 +221,7 @@ class _SkeletonLoadingScreenState extends State<SkeletonLoadingScreen> {
           key: ValueKey(_rebuildCounter),
           controller: _controller,
           itemBuilder: (context, item, index) => ItemTile(item: item),
-          firstPageLoadingBuilder: (context) =>
-              DefaultFirstPageLoading.builder(
+          firstPageLoadingBuilder: (context) => DefaultFirstPageLoading.builder(
             itemCount: 10,
             itemBuilder: (context, index) => _SkeletonTile(),
             separatorBuilder: (context, index) =>

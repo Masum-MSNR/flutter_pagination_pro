@@ -44,8 +44,8 @@ class RetryPolicy {
     this.backoffMultiplier = 2.0,
     this.retryOn,
     this.retryFirstPage = false,
-  }) : assert(maxRetries > 0, 'maxRetries must be > 0'),
-       assert(backoffMultiplier >= 1.0, 'backoffMultiplier must be >= 1.0');
+  })  : assert(maxRetries > 0, 'maxRetries must be > 0'),
+        assert(backoffMultiplier >= 1.0, 'backoffMultiplier must be >= 1.0');
 
   /// Maximum number of retry attempts before giving up.
   final int maxRetries;
@@ -192,8 +192,7 @@ class PaginationConfig {
       Object.hash(scrollThreshold, autoLoadFirstPage, pageSize, retryPolicy);
 
   @override
-  String toString() =>
-      'PaginationConfig(scrollThreshold: $scrollThreshold, '
+  String toString() => 'PaginationConfig(scrollThreshold: $scrollThreshold, '
       'autoLoadFirstPage: $autoLoadFirstPage, pageSize: $pageSize, '
       'retryPolicy: $retryPolicy)';
 }

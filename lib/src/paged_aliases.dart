@@ -22,12 +22,11 @@ typedef SliverPagedList<T> = SliverPaginatedList<int, T>;
 typedef SliverPagedGrid<T> = SliverPaginatedGrid<int, T>;
 
 /// Shorthand for `BidirectionalPaginationController<int, T>`.
-typedef BidirectionalPagedController<T> =
-    BidirectionalPaginationController<int, T>;
+typedef BidirectionalPagedController<T>
+    = BidirectionalPaginationController<int, T>;
 
 /// Shorthand for `BidirectionalPaginationListView<int, T>`.
-typedef BidirectionalPagedListView<T> =
-    BidirectionalPaginationListView<int, T>;
+typedef BidirectionalPagedListView<T> = BidirectionalPaginationListView<int, T>;
 
 /// Shorthand for `AnimatedPaginationListView<int, T>`.
 typedef AnimatedPagedListView<T> = AnimatedPaginationListView<int, T>;

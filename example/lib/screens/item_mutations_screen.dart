@@ -79,8 +79,8 @@ class _ItemMutationsScreenState extends State<ItemMutationsScreen> {
   }
 
   void _removeByCategory() {
-    _controller.removeWhere(
-        (item) => item.category?.toLowerCase() == 'technology');
+    _controller
+        .removeWhere((item) => item.category?.toLowerCase() == 'technology');
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Removed all "Technology" items')),
     );

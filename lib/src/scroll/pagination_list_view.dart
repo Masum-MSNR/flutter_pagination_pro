@@ -412,7 +412,8 @@ class _PaginationListViewState<K, T> extends State<PaginationListView<K, T>>
   @override
   bool get isControlledMode => widget._isControlled;
   @override
-  PaginationController<K, T>? get widgetExternalController => widget._controller;
+  PaginationController<K, T>? get widgetExternalController =>
+      widget._controller;
   @override
   bool get isExternalController => widget._externalController;
   @override
@@ -437,8 +438,7 @@ class _PaginationListViewState<K, T> extends State<PaginationListView<K, T>>
   LoadingBuilder? get widgetLoadMoreLoadingBuilder =>
       widget.loadMoreLoadingBuilder;
   @override
-  ErrorBuilder? get widgetFirstPageErrorBuilder =>
-      widget.firstPageErrorBuilder;
+  ErrorBuilder? get widgetFirstPageErrorBuilder => widget.firstPageErrorBuilder;
   @override
   ErrorBuilder? get widgetLoadMoreErrorBuilder => widget.loadMoreErrorBuilder;
   @override
@@ -513,8 +513,7 @@ class _PaginationListViewState<K, T> extends State<PaginationListView<K, T>>
   }
 
   Widget _buildList(PaginationState<K, T> state) {
-    final hasHeaderOrFooter =
-        widget.header != null || widget.footer != null;
+    final hasHeaderOrFooter = widget.header != null || widget.footer != null;
 
     if (hasHeaderOrFooter) {
       return _buildCustomScrollViewList(state);

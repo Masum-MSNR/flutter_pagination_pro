@@ -189,8 +189,7 @@ void main() {
 
     test('resets accumulated items', () async {
       final controller = PaginationController<int, String>(
-        fetchPage: (page) async =>
-            List.generate(5, (i) => 'item_${page}_$i'),
+        fetchPage: (page) async => List.generate(5, (i) => 'item_${page}_$i'),
         initialPageKey: 1,
       );
 
@@ -542,8 +541,7 @@ void main() {
                   items: const ['G1', 'G2', 'G3', 'G4'],
                   status: PaginationStatus.loaded,
                   scrollController: scrollController,
-                  gridDelegate:
-                      const SliverGridDelegateWithFixedCrossAxisCount(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                   ),
                   itemBuilder: (context, item, index) =>

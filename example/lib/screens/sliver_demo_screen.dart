@@ -137,8 +137,7 @@ class _SliverDemoScreenState extends State<SliverDemoScreen> {
               controller: _controller,
               scrollController: _scrollController,
               itemBuilder: (context, item, index) => Card(
-                margin:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 child: ListTile(
                   leading: CircleAvatar(
                     backgroundColor: colorScheme.primaryContainer,

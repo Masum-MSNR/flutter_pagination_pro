@@ -72,7 +72,8 @@ class _BidirectionalScreenState extends State<BidirectionalScreen> {
         id: id,
         text: _sampleTexts[id % _sampleTexts.length],
         isMe: id % 3 != 0,
-        time: '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}',
+        time:
+            '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}',
       );
     });
   }
@@ -168,7 +169,8 @@ class _BidirectionalScreenState extends State<BidirectionalScreen> {
 
           // Bidirectional list
           Expanded(
-            child: BidirectionalPaginationListView<int, _ChatMessage>.withController(
+            child: BidirectionalPaginationListView<int,
+                _ChatMessage>.withController(
               controller: _controller,
               itemBuilder: (context, message, index) =>
                   _MessageBubble(message: message),

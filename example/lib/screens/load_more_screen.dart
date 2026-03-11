@@ -104,7 +104,8 @@ class _LoadMoreScreenState extends State<LoadMoreScreen> {
                 height: 1,
                 color: colorScheme.outlineVariant.withValues(alpha: 0.5),
               ),
-              loadMoreButtonBuilder: (context, onLoadMore, isLoading) => Padding(
+              loadMoreButtonBuilder: (context, onLoadMore, isLoading) =>
+                  Padding(
                 padding: const EdgeInsets.all(16),
                 child: SizedBox(
                   width: double.infinity,

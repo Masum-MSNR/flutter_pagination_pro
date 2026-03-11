@@ -121,7 +121,9 @@ class _ControlledModeScreenState extends State<ControlledModeScreen> {
               children: [
                 _StatusChip(
                   label: 'Status: ${_status.name}',
-                  color: _status.isError ? AppTheme.errorColor : AppTheme.primaryColor,
+                  color: _status.isError
+                      ? AppTheme.errorColor
+                      : AppTheme.primaryColor,
                 ),
                 const SizedBox(width: 8),
                 _StatusChip(

@@ -226,7 +226,7 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: DefaultFirstPageLoading.fromItemBuilder<String>(
-              itemBuilder: (context, item, index) => Container(
+              itemBuilder: (context, item, index) => SizedBox(
                 key: ValueKey('item-$index'),
                 height: 50,
                 child: Text(item),
@@ -735,14 +735,14 @@ void main() {
 
     test('isOnPage has descriptive message', () {
       final matcher = isOnPage(3);
-      expect(matcher.describe(StringDescription()).toString(),
-          contains('page 3'));
+      expect(
+          matcher.describe(StringDescription()).toString(), contains('page 3'));
     });
 
     test('hasStatus has descriptive message', () {
       final matcher = hasStatus(PaginationStatus.loaded);
-      expect(matcher.describe(StringDescription()).toString(),
-          contains('loaded'));
+      expect(
+          matcher.describe(StringDescription()).toString(), contains('loaded'));
     });
   });
 
@@ -913,8 +913,7 @@ void main() {
                   items: const [],
                   status: PaginationStatus.loadingFirstPage,
                   scrollController: scrollController,
-                  gridDelegate:
-                      const SliverGridDelegateWithFixedCrossAxisCount(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                   ),
                   itemBuilder: (context, item, index) => Text(item),
@@ -1052,7 +1051,8 @@ void main() {
       expect(find.byType(ShaderMask), findsNothing);
     });
 
-    testWidgets('PaginationGridView shows skeleton grid items when loading more',
+    testWidgets(
+        'PaginationGridView shows skeleton grid items when loading more',
         (tester) async {
       await tester.pumpWidget(
         MaterialApp(
@@ -1128,8 +1128,7 @@ void main() {
                   items: const ['A', 'B'],
                   status: PaginationStatus.loadingMore,
                   scrollController: scrollController,
-                  gridDelegate:
-                      const SliverGridDelegateWithFixedCrossAxisCount(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                   ),
                   itemBuilder: (context, item, index) => Center(
@@ -1149,7 +1148,8 @@ void main() {
       expect(find.byType(ShaderMask), findsNWidgets(2));
     });
 
-    testWidgets('no skeleton for loadMore paginationType even with placeholderItem',
+    testWidgets(
+        'no skeleton for loadMore paginationType even with placeholderItem',
         (tester) async {
       await tester.pumpWidget(
         MaterialApp(

@@ -54,8 +54,7 @@ void main() {
       expect(scrollController.offset, greaterThan(initialOffset));
     });
 
-    testWidgets('Page Up scrolls up from a scrolled position',
-        (tester) async {
+    testWidgets('Page Up scrolls up from a scrolled position', (tester) async {
       await tester.pumpWidget(buildApp());
       await tester.pump();
 
@@ -94,8 +93,8 @@ void main() {
       await tester.sendKeyEvent(LogicalKeyboardKey.end);
       await tester.pumpAndSettle();
 
-      expect(scrollController.offset,
-          scrollController.position.maxScrollExtent);
+      expect(
+          scrollController.offset, scrollController.position.maxScrollExtent);
       expect(endReached, isTrue);
     });
 

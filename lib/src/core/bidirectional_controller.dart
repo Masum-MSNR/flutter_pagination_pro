@@ -260,8 +260,7 @@ class BidirectionalPaginationController<K, T>
         final newBackwardKey = _backwardKeyBuilder(pageKey, newItems);
 
         // For int keys, auto-detect exhaustion
-        final keyExhausted =
-            newBackwardKey is int && newBackwardKey < 1;
+        final keyExhausted = newBackwardKey is int && newBackwardKey < 1;
 
         if (!isLastPage && !keyExhausted) {
           _backwardPageKey = newBackwardKey;
@@ -382,8 +381,7 @@ class BidirectionalPaginationController<K, T>
   }
 
   @override
-  String toString() =>
-      'BidirectionalPaginationController<$K, $T>('
+  String toString() => 'BidirectionalPaginationController<$K, $T>('
       'status: ${value.status}, '
       'forward: ${value.forwardItems.length}, '
       'backward: ${value.backwardItems.length}, '

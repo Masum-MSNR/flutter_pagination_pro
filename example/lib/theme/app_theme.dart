@@ -27,7 +27,7 @@ class AppTheme {
       useMaterial3: true,
       colorScheme: colorScheme,
       fontFamily: 'Inter',
-      
+
       // App bar
       appBarTheme: AppBarTheme(
         centerTitle: true,
@@ -131,7 +131,6 @@ class AppTheme {
       useMaterial3: true,
       colorScheme: colorScheme,
       fontFamily: 'Inter',
-
       appBarTheme: AppBarTheme(
         centerTitle: true,
         elevation: 0,
@@ -144,7 +143,6 @@ class AppTheme {
           color: colorScheme.onSurface,
         ),
       ),
-
       cardTheme: CardThemeData(
         elevation: 0,
         shape: RoundedRectangleBorder(
@@ -155,20 +153,17 @@ class AppTheme {
         ),
         clipBehavior: Clip.antiAlias,
       ),
-
       listTileTheme: ListTileThemeData(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
       ),
-
       chipTheme: ChipThemeData(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
         ),
       ),
-
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -177,7 +172,6 @@ class AppTheme {
           ),
         ),
       ),
-
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -186,7 +180,6 @@ class AppTheme {
           ),
         ),
       ),
-
       segmentedButtonTheme: SegmentedButtonThemeData(
         style: ButtonStyle(
           shape: WidgetStateProperty.all(
@@ -196,13 +189,11 @@ class AppTheme {
           ),
         ),
       ),
-
       dividerTheme: DividerThemeData(
         color: colorScheme.outlineVariant.withValues(alpha: 0.3),
         thickness: 1,
         space: 1,
       ),
-
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
