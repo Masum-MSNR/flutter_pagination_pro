@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.1
+
+- Shorten pubspec description to meet pub.dev guidelines (60–180 chars)
+- Polish README: compact header, feature table, shorter examples
+- Remove migration and testing sections from README
+
 ## 1.0.0
 
 **Stable release** — all features implemented, 297 tests passing.
