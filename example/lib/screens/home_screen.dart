@@ -7,6 +7,7 @@ import 'load_more_screen.dart';
 import 'grid_view_screen.dart';
 import 'numbered_pagination_screen.dart';
 import 'state_simulator_screen.dart';
+import 'animated_list_screen.dart';
 import 'bidirectional_screen.dart';
 import 'header_footer_screen.dart';
 
@@ -218,6 +219,17 @@ class HomeScreen extends StatelessWidget {
                   ],
                   onTap: () =>
                       _navigate(context, const BidirectionalScreen()),
+                ),
+                DemoCard(
+                  title: 'Animated List',
+                  subtitle: 'Slide+fade animations on insert & swipe to dismiss',
+                  icon: Icons.animation_rounded,
+                  gradientColors: const [
+                    Color(0xFF8B5CF6),
+                    Color(0xFFC084FC),
+                  ],
+                  onTap: () =>
+                      _navigate(context, const AnimatedListScreen()),
                 ),
                 const SectionHeader(
                   title: 'NUMBERED PAGINATION',

@@ -35,6 +35,7 @@ Infinite scroll, load more, grid, slivers, numbered pages — all in one.
 | `pageSize` auto last-page | ✅ | ❌ |
 | `totalItems` tracking | ✅ | ❌ |
 | Auto-retry with backoff | ✅ | ❌ |
+| Animated item insert/remove | ✅ | ❌ |
 | `findChildIndexCallback` | ✅ | ✅ |
 | Header / Footer params | ✅ | ❌ |
 | Skeleton loading builder | ✅ | ❌ |
@@ -261,6 +262,35 @@ PagedListView<User>(
 ```
 
 Available on both `PaginationListView` and `PaginationGridView` (all constructors).
+
+## Animated List
+
+Animate item insertions and removals with `AnimatedPaginationListView`.
+New pages slide+fade in with stagger; removed items fade+shrink out.
+
+```dart
+// Zero-config default animations
+AnimatedPagedListView<User>(
+  fetchPage: (page) => api.getUsers(page: page),
+  plainItemBuilder: (context, user, index) => UserTile(user: user),
+  staggerDelay: Duration(milliseconds: 50),
+)
+
+// Custom animation control
+AnimatedPaginationListView<int, User>(
+  fetchPage: (page) => api.getUsers(page: page),
+  itemBuilder: (context, user, index, animation) => SizeTransition(
+    sizeFactor: animation,
+    child: FadeTransition(opacity: animation, child: UserTile(user: user)),
+  ),
+  removeItemBuilder: (context, user, index, animation) => FadeTransition(
+    opacity: animation,
+    child: UserTile(user: user),
+  ),
+)
+```
+
+Works with controller mutations — `insertItem()`, `removeItemAt()`, `removeWhere()` all trigger animations automatically.
 
 ## Skeleton / Shimmer Loading
 

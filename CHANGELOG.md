@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.7.0
+
+### New Features
+
+- **Animated pagination list**: New `AnimatedPaginationListView` widget that uses `AnimatedList` internally for smooth item insert/remove animations. Features:
+  - Default slide+fade insert animation and fade+shrink remove animation
+  - Staggered bulk inserts when new pages load (`staggerDelay` param)
+  - `plainItemBuilder` for zero-config default animations, or `itemBuilder` (with `Animation<double>`) for full control
+  - Custom `removeItemBuilder` for removal transitions
+  - Configurable `insertDuration`, `removeDuration`, and `staggerDelay`
+  - Works with controller `insertItem()`, `removeItemAt()`, `removeWhere()`
+  - `.withController()` constructor for external controller management
+  - Convenience typedef: `AnimatedPagedListView<T>`
+
+  ```dart
+  AnimatedPagedListView<User>(
+    fetchPage: (page) => api.getUsers(page: page),
+    plainItemBuilder: (context, user, index) => UserTile(user: user),
+    staggerDelay: Duration(milliseconds: 50),
+  )
+  ```
+
 ## 0.6.0
 
 ### New Features

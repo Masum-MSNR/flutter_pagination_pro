@@ -28,3 +28,6 @@ typedef BidirectionalPagedController<T> =
 /// Shorthand for `BidirectionalPaginationListView<int, T>`.
 typedef BidirectionalPagedListView<T> =
     BidirectionalPaginationListView<int, T>;
+
+/// Shorthand for `AnimatedPaginationListView<int, T>`.
+typedef AnimatedPagedListView<T> = AnimatedPaginationListView<int, T>;

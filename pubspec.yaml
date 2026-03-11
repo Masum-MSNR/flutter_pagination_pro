@@ -1,6 +1,6 @@
 name: flutter_pagination_pro
 description: "Flutter pagination: generic page keys (int, cursor, offset), infinite scroll, load more button, grid view, slivers, numbered pagination, controlled mode, updateFetchPage for search/filter, built-in loading/error/empty states, pull-to-refresh, initialItems, pageSize auto-detection, totalItems tracking, header/footer params, skeleton loading builder, and testing utilities."
-version: 0.6.0
+version: 0.7.0
 homepage: https://github.com/Masum-MSNR/flutter_pagination_pro
 repository: https://github.com/Masum-MSNR/flutter_pagination_pro
 issue_tracker: https://github.com/Masum-MSNR/flutter_pagination_pro/issues
