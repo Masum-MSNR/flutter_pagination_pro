@@ -107,21 +107,24 @@ class DefaultFirstPageLoading extends StatelessWidget {
     );
   }
 
-  /// Wraps [child] in an animated shimmer skeleton effect.
+  /// Wraps [child] in an animated shimmer skeleton effect that turns every
+  /// element into a solid rectangular block with an animated shimmer sweep.
   ///
   /// How it works:
   /// 1. **Transparent backgrounds** — Card, ListTile, and Material surface
-  ///    colours are overridden to transparent so only visible content
-  ///    (text, icons, coloured containers) remains.
-  /// 2. **Solid fill** — a `ColorFiltered` with `BlendMode.srcATop` turns
-  ///    every visible pixel (text characters, icons, avatar colours) into
-  ///    a solid opaque block of the base colour, producing clean
-  ///    rectangular skeleton shapes.
-  /// 3. **Animated shimmer** — a `ShaderMask` with a sliding
-  ///    `LinearGradient` sweeps a highlight band across those solid shapes.
+  ///    colours are overridden to transparent so only content remains.
+  /// 2. **Text → solid bars** — Every [TextTheme] style gets
+  ///    `backgroundColor` set to the base colour and `color` set to
+  ///    transparent, so each text span renders as a solid filled rectangle
+  ///    matching the text's exact bounding box.
+  /// 3. **Solid fill** — `ColorFiltered(srcATop)` unifies all remaining
+  ///    visible pixels (icons, containers, avatars) into the base colour.
+  /// 4. **Animated shimmer** — `ShaderMask` sweeps a highlight gradient
+  ///    across those solid shapes.
   ///
-  /// The result: text → solid bar (same height/width), avatar → solid
-  /// rectangle, chip → solid pill, all with an animated shimmer sweep.
+  /// The result: text → solid bar, avatar → solid rectangle,
+  /// chip → solid pill, icon → solid shape — all with shimmer animation.
+  /// Matches the look of a hand-crafted skeleton without writing one.
   ///
   /// [overlayColor] sets the base skeleton colour.
   /// Defaults to `Colors.grey.shade700` in dark, `Colors.grey.shade300`
@@ -136,8 +139,14 @@ class DefaultFirstPageLoading extends StatelessWidget {
     final baseColor = overlayColor ??
         (isDark ? Colors.grey.shade700 : Colors.grey.shade300);
 
+    // Override every TextTheme style: backgroundColor → solid bar,
+    // color → transparent (hides letter shapes, only bar remains).
+    final skeletonTextTheme = _toSkeletonTextTheme(theme.textTheme, baseColor);
+
     return Theme(
       data: theme.copyWith(
+        textTheme: skeletonTextTheme,
+        primaryTextTheme: _toSkeletonTextTheme(theme.primaryTextTheme, baseColor),
         cardTheme: theme.cardTheme.copyWith(
           color: Colors.transparent,
           shadowColor: Colors.transparent,
@@ -147,14 +156,53 @@ class DefaultFirstPageLoading extends StatelessWidget {
         listTileTheme: theme.listTileTheme.copyWith(
           tileColor: Colors.transparent,
         ),
+        iconTheme: theme.iconTheme.copyWith(color: baseColor),
       ),
-      child: _SkeletonShimmer(
-        baseColor: baseColor,
-        child: ColorFiltered(
-          colorFilter: ColorFilter.mode(baseColor, BlendMode.srcATop),
-          child: IgnorePointer(child: child),
+      // DefaultTextStyle catches any Text widget that doesn't reference
+      // the theme (e.g. inline TextStyle without theme lookup).
+      child: DefaultTextStyle.merge(
+        style: TextStyle(
+          color: Colors.transparent,
+          backgroundColor: baseColor,
+          decorationColor: Colors.transparent,
+        ),
+        child: _SkeletonShimmer(
+          baseColor: baseColor,
+          child: ColorFiltered(
+            colorFilter: ColorFilter.mode(baseColor, BlendMode.srcATop),
+            child: IgnorePointer(child: child),
+          ),
         ),
       ),
+    );
+  }
+
+  /// Converts a [TextTheme] so every style renders as a solid rectangular
+  /// bar: [backgroundColor] fills the bounding box, [color] is transparent
+  /// so letter shapes are invisible.
+  static TextTheme _toSkeletonTextTheme(TextTheme t, Color color) {
+    TextStyle? s(TextStyle? style) => style?.copyWith(
+          color: Colors.transparent,
+          backgroundColor: color,
+          decorationColor: Colors.transparent,
+        );
+
+    return TextTheme(
+      displayLarge: s(t.displayLarge),
+      displayMedium: s(t.displayMedium),
+      displaySmall: s(t.displaySmall),
+      headlineLarge: s(t.headlineLarge),
+      headlineMedium: s(t.headlineMedium),
+      headlineSmall: s(t.headlineSmall),
+      titleLarge: s(t.titleLarge),
+      titleMedium: s(t.titleMedium),
+      titleSmall: s(t.titleSmall),
+      bodyLarge: s(t.bodyLarge),
+      bodyMedium: s(t.bodyMedium),
+      bodySmall: s(t.bodySmall),
+      labelLarge: s(t.labelLarge),
+      labelMedium: s(t.labelMedium),
+      labelSmall: s(t.labelSmall),
     );
   }
 
