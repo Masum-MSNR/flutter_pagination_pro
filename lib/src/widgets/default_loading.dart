@@ -160,39 +160,52 @@ class DefaultFirstPageLoading extends StatelessWidget {
     final radius = Radius.circular(effectiveConfig.borderRadius);
     final borderRadius = BorderRadius.all(radius);
 
-    return Theme(
-      data: theme.copyWith(
-        textTheme: skeletonTextTheme,
-        primaryTextTheme: _toSkeletonTextTheme(theme.primaryTextTheme, baseColor),
-        cardTheme: theme.cardTheme.copyWith(
-          color: Colors.transparent,
-          shadowColor: Colors.transparent,
-          surfaceTintColor: Colors.transparent,
-          elevation: 0,
-          margin: EdgeInsets.zero,
-          shape: RoundedRectangleBorder(borderRadius: borderRadius),
-        ),
-        listTileTheme: theme.listTileTheme.copyWith(
-          tileColor: Colors.transparent,
-        ),
-        iconTheme: theme.iconTheme.copyWith(color: baseColor),
-      ),
-      // DefaultTextStyle catches any Text widget that doesn't reference
-      // the theme (e.g. inline TextStyle without theme lookup).
-      child: DefaultTextStyle.merge(
-        style: TextStyle(
-          color: Colors.transparent,
-          backgroundColor: baseColor,
-          decorationColor: Colors.transparent,
-        ),
-        child: ClipRRect(
-          borderRadius: borderRadius,
-          child: _SkeletonShimmer(
-            baseColor: baseColor,
-            duration: effectiveConfig.shimmerDuration,
-            child: ColorFiltered(
-              colorFilter: ColorFilter.mode(baseColor, BlendMode.srcATop),
-              child: IgnorePointer(child: child),
+    // A subtle lighter/darker background that fills the entire rounded
+    // card area so ClipRRect has visible content at the corners.
+    // Without this, Card's explicit margin pushes content inward and
+    // ClipRRect would round only invisible transparent space.
+    final bgColor = Color.lerp(
+      isDark ? Colors.black : Colors.white,
+      baseColor,
+      isDark ? 0.35 : 0.25,
+    )!;
+
+    return ClipRRect(
+      borderRadius: borderRadius,
+      child: ColoredBox(
+        color: bgColor,
+        child: Theme(
+          data: theme.copyWith(
+            textTheme: skeletonTextTheme,
+            primaryTextTheme:
+                _toSkeletonTextTheme(theme.primaryTextTheme, baseColor),
+            cardTheme: theme.cardTheme.copyWith(
+              color: Colors.transparent,
+              shadowColor: Colors.transparent,
+              surfaceTintColor: Colors.transparent,
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: borderRadius),
+            ),
+            listTileTheme: theme.listTileTheme.copyWith(
+              tileColor: Colors.transparent,
+            ),
+            iconTheme: theme.iconTheme.copyWith(color: baseColor),
+          ),
+          // DefaultTextStyle catches any Text widget that doesn't reference
+          // the theme (e.g. inline TextStyle without theme lookup).
+          child: DefaultTextStyle.merge(
+            style: TextStyle(
+              color: Colors.transparent,
+              backgroundColor: baseColor,
+              decorationColor: Colors.transparent,
+            ),
+            child: _SkeletonShimmer(
+              baseColor: baseColor,
+              duration: effectiveConfig.shimmerDuration,
+              child: ColorFiltered(
+                colorFilter: ColorFilter.mode(baseColor, BlendMode.srcATop),
+                child: IgnorePointer(child: child),
+              ),
             ),
           ),
         ),
