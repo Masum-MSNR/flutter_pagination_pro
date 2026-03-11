@@ -153,13 +153,15 @@ class DefaultFirstPageLoading extends StatelessWidget {
         (isDark ? Colors.grey.shade700 : Colors.grey.shade300);
     final baseColor = rawColor.withAlpha(255);
 
-    final skeletonTextTheme = _toSkeletonTextTheme(theme.textTheme, baseColor);
+    final radius = effectiveConfig.borderRadius;
+    final skeletonTextTheme =
+        _toSkeletonTextTheme(theme.textTheme, baseColor, radius);
 
     return Theme(
       data: theme.copyWith(
         textTheme: skeletonTextTheme,
         primaryTextTheme:
-            _toSkeletonTextTheme(theme.primaryTextTheme, baseColor),
+            _toSkeletonTextTheme(theme.primaryTextTheme, baseColor, radius),
         cardTheme: theme.cardTheme.copyWith(
           color: Colors.transparent,
           shadowColor: Colors.transparent,
@@ -172,11 +174,20 @@ class DefaultFirstPageLoading extends StatelessWidget {
         iconTheme: theme.iconTheme.copyWith(color: baseColor),
       ),
       child: DefaultTextStyle.merge(
-        style: TextStyle(
-          color: Colors.transparent,
-          backgroundColor: baseColor,
-          decorationColor: Colors.transparent,
-        ),
+        style: radius > 0
+            ? TextStyle(
+                color: Colors.transparent,
+                decorationColor: Colors.transparent,
+                background: Paint()
+                  ..color = baseColor
+                  ..maskFilter =
+                      MaskFilter.blur(BlurStyle.solid, radius * 0.5),
+              )
+            : TextStyle(
+                color: Colors.transparent,
+                backgroundColor: baseColor,
+                decorationColor: Colors.transparent,
+              ),
         child: _SkeletonShimmer(
           baseColor: baseColor,
           duration: effectiveConfig.shimmerDuration,
@@ -189,15 +200,38 @@ class DefaultFirstPageLoading extends StatelessWidget {
     );
   }
 
-  /// Converts a [TextTheme] so every style renders as a solid bar:
-  /// [backgroundColor] fills the bounding box, [color] is transparent
-  /// so letter shapes are invisible.
-  static TextTheme _toSkeletonTextTheme(TextTheme t, Color color) {
-    TextStyle? s(TextStyle? style) => style?.copyWith(
+  /// Converts a [TextTheme] so every style renders as a rounded solid bar.
+  ///
+  /// When [borderRadius] > 0, uses [BlurStyle.solid] mask-filter so the
+  /// interior stays fully opaque while only the outer edge is softened —
+  /// visually identical to CSS `border-radius`. When [borderRadius] is 0
+  /// the plain [backgroundColor] path is used for sharp rectangles.
+  static TextTheme _toSkeletonTextTheme(
+    TextTheme t,
+    Color color,
+    double borderRadius,
+  ) {
+    TextStyle? s(TextStyle? style) {
+      if (style == null) return null;
+      if (borderRadius > 0) {
+        // BlurStyle.solid keeps the fill fully opaque inside the original
+        // rectangle and only softens the outer edge, giving each text bar
+        // rounded-looking corners without any visible blur on the content.
+        final sigma = borderRadius * 0.5;
+        return style.copyWith(
           color: Colors.transparent,
-          backgroundColor: color,
           decorationColor: Colors.transparent,
+          background: Paint()
+            ..color = color
+            ..maskFilter = MaskFilter.blur(BlurStyle.solid, sigma),
         );
+      }
+      return style.copyWith(
+        color: Colors.transparent,
+        backgroundColor: color,
+        decorationColor: Colors.transparent,
+      );
+    }
 
     return TextTheme(
       displayLarge: s(t.displayLarge),
