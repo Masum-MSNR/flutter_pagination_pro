@@ -6,6 +6,7 @@
   <a href="https://pub.dev/packages/flutter_pagination_pro"><img src="https://img.shields.io/pub/v/flutter_pagination_pro.svg" alt="pub package"></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
   <a href="https://flutter.dev"><img src="https://img.shields.io/badge/Flutter-3.0+-02569B?logo=flutter" alt="Flutter 3.0+"></a>
+  <a href="https://masum-fpp.web.app"><img src="https://img.shields.io/badge/Live_Demo-masum--fpp.web.app-FF6F00?logo=firebase" alt="Live Demo"></a>
 </p>
 
 <p align="center">
@@ -306,7 +307,7 @@ final controller = PagedController<User>(
 
 ## Example App
 
-See the full [example app](example/) with demos for every feature.
+Try the [live demo](https://masum-fpp.web.app) or browse the [source code](example/).
 
 ## License
 

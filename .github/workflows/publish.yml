@@ -1,4 +1,4 @@
-name: Release & Publish
+name: Release, Publish & Deploy
 
 on:
   push:
@@ -6,6 +6,30 @@ on:
     tags: [ 'v*' ]
 
 jobs:
+  deploy-example:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Build example web app
+        working-directory: example
+        run: |
+          flutter pub get
+          flutter build web --release --base-href /
+
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          channelId: live
+          projectId: my-pub-packages
+          target: masum-fpp
+
   create-tag:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
