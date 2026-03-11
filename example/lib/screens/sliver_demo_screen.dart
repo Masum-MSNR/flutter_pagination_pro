@@ -19,7 +19,7 @@ class _SliverDemoScreenState extends State<SliverDemoScreen> {
   late PaginationController<int, MockItem> _controller;
   late final ScrollController _scrollController;
   bool _useGrid = false;
-  Key _listKey = UniqueKey();
+  int _rebuildCounter = 0;
 
   @override
   void initState() {
@@ -41,7 +41,7 @@ class _SliverDemoScreenState extends State<SliverDemoScreen> {
         fetchPage: service.fetchPage,
         config: const PaginationConfig(pageSize: 15),
       );
-      _listKey = UniqueKey();
+      _rebuildCounter++;
     });
   }
 
@@ -59,7 +59,7 @@ class _SliverDemoScreenState extends State<SliverDemoScreen> {
 
     return Scaffold(
       body: CustomScrollView(
-        key: _listKey,
+        key: ValueKey(_rebuildCounter),
         controller: _scrollController,
         slivers: [
           SliverAppBar.large(

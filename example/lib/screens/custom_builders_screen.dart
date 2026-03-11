@@ -19,7 +19,7 @@ class CustomBuildersScreen extends StatefulWidget {
 class _CustomBuildersScreenState extends State<CustomBuildersScreen> {
   late PagedController<MockItem> _controller;
   _BuilderScenario _scenario = _BuilderScenario.success;
-  Key _listKey = UniqueKey();
+  int _rebuildCounter = 0;
 
   @override
   void initState() {
@@ -39,7 +39,7 @@ class _CustomBuildersScreenState extends State<CustomBuildersScreen> {
       _scenario = scenario;
       _controller.dispose();
       _createController();
-      _listKey = UniqueKey();
+      _rebuildCounter++;
     });
   }
 
@@ -64,7 +64,7 @@ class _CustomBuildersScreenState extends State<CustomBuildersScreen> {
             onPressed: () {
               _controller.dispose();
               _createController();
-              setState(() => _listKey = UniqueKey());
+              setState(() => _rebuildCounter++);
             },
           ),
         ],
@@ -123,7 +123,7 @@ class _CustomBuildersScreenState extends State<CustomBuildersScreen> {
           const SizedBox(height: 8),
           Expanded(
             child: PagedListView<MockItem>.withController(
-              key: _listKey,
+              key: ValueKey(_rebuildCounter),
               controller: _controller,
               paginationType: _scenario == _BuilderScenario.loadMoreButton
                   ? PaginationType.loadMore

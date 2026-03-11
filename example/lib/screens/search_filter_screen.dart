@@ -18,7 +18,7 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
   late final PagedController<MockItem> _controller;
   final _searchController = TextEditingController();
   String _activeCategory = 'All';
-  Key _listKey = UniqueKey();
+  int _rebuildCounter = 0;
 
   static const _categories = [
     'All',
@@ -70,13 +70,13 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
 
   void _onSearch() {
     _controller.updateFetchPage(_fetchPage);
-    setState(() => _listKey = UniqueKey());
+    setState(() => _rebuildCounter++);
   }
 
   void _setCategory(String cat) {
     setState(() => _activeCategory = cat);
     _controller.updateFetchPage(_fetchPage);
-    setState(() => _listKey = UniqueKey());
+    setState(() => _rebuildCounter++);
   }
 
   @override
@@ -160,7 +160,7 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
           const SizedBox(height: 4),
           Expanded(
             child: PagedListView<MockItem>.withController(
-              key: _listKey,
+              key: ValueKey(_rebuildCounter),
               controller: _controller,
               enablePullToRefresh: true,
               itemBuilder: (context, item, index) => ItemTile(item: item),

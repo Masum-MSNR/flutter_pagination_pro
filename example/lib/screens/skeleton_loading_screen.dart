@@ -20,7 +20,7 @@ class SkeletonLoadingScreen extends StatefulWidget {
 class _SkeletonLoadingScreenState extends State<SkeletonLoadingScreen> {
   late PagedController<MockItem> _controller;
   _SkeletonMode _mode = _SkeletonMode.placeholderItem;
-  Key _listKey = UniqueKey();
+  int _rebuildCounter = 0;
 
   @override
   void initState() {
@@ -42,14 +42,14 @@ class _SkeletonLoadingScreenState extends State<SkeletonLoadingScreen> {
       _mode = mode;
       _controller.dispose();
       _createController();
-      _listKey = UniqueKey();
+      _rebuildCounter++;
     });
   }
 
   void _reload() {
     _controller.dispose();
     _createController();
-    setState(() => _listKey = UniqueKey());
+    setState(() => _rebuildCounter++);
   }
 
   @override
@@ -171,7 +171,7 @@ class _SkeletonLoadingScreenState extends State<SkeletonLoadingScreen> {
       // Approach 1: placeholderItem — zero config, uses itemBuilder with overlay
       case _SkeletonMode.placeholderItem:
         return PagedListView<MockItem>.withController(
-          key: _listKey,
+          key: ValueKey(_rebuildCounter),
           controller: _controller,
           itemBuilder: (context, item, index) => ItemTile(item: item),
           placeholderItem: const MockItem(
@@ -193,7 +193,7 @@ class _SkeletonLoadingScreenState extends State<SkeletonLoadingScreen> {
       // Approach 2: Custom overlay color
       case _SkeletonMode.customOverlay:
         return PagedListView<MockItem>.withController(
-          key: _listKey,
+          key: ValueKey(_rebuildCounter),
           controller: _controller,
           itemBuilder: (context, item, index) => ItemTile(item: item),
           placeholderItem: const MockItem(
@@ -216,7 +216,7 @@ class _SkeletonLoadingScreenState extends State<SkeletonLoadingScreen> {
       // Approach 3: DefaultFirstPageLoading.builder()
       case _SkeletonMode.customBuilder:
         return PagedListView<MockItem>.withController(
-          key: _listKey,
+          key: ValueKey(_rebuildCounter),
           controller: _controller,
           itemBuilder: (context, item, index) => ItemTile(item: item),
           firstPageLoadingBuilder: (context) =>
@@ -238,7 +238,7 @@ class _SkeletonLoadingScreenState extends State<SkeletonLoadingScreen> {
       // Approach 4: DefaultFirstPageLoading.fromItemBuilder()
       case _SkeletonMode.fromItemBuilder:
         return PagedListView<MockItem>.withController(
-          key: _listKey,
+          key: ValueKey(_rebuildCounter),
           controller: _controller,
           itemBuilder: (context, item, index) => ItemTile(item: item),
           firstPageLoadingBuilder: (context) =>

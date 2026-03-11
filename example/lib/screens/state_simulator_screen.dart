@@ -18,7 +18,7 @@ class _StateSimulatorScreenState extends State<StateSimulatorScreen> {
   late PagedController<MockItem> _controller;
   _SimulationScenario _scenario = _SimulationScenario.success;
   PaginationType _paginationType = PaginationType.infiniteScroll;
-  Key _listKey = UniqueKey();
+  int _rebuildCounter = 0;
 
   @override
   void initState() {
@@ -51,7 +51,7 @@ class _StateSimulatorScreenState extends State<StateSimulatorScreen> {
       _scenario = scenario;
       _controller.dispose();
       _createController();
-      _listKey = UniqueKey();
+      _rebuildCounter++;
     });
   }
 
@@ -59,7 +59,7 @@ class _StateSimulatorScreenState extends State<StateSimulatorScreen> {
     setState(() {
       _controller.dispose();
       _createController();
-      _listKey = UniqueKey();
+      _rebuildCounter++;
     });
   }
 
@@ -130,7 +130,7 @@ class _StateSimulatorScreenState extends State<StateSimulatorScreen> {
               onSelectionChanged: (modes) {
                 setState(() {
                   _paginationType = modes.first;
-                  _listKey = UniqueKey();
+                  _rebuildCounter++;
                 });
               },
             ),
@@ -186,7 +186,7 @@ class _StateSimulatorScreenState extends State<StateSimulatorScreen> {
           ),
           Expanded(
             child: PagedListView<MockItem>.withController(
-              key: _listKey,
+              key: ValueKey(_rebuildCounter),
               controller: _controller,
               paginationType: _paginationType,
               itemBuilder: (context, item, index) => ItemTile(item: item),
