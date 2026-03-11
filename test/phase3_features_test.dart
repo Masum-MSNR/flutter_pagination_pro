@@ -178,12 +178,12 @@ void main() {
         expect(find.byKey(ValueKey('item-$i')), findsOneWidget);
       }
 
-      // Each item is wrapped in the skeletonize pipeline (ColorFiltered + ImageFiltered)
-      expect(find.byType(ColorFiltered), findsNWidgets(5));
+      // Each item is wrapped in the skeletonize pipeline (ShaderMask shimmer + ImageFiltered blur)
+      expect(find.byType(ShaderMask), findsNWidgets(5));
       expect(find.byType(ImageFiltered), findsNWidgets(5));
     });
 
-    testWidgets('applies overlay color via skeletonize', (tester) async {
+    testWidgets('applies overlay color as shimmer base', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -197,12 +197,10 @@ void main() {
         ),
       );
 
-      final colorFiltered =
-          tester.widget<ColorFiltered>(find.byType(ColorFiltered).first);
-      expect(
-        colorFiltered.colorFilter,
-        ColorFilter.mode(Colors.blue.shade200, BlendMode.srcATop),
-      );
+      // Shimmer uses ShaderMask with srcATop
+      final shaderMask =
+          tester.widget<ShaderMask>(find.byType(ShaderMask).first);
+      expect(shaderMask.blendMode, BlendMode.srcATop);
     });
 
     testWidgets('defaults to theme-appropriate grey when no overlayColor given',
@@ -220,13 +218,9 @@ void main() {
         ),
       );
 
-      // Light theme → Colors.grey.shade300
-      final colorFiltered =
-          tester.widget<ColorFiltered>(find.byType(ColorFiltered).first);
-      expect(
-        colorFiltered.colorFilter,
-        ColorFilter.mode(Colors.grey.shade300, BlendMode.srcATop),
-      );
+      // Shimmer pipeline present
+      expect(find.byType(ShaderMask), findsOneWidget);
+      expect(find.byType(ImageFiltered), findsOneWidget);
     });
 
     testWidgets('supports separators', (tester) async {
@@ -286,7 +280,7 @@ void main() {
         expect(find.byKey(ValueKey('skeleton-$i')), findsOneWidget);
       }
       // All wrapped in skeletonize pipeline
-      expect(find.byType(ColorFiltered), findsNWidgets(4));
+      expect(find.byType(ShaderMask), findsNWidgets(4));
       expect(find.byType(ImageFiltered), findsNWidgets(4));
     });
 
@@ -319,7 +313,7 @@ void main() {
       for (int i = 0; i < 3; i++) {
         expect(find.byKey(ValueKey('card-$i')), findsOneWidget);
       }
-      expect(find.byType(ColorFiltered), findsNWidgets(3));
+      expect(find.byType(ShaderMask), findsNWidgets(3));
       expect(find.byType(ImageFiltered), findsNWidgets(3));
     });
   });
@@ -812,8 +806,8 @@ void main() {
         ),
       );
 
-      // Each item is rendered (via the real itemBuilder) and wrapped in ColorFiltered
-      expect(find.byType(ColorFiltered), findsNWidgets(4));
+      // Each item is rendered (via the real itemBuilder) and wrapped in ShaderMask shimmer
+      expect(find.byType(ShaderMask), findsNWidgets(4));
       expect(find.text('Placeholder'), findsNWidgets(4));
     });
 
@@ -832,7 +826,7 @@ void main() {
         ),
       );
 
-      expect(find.byType(ColorFiltered), findsNWidgets(6));
+      expect(find.byType(ShaderMask), findsNWidgets(6));
     });
 
     testWidgets('firstPageLoadingBuilder takes priority over placeholderItem',
@@ -853,7 +847,7 @@ void main() {
       );
 
       expect(find.text('Custom Loading'), findsOneWidget);
-      expect(find.byType(ColorFiltered), findsNothing);
+      expect(find.byType(ShaderMask), findsNothing);
     });
 
     testWidgets('PaginationGridView shows skeleton via placeholderItem',
@@ -875,7 +869,7 @@ void main() {
         ),
       );
 
-      expect(find.byType(ColorFiltered), findsNWidgets(4));
+      expect(find.byType(ShaderMask), findsNWidgets(4));
       expect(find.text('Grid'), findsNWidgets(4));
     });
 
@@ -905,7 +899,7 @@ void main() {
         ),
       );
 
-      expect(find.byType(ColorFiltered), findsNWidgets(3));
+      expect(find.byType(ShaderMask), findsNWidgets(3));
       expect(find.text('Sliver'), findsNWidgets(3));
     });
 
@@ -937,7 +931,7 @@ void main() {
         ),
       );
 
-      expect(find.byType(ColorFiltered), findsNWidgets(4));
+      expect(find.byType(ShaderMask), findsNWidgets(4));
       expect(find.text('SliverGrid'), findsNWidgets(4));
     });
 
@@ -957,14 +951,14 @@ void main() {
         ),
       );
 
-      final colorFiltered = tester.widgetList<ColorFiltered>(
-        find.byType(ColorFiltered),
+      final shaderMasks = tester.widgetList<ShaderMask>(
+        find.byType(ShaderMask),
       );
-      for (final widget in colorFiltered) {
-        // The color filter should be present on each skeleton item
-        expect(widget.colorFilter, isNotNull);
+      for (final widget in shaderMasks) {
+        // Each skeleton item uses srcATop blend mode
+        expect(widget.blendMode, BlendMode.srcATop);
       }
-      expect(find.byType(ColorFiltered), findsNWidgets(2));
+      expect(find.byType(ShaderMask), findsNWidgets(2));
     });
 
     testWidgets('no skeleton when placeholderItem is null', (tester) async {
@@ -981,7 +975,7 @@ void main() {
       );
 
       // Should show default spinner, not skeleton
-      expect(find.byType(ColorFiltered), findsNothing);
+      expect(find.byType(ShaderMask), findsNothing);
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
   });
@@ -1015,7 +1009,7 @@ void main() {
       expect(find.text('B'), findsOneWidget);
       expect(find.text('C'), findsOneWidget);
       // Skeleton items appended
-      expect(find.byType(ColorFiltered), findsNWidgets(3));
+      expect(find.byType(ShaderMask), findsNWidgets(3));
       expect(find.text('Placeholder'), findsNWidgets(3));
       // No default spinner footer
       expect(find.byType(CircularProgressIndicator), findsNothing);
@@ -1036,7 +1030,7 @@ void main() {
       );
 
       // Default spinner footer, no skeleton
-      expect(find.byType(ColorFiltered), findsNothing);
+      expect(find.byType(ShaderMask), findsNothing);
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
 
@@ -1059,7 +1053,7 @@ void main() {
       );
 
       expect(find.text('Custom Load More'), findsOneWidget);
-      expect(find.byType(ColorFiltered), findsNothing);
+      expect(find.byType(ShaderMask), findsNothing);
     });
 
     testWidgets('PaginationGridView shows skeleton grid items when loading more',
@@ -1088,7 +1082,7 @@ void main() {
       expect(find.text('A'), findsOneWidget);
       expect(find.text('B'), findsOneWidget);
       // Skeleton items in the grid (at least some visible)
-      expect(find.byType(ColorFiltered), findsAtLeast(1));
+      expect(find.byType(ShaderMask), findsAtLeast(1));
       expect(find.text('Skeleton'), findsAtLeast(1));
     });
 
@@ -1120,7 +1114,7 @@ void main() {
 
       expect(find.text('A'), findsOneWidget);
       expect(find.text('B'), findsOneWidget);
-      expect(find.byType(ColorFiltered), findsNWidgets(2));
+      expect(find.byType(ShaderMask), findsNWidgets(2));
       expect(find.text('Sk'), findsNWidgets(2));
     });
 
@@ -1156,7 +1150,7 @@ void main() {
 
       expect(find.text('A'), findsOneWidget);
       expect(find.text('B'), findsOneWidget);
-      expect(find.byType(ColorFiltered), findsNWidgets(2));
+      expect(find.byType(ShaderMask), findsNWidgets(2));
     });
 
     testWidgets('no skeleton for loadMore paginationType even with placeholderItem',
@@ -1177,7 +1171,7 @@ void main() {
       );
 
       // loadMore mode shows button, not skeleton
-      expect(find.byType(ColorFiltered), findsNothing);
+      expect(find.byType(ShaderMask), findsNothing);
     });
   });
 }

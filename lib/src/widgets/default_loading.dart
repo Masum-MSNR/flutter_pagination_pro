@@ -60,7 +60,7 @@ class DefaultFirstPageLoading extends StatelessWidget {
 
   /// Creates a skeleton placeholder from the **real** [itemBuilder]
   /// by rendering it with a [placeholderItem] and automatically converting
-  /// it into skeleton shapes.
+  /// it into animated shimmer skeleton shapes.
   ///
   /// This lets you reuse your existing item widget without building a
   /// separate skeleton widget — just provide a dummy instance of `T`:
@@ -78,15 +78,12 @@ class DefaultFirstPageLoading extends StatelessWidget {
   /// )
   /// ```
   ///
-  /// The widget tree is rendered with **transparent backgrounds** (Card,
-  /// ListTile, Material surfaces are cleared), then a Gaussian blur merges
-  /// individual text characters into solid bands and a uniform colour
-  /// overlay is applied. The result looks like hand-crafted skeleton shapes
-  /// (avatar rectangle, title bar, subtitle bar, chip pill) without
-  /// requiring a separate skeleton widget.
+  /// Background surfaces (Card, ListTile) are made transparent so only
+  /// visible content remains. A Gaussian blur merges text characters into
+  /// solid bars, and an animated shimmer gradient sweeps across the shapes.
   ///
-  /// [overlayColor] defaults to a theme-appropriate grey —
-  /// `Colors.grey.shade700` in dark mode, `Colors.grey.shade300` in light.
+  /// [overlayColor] sets the base skeleton colour. Defaults to a
+  /// theme-appropriate grey.
   static Widget fromItemBuilder<T>({
     Key? key,
     required ItemBuilder<T> itemBuilder,
@@ -111,41 +108,41 @@ class DefaultFirstPageLoading extends StatelessWidget {
     );
   }
 
-  /// Wraps [child] in a skeleton effect that **automatically** produces
-  /// placeholder shapes from the real widget.
+  /// Wraps [child] in an animated shimmer skeleton effect.
   ///
   /// How it works:
   /// 1. **Transparent backgrounds** — Card, ListTile, and Material surface
-  ///    colours are temporarily overridden to transparent so that only
-  ///    visible content (text, icons, coloured containers) remains.
+  ///    colours are overridden to transparent so only visible content
+  ///    (text, icons, coloured containers) remains.
   /// 2. **Gaussian blur** (σ = 4) — merges individual text characters into
-  ///    solid rectangular bands and softens sharp edges.
-  /// 3. **Uniform colour overlay** (`BlendMode.srcATop`) — replaces every
-  ///    non-transparent pixel with [overlayColor] while keeping the alpha
-  ///    channel, producing uniform skeleton shapes.
+  ///    solid rectangular bands.
+  /// 3. **Animated shimmer** — a `ShaderMask` with a sliding
+  ///    `LinearGradient` sweeps a highlight band across the shapes,
+  ///    using `BlendMode.srcATop` so only non-transparent pixels show.
   ///
-  /// The result automatically mirrors the real widget's layout: avatars
-  /// become rounded rectangles, titles become horizontal bars, chips
-  /// become pills — all in a single skeleton colour.
+  /// The result automatically mirrors the real widget's layout with an
+  /// animated shimmer: avatars → rounded rectangles, titles → bars,
+  /// chips → pills.
   ///
-  /// [overlayColor] defaults to a theme-appropriate grey:
-  /// `Colors.grey.shade700` in dark mode, `Colors.grey.shade300` in light.
+  /// [overlayColor] sets the base skeleton colour.
+  /// Defaults to `Colors.grey.shade700` in dark, `Colors.grey.shade300`
+  /// in light mode.
   static Widget skeletonize(
     BuildContext context,
     Widget child, {
     Color? overlayColor,
   }) {
     final theme = Theme.of(context);
-    final color = overlayColor ??
-        (theme.brightness == Brightness.dark
-            ? Colors.grey.shade700
-            : Colors.grey.shade300);
+    final isDark = theme.brightness == Brightness.dark;
+    final baseColor = overlayColor ??
+        (isDark ? Colors.grey.shade700 : Colors.grey.shade300);
 
     return Theme(
       data: theme.copyWith(
         cardTheme: theme.cardTheme.copyWith(
           color: Colors.transparent,
           shadowColor: Colors.transparent,
+          surfaceTintColor: Colors.transparent,
           elevation: 0,
         ),
         listTileTheme: theme.listTileTheme.copyWith(
@@ -153,8 +150,8 @@ class DefaultFirstPageLoading extends StatelessWidget {
         ),
       ),
       child: ClipRect(
-        child: ColorFiltered(
-          colorFilter: ColorFilter.mode(color, BlendMode.srcATop),
+        child: _SkeletonShimmer(
+          baseColor: baseColor,
           child: ImageFiltered(
             imageFilter: ui.ImageFilter.blur(sigmaX: 4, sigmaY: 4),
             child: IgnorePointer(child: child),
@@ -213,6 +210,96 @@ class DefaultLoadMoreLoading extends StatelessWidget {
           child: CircularProgressIndicator.adaptive(strokeWidth: 2.5),
         ),
       ),
+    );
+  }
+}
+
+/// Animated shimmer that sweeps a highlight gradient across [child].
+///
+/// Uses [ShaderMask] with [BlendMode.srcATop] so the gradient only paints
+/// on non-transparent pixels — producing the skeleton shimmer effect.
+class _SkeletonShimmer extends StatefulWidget {
+  const _SkeletonShimmer({
+    required this.baseColor,
+    required this.child,
+  });
+
+  final Color baseColor;
+  final Widget child;
+
+  @override
+  State<_SkeletonShimmer> createState() => _SkeletonShimmerState();
+}
+
+class _SkeletonShimmerState extends State<_SkeletonShimmer>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final highlightColor = Color.lerp(
+      widget.baseColor,
+      isDark ? Colors.grey.shade500 : Colors.white,
+      0.4,
+    )!;
+
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return ShaderMask(
+          blendMode: BlendMode.srcATop,
+          shaderCallback: (bounds) {
+            return LinearGradient(
+              colors: [
+                widget.baseColor,
+                highlightColor,
+                widget.baseColor,
+              ],
+              stops: const [0.35, 0.5, 0.65],
+              begin: const Alignment(-1, 0),
+              end: const Alignment(1, 0),
+              transform: _SlidingGradientTransform(
+                slidePercent: _controller.value,
+              ),
+            ).createShader(bounds);
+          },
+          child: child,
+        );
+      },
+      child: widget.child,
+    );
+  }
+}
+
+/// Translates a gradient by [slidePercent] × 2 × bounds.width so the
+/// highlight band sweeps from off-screen left to off-screen right.
+class _SlidingGradientTransform extends GradientTransform {
+  const _SlidingGradientTransform({required this.slidePercent});
+
+  final double slidePercent;
+
+  @override
+  Matrix4? transform(Rect bounds, {TextDirection? textDirection}) {
+    return Matrix4.translationValues(
+      bounds.width * (slidePercent * 2 - 1),
+      0,
+      0,
     );
   }
 }
