@@ -438,6 +438,35 @@ PaginationKeyboardHandler(
 | `showNavigationButtons` | `true` | Show ◀ ▶ buttons |
 | `selectedButtonColor` | `primary` | Active page color |
 
+## Migrating from `infinite_scroll_pagination`
+
+| infinite_scroll_pagination | flutter_pagination_pro |
+|---|---|
+| `PagedListView<int, T>` | `PagedListView<T>` |
+| `PagingController<int, T>` | `PagedController<T>` |
+| `PagedChildBuilderDelegate` | Pass builders directly to widget |
+| `controller.appendPage(items, nextKey)` | Return `List<T>` from `fetchPage` |
+| `controller.appendLastPage(items)` | Return fewer items than `pageSize` |
+
+```dart
+// Before (infinite_scroll_pagination)
+final controller = PagingController<int, User>(firstPageKey: 1);
+controller.addPageRequestListener((page) async {
+  final items = await api.getUsers(page);
+  if (items.length < 20) {
+    controller.appendLastPage(items);
+  } else {
+    controller.appendPage(items, page + 1);
+  }
+});
+
+// After (flutter_pagination_pro)
+PagedListView<User>(
+  fetchPage: (page) => api.getUsers(page: page),
+  itemBuilder: (context, user, index) => UserTile(user: user),
+)
+```
+
 ## Example
 
 See the [example](example/) app for a complete demo with all modes.

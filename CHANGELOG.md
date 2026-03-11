@@ -1,5 +1,34 @@
 # Changelog
 
+## 1.0.0
+
+### Stable Release
+
+`flutter_pagination_pro` is now **stable** — all planned features are implemented, tested (297 tests), and documented.
+
+### Features Summary (since 0.4.0)
+
+- **Empty state with refresh** (v0.5.0) — `DefaultEmpty` auto-wires refresh action
+- **Auto-retry with exponential backoff** (v0.5.0) — `RetryPolicy` on `PaginationConfig`
+- **Bidirectional pagination** (v0.6.0) — Two-way scrolling for chats, timelines, logs
+- **Animated item insert/remove** (v0.7.0) — `AnimatedPaginationListView` with staggered transitions
+- **Keyboard navigation** (v0.8.0) — `PaginationKeyboardHandler` for desktop & web
+
+### Migration from `infinite_scroll_pagination`
+
+| infinite_scroll_pagination | flutter_pagination_pro |
+|---|---|
+| `PagedListView<int, T>` | `PagedListView<T>` (or `PaginationListView<int, T>`) |
+| `PagingController<int, T>` | `PagedController<T>` (or `PaginationController<int, T>`) |
+| `PagedChildBuilderDelegate` | Pass builders directly to widget |
+| `pagingController.appendPage(items, nextKey)` | Return `List<T>` from `fetchPage` — controller manages keys |
+| `pagingController.appendLastPage(items)` | Return fewer items than `pageSize` — auto-detected |
+| No bidirectional support | `BidirectionalPaginationListView` |
+| No animated lists | `AnimatedPaginationListView` |
+| No keyboard navigation | `PaginationKeyboardHandler` |
+| No auto-retry | `RetryPolicy` on `PaginationConfig` |
+| No numbered pagination | `NumberedPagination` |
+
 ## 0.8.0
 
 ### New Features
