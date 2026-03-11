@@ -200,7 +200,7 @@ void main() {
           tester.widget<ColorFiltered>(find.byType(ColorFiltered).first);
       expect(
         colorFiltered.colorFilter,
-        ColorFilter.mode(Colors.blue.shade200, BlendMode.srcATop),
+        DefaultFirstPageLoading.skeletonFilter(Colors.blue.shade200),
       );
     });
 
@@ -222,7 +222,7 @@ void main() {
           tester.widget<ColorFiltered>(find.byType(ColorFiltered).first);
       expect(
         colorFiltered.colorFilter,
-        ColorFilter.mode(Colors.grey.shade300, BlendMode.srcATop),
+        DefaultFirstPageLoading.skeletonFilter(Colors.grey.shade300),
       );
     });
 

@@ -410,7 +410,7 @@ mixin PaginationStateMixin<K, T, W extends StatefulWidget> on State<W> {
   Widget buildSkeletonItem(BuildContext context, int index) {
     final color = widgetSkeletonOverlayColor ?? Colors.grey.shade300;
     return ColorFiltered(
-      colorFilter: ColorFilter.mode(color, BlendMode.srcATop),
+      colorFilter: DefaultFirstPageLoading.skeletonFilter(color),
       child: widgetItemBuilder(context, widgetPlaceholderItem as T, index),
     );
   }

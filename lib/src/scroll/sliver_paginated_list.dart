@@ -455,7 +455,7 @@ class _SliverPaginatedListState<K, T> extends State<SliverPaginatedList<K, T>>
           }
           final itemIndex = hasSeparator ? index ~/ 2 : index;
           return ColorFiltered(
-            colorFilter: ColorFilter.mode(color, BlendMode.srcATop),
+            colorFilter: DefaultFirstPageLoading.skeletonFilter(color),
             child: widgetItemBuilder(context, placeholder, itemIndex),
           );
         },

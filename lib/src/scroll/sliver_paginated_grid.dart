@@ -414,7 +414,7 @@ class _SliverPaginatedGridState<K, T> extends State<SliverPaginatedGrid<K, T>>
       gridDelegate: widget.gridDelegate,
       delegate: SliverChildBuilderDelegate(
         (context, index) => ColorFiltered(
-          colorFilter: ColorFilter.mode(color, BlendMode.srcATop),
+          colorFilter: DefaultFirstPageLoading.skeletonFilter(color),
           child: widgetItemBuilder(context, placeholder, index),
         ),
         childCount: widgetPlaceholderCount,

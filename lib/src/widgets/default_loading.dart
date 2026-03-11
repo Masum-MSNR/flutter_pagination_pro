@@ -77,9 +77,12 @@ class DefaultFirstPageLoading extends StatelessWidget {
   /// )
   /// ```
   ///
-  /// The [overlayColor] defaults to `Colors.grey.shade300` and is applied
-  /// using `BlendMode.srcATop` — every visible pixel becomes that colour,
-  /// producing a uniform skeleton effect.
+  /// The [overlayColor] defaults to `Colors.grey.shade300`.
+  ///
+  /// A greyscale colour-matrix is applied that preserves the *luminance
+  /// structure* of the original widget (avatar shapes, text blocks, chips)
+  /// while shifting every pixel toward [overlayColor]. This produces a
+  /// realistic skeleton / shimmer placeholder instead of flat colour blocks.
   static Widget fromItemBuilder<T>({
     Key? key,
     required ItemBuilder<T> itemBuilder,
@@ -99,10 +102,34 @@ class DefaultFirstPageLoading extends StatelessWidget {
       padding: padding,
       scrollDirection: scrollDirection,
       itemBuilder: (context, index) => ColorFiltered(
-        colorFilter: ColorFilter.mode(color, BlendMode.srcATop),
+        colorFilter: skeletonFilter(color),
         child: itemBuilder(context, placeholderItem, index),
       ),
     );
+  }
+
+  /// Builds a [ColorFilter] that produces a skeleton placeholder effect.
+  ///
+  /// Converts each pixel to greyscale (preserving luminance) then reduces
+  /// contrast and shifts brightness toward [color]. The result keeps the
+  /// internal structure of the widget visible (avatar, text, chip shapes)
+  /// as slightly different shades of the skeleton colour.
+  static ColorFilter skeletonFilter(Color color) {
+    final r = color.red / 255.0;
+    final g = color.green / 255.0;
+    final b = color.blue / 255.0;
+
+    // How much original luminance structure to preserve.
+    // 0.0 = completely flat (single colour)  |  1.0 = full original contrast
+    const structure = 0.15;
+    final base = 1.0 - structure;
+
+    return ColorFilter.matrix(<double>[
+      structure * 0.2126, structure * 0.7152, structure * 0.0722, 0, r * base * 255,
+      structure * 0.2126, structure * 0.7152, structure * 0.0722, 0, g * base * 255,
+      structure * 0.2126, structure * 0.7152, structure * 0.0722, 0, b * base * 255,
+      0,                  0,                  0,                  1, 0,
+    ]);
   }
 
   @override
