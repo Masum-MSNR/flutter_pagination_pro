@@ -1,8 +1,6 @@
 /// Default loading indicator widgets
 library;
 
-import 'dart:ui' show ImageFilter;
-
 import 'package:flutter/material.dart';
 import '../core/skeleton_config.dart';
 import '../core/typedefs.dart';
@@ -159,6 +157,9 @@ class DefaultFirstPageLoading extends StatelessWidget {
     // color → transparent (hides letter shapes, only bar remains).
     final skeletonTextTheme = _toSkeletonTextTheme(theme.textTheme, baseColor);
 
+    final radius = Radius.circular(effectiveConfig.borderRadius);
+    final borderRadius = BorderRadius.all(radius);
+
     return Theme(
       data: theme.copyWith(
         textTheme: skeletonTextTheme,
@@ -168,6 +169,8 @@ class DefaultFirstPageLoading extends StatelessWidget {
           shadowColor: Colors.transparent,
           surfaceTintColor: Colors.transparent,
           elevation: 0,
+          margin: EdgeInsets.zero,
+          shape: RoundedRectangleBorder(borderRadius: borderRadius),
         ),
         listTileTheme: theme.listTileTheme.copyWith(
           tileColor: Colors.transparent,
@@ -182,20 +185,15 @@ class DefaultFirstPageLoading extends StatelessWidget {
           backgroundColor: baseColor,
           decorationColor: Colors.transparent,
         ),
-        child: _SkeletonShimmer(
-          baseColor: baseColor,
-          duration: effectiveConfig.shimmerDuration,
-          child: ColorFiltered(
-            colorFilter: ColorFilter.mode(baseColor, BlendMode.srcATop),
-            child: effectiveConfig.blurRadius > 0
-                ? ImageFiltered(
-                    imageFilter: ImageFilter.blur(
-                      sigmaX: effectiveConfig.blurRadius,
-                      sigmaY: effectiveConfig.blurRadius,
-                    ),
-                    child: IgnorePointer(child: child),
-                  )
-                : IgnorePointer(child: child),
+        child: ClipRRect(
+          borderRadius: borderRadius,
+          child: _SkeletonShimmer(
+            baseColor: baseColor,
+            duration: effectiveConfig.shimmerDuration,
+            child: ColorFiltered(
+              colorFilter: ColorFilter.mode(baseColor, BlendMode.srcATop),
+              child: IgnorePointer(child: child),
+            ),
           ),
         ),
       ),
