@@ -9,8 +9,7 @@
 </p>
 
 <p align="center">
-A lightweight, zero-dependency pagination toolkit for Flutter.<br/>
-Infinite scroll · Load more · Grid · Slivers · Numbered pages · Bidirectional · Animated lists · Skeleton loading · Keyboard nav — all in one package.
+A production-ready, zero-dependency Flutter pagination package with support for infinite scroll, grids, slivers, bidirectional lists, skeleton loading, and more.
 </p>
 
 <p align="center">
@@ -21,24 +20,20 @@ Infinite scroll · Load more · Grid · Slivers · Numbered pages · Bidirection
 
 ## Features
 
-| Feature | Widget / API | Description |
-|---------|-------------|-------------|
-| **Infinite Scroll** | `PagedListView` | Auto-loads next page on scroll threshold |
-| **Load More Button** | `paginationType: .loadMore` | Manual "load more" trigger |
-| **Grid View** | `PagedGridView` | Paginated grid with any `SliverGridDelegate` |
-| **Slivers** | `SliverPagedList` / `SliverPagedGrid` | Composable inside `CustomScrollView` |
-| **Numbered Pages** | `NumberedPagination` | Classic page-number navigation bar |
-| **Bidirectional** | `BidirectionalPagedListView` | Two-way scroll for chats, timelines |
-| **Animated List** | `AnimatedPagedListView` | Staggered insert/remove animations |
-| **Skeleton Loading** | `placeholderItem` + `SkeletonConfig` | Auto-generated shimmer from your item builder |
-| **Cursor / Offset Keys** | `PaginationListView<String, T>` | Generic page keys — int, cursor, offset |
-| **Controlled Mode** | `.controlled()` constructor | BYO state (Bloc, Riverpod, etc.) |
-| **Search / Filter** | `updateFetchPage()` | Swap data source & reload instantly |
-| **Auto-Retry** | `RetryPolicy` | Exponential backoff on failures |
-| **Keyboard Nav** | `PaginationKeyboardHandler` | Page Up/Down, Home/End for desktop & web |
-| **Pull to Refresh** | `enablePullToRefresh: true` | Built-in refresh indicator |
-| **Header / Footer** | `header` / `footer` params | Scrollable header & footer widgets |
-**Zero external dependencies** · **297 tests** · **Fully type-safe**
+| Feature | Widget / API |
+|---------|-------------|
+| Infinite Scroll | `PagedListView` |
+| Load More Button | `PaginationType.loadMore` |
+| Grid View | `PagedGridView` |
+| Slivers | `SliverPagedList` / `SliverPagedGrid` |
+| Numbered Pages | `NumberedPagination` |
+| Bidirectional Scroll | `BidirectionalPagedListView` |
+| Animated List | `AnimatedPagedListView` |
+| Skeleton Loading | `placeholderItem` + `SkeletonConfig` |
+| Cursor / Offset Keys | `PaginationListView<String, T>` |
+| Controlled Mode | `.controlled()` constructor |
+| Auto-Retry | `RetryPolicy` |
+| Keyboard Navigation | `PaginationKeyboardHandler` |
 
 ---
 
