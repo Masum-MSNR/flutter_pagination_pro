@@ -15,7 +15,6 @@ import 'package:flutter/material.dart';
 ///   itemBuilder: (context, user, index) => UserTile(user: user),
 ///   placeholderItem: User.placeholder(),
 ///   skeletonConfig: const SkeletonConfig(
-///     borderRadius: 12.0,
 ///     overlayColor: Colors.blueGrey,
 ///     shimmerDuration: Duration(milliseconds: 2000),
 ///   ),
@@ -28,9 +27,8 @@ class SkeletonConfig {
   /// All parameters are optional and fall back to sensible defaults.
   const SkeletonConfig({
     this.overlayColor,
-    this.borderRadius = 8.0,
     this.shimmerDuration = const Duration(milliseconds: 1500),
-  }) : assert(borderRadius >= 0, 'borderRadius must be >= 0');
+  });
 
   /// Base colour used for the skeleton shapes.
   ///
@@ -41,15 +39,6 @@ class SkeletonConfig {
   /// Defaults to `Colors.grey.shade700` in dark mode and
   /// `Colors.grey.shade300` in light mode.
   final Color? overlayColor;
-
-  /// Corner radius applied to each skeleton placeholder item.
-  ///
-  /// The skeleton item is clipped to a rounded rectangle and the
-  /// Card shape is updated to match, so you get visibly rounded
-  /// corners on every skeleton card.
-  ///
-  /// Defaults to `8.0`. Set to `0` for sharp corners.
-  final double borderRadius;
 
   /// Duration of one full shimmer animation sweep.
   ///
@@ -62,15 +51,13 @@ class SkeletonConfig {
       other is SkeletonConfig &&
           runtimeType == other.runtimeType &&
           overlayColor == other.overlayColor &&
-          borderRadius == other.borderRadius &&
           shimmerDuration == other.shimmerDuration;
 
   @override
-  int get hashCode => Object.hash(overlayColor, borderRadius, shimmerDuration);
+  int get hashCode => Object.hash(overlayColor, shimmerDuration);
 
   @override
   String toString() =>
       'SkeletonConfig(overlayColor: $overlayColor, '
-      'borderRadius: $borderRadius, '
       'shimmerDuration: $shimmerDuration)';
 }

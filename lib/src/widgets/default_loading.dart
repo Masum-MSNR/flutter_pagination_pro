@@ -153,104 +153,51 @@ class DefaultFirstPageLoading extends StatelessWidget {
         (isDark ? Colors.grey.shade700 : Colors.grey.shade300);
     final baseColor = rawColor.withAlpha(255);
 
-    // Override every TextTheme style: background Paint with MaskFilter
-    // gives each text bar individually rounded edges (not a full-image blur).
-    final skeletonTextTheme = _toSkeletonTextTheme(
-      theme.textTheme,
-      baseColor,
-      effectiveConfig.borderRadius,
-    );
+    final skeletonTextTheme = _toSkeletonTextTheme(theme.textTheme, baseColor);
 
-    final radius = Radius.circular(effectiveConfig.borderRadius);
-    final borderRadius = BorderRadius.all(radius);
-
-    // A subtle lighter/darker background that fills the entire rounded
-    // card area so ClipRRect has visible content at the corners.
-    final bgColor = Color.lerp(
-      isDark ? Colors.black : Colors.white,
-      baseColor,
-      isDark ? 0.35 : 0.25,
-    )!;
-
-    // Paint for DefaultTextStyle fallback (catches inline-styled Text).
-    final bgPaint = Paint()..color = baseColor;
-    if (effectiveConfig.borderRadius > 0) {
-      bgPaint.maskFilter = MaskFilter.blur(
-        BlurStyle.normal,
-        effectiveConfig.borderRadius * 0.4,
-      );
-    }
-
-    return ClipRRect(
-      borderRadius: borderRadius,
-      child: ColoredBox(
-        color: bgColor,
-        child: Theme(
-          data: theme.copyWith(
-            textTheme: skeletonTextTheme,
-            primaryTextTheme: _toSkeletonTextTheme(
-              theme.primaryTextTheme,
-              baseColor,
-              effectiveConfig.borderRadius,
-            ),
-            cardTheme: theme.cardTheme.copyWith(
-              color: Colors.transparent,
-              shadowColor: Colors.transparent,
-              surfaceTintColor: Colors.transparent,
-              elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: borderRadius),
-            ),
-            listTileTheme: theme.listTileTheme.copyWith(
-              tileColor: Colors.transparent,
-            ),
-            iconTheme: theme.iconTheme.copyWith(color: baseColor),
-          ),
-          // DefaultTextStyle catches any Text widget that doesn't reference
-          // the theme (e.g. inline TextStyle without theme lookup).
-          child: DefaultTextStyle.merge(
-            style: TextStyle(
-              color: Colors.transparent,
-              background: bgPaint,
-              decorationColor: Colors.transparent,
-            ),
-            child: _SkeletonShimmer(
-              baseColor: baseColor,
-              duration: effectiveConfig.shimmerDuration,
-              child: ColorFiltered(
-                colorFilter: ColorFilter.mode(baseColor, BlendMode.srcATop),
-                child: IgnorePointer(child: child),
-              ),
-            ),
+    return Theme(
+      data: theme.copyWith(
+        textTheme: skeletonTextTheme,
+        primaryTextTheme:
+            _toSkeletonTextTheme(theme.primaryTextTheme, baseColor),
+        cardTheme: theme.cardTheme.copyWith(
+          color: Colors.transparent,
+          shadowColor: Colors.transparent,
+          surfaceTintColor: Colors.transparent,
+          elevation: 0,
+        ),
+        listTileTheme: theme.listTileTheme.copyWith(
+          tileColor: Colors.transparent,
+        ),
+        iconTheme: theme.iconTheme.copyWith(color: baseColor),
+      ),
+      child: DefaultTextStyle.merge(
+        style: TextStyle(
+          color: Colors.transparent,
+          backgroundColor: baseColor,
+          decorationColor: Colors.transparent,
+        ),
+        child: _SkeletonShimmer(
+          baseColor: baseColor,
+          duration: effectiveConfig.shimmerDuration,
+          child: ColorFiltered(
+            colorFilter: ColorFilter.mode(baseColor, BlendMode.srcATop),
+            child: IgnorePointer(child: child),
           ),
         ),
       ),
     );
   }
 
-  /// Converts a [TextTheme] so every style renders as a solid bar with
-  /// rounded edges: [background] Paint fills the bounding box with optional
-  /// [MaskFilter] for rounded edges, [color] is transparent so letter
-  /// shapes are invisible.
-  static TextTheme _toSkeletonTextTheme(
-    TextTheme t,
-    Color color,
-    double borderRadius,
-  ) {
-    TextStyle? s(TextStyle? style) {
-      if (style == null) return null;
-      final paint = Paint()..color = color;
-      if (borderRadius > 0) {
-        paint.maskFilter = MaskFilter.blur(
-          BlurStyle.normal,
-          borderRadius * 0.4,
+  /// Converts a [TextTheme] so every style renders as a solid bar:
+  /// [backgroundColor] fills the bounding box, [color] is transparent
+  /// so letter shapes are invisible.
+  static TextTheme _toSkeletonTextTheme(TextTheme t, Color color) {
+    TextStyle? s(TextStyle? style) => style?.copyWith(
+          color: Colors.transparent,
+          backgroundColor: color,
+          decorationColor: Colors.transparent,
         );
-      }
-      return style.copyWith(
-        color: Colors.transparent,
-        background: paint,
-        decorationColor: Colors.transparent,
-      );
-    }
 
     return TextTheme(
       displayLarge: s(t.displayLarge),
