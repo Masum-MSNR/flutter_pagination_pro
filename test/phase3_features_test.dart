@@ -178,9 +178,8 @@ void main() {
         expect(find.byKey(ValueKey('item-$i')), findsOneWidget);
       }
 
-      // Each item is wrapped in the skeletonize pipeline (ShaderMask shimmer + ImageFiltered blur)
+      // Each item is wrapped in the skeletonize shimmer pipeline
       expect(find.byType(ShaderMask), findsNWidgets(5));
-      expect(find.byType(ImageFiltered), findsNWidgets(5));
     });
 
     testWidgets('applies overlay color as shimmer base', (tester) async {
@@ -220,7 +219,6 @@ void main() {
 
       // Shimmer pipeline present
       expect(find.byType(ShaderMask), findsOneWidget);
-      expect(find.byType(ImageFiltered), findsOneWidget);
     });
 
     testWidgets('supports separators', (tester) async {
@@ -281,7 +279,6 @@ void main() {
       }
       // All wrapped in skeletonize pipeline
       expect(find.byType(ShaderMask), findsNWidgets(4));
-      expect(find.byType(ImageFiltered), findsNWidgets(4));
     });
 
     testWidgets('works with complex widget trees', (tester) async {
@@ -314,7 +311,6 @@ void main() {
         expect(find.byKey(ValueKey('card-$i')), findsOneWidget);
       }
       expect(find.byType(ShaderMask), findsNWidgets(3));
-      expect(find.byType(ImageFiltered), findsNWidgets(3));
     });
   });
 

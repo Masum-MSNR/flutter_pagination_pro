@@ -1,7 +1,6 @@
 /// Default loading indicator widgets
 library;
 
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import '../core/typedefs.dart';
 
@@ -114,15 +113,13 @@ class DefaultFirstPageLoading extends StatelessWidget {
   /// 1. **Transparent backgrounds** — Card, ListTile, and Material surface
   ///    colours are overridden to transparent so only visible content
   ///    (text, icons, coloured containers) remains.
-  /// 2. **Gaussian blur** (σ = 4) — merges individual text characters into
-  ///    solid rectangular bands.
-  /// 3. **Animated shimmer** — a `ShaderMask` with a sliding
+  /// 2. **Animated shimmer** — a `ShaderMask` with a sliding
   ///    `LinearGradient` sweeps a highlight band across the shapes,
   ///    using `BlendMode.srcATop` so only non-transparent pixels show.
   ///
   /// The result automatically mirrors the real widget's layout with an
-  /// animated shimmer: avatars → rounded rectangles, titles → bars,
-  /// chips → pills.
+  /// animated shimmer: avatars → rounded rectangles, titles → text-shaped
+  /// blocks, chips → pills.
   ///
   /// [overlayColor] sets the base skeleton colour.
   /// Defaults to `Colors.grey.shade700` in dark, `Colors.grey.shade300`
@@ -149,14 +146,9 @@ class DefaultFirstPageLoading extends StatelessWidget {
           tileColor: Colors.transparent,
         ),
       ),
-      child: ClipRect(
-        child: _SkeletonShimmer(
-          baseColor: baseColor,
-          child: ImageFiltered(
-            imageFilter: ui.ImageFilter.blur(sigmaX: 4, sigmaY: 4),
-            child: IgnorePointer(child: child),
-          ),
-        ),
+      child: _SkeletonShimmer(
+        baseColor: baseColor,
+        child: IgnorePointer(child: child),
       ),
     );
   }
