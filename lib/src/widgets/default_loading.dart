@@ -2,6 +2,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import '../core/skeleton_config.dart';
 import '../core/typedefs.dart';
 
@@ -113,24 +114,27 @@ class DefaultFirstPageLoading extends StatelessWidget {
     );
   }
 
-  /// Wraps [child] in an animated shimmer skeleton effect that turns every
-  /// element into a solid rectangular block with an animated shimmer sweep.
+  /// Wraps [child] in an animated shimmer skeleton that replaces every
+  /// visible element with a rounded rectangle "bone" and sweeps an
+  /// animated highlight gradient across them.
   ///
   /// How it works:
-  /// 1. **Transparent backgrounds** — Card, ListTile, and Material surface
-  ///    colours are overridden to transparent so only content remains.
-  /// 2. **Text → solid bars** — Every [TextTheme] style gets
-  ///    `backgroundColor` set to the base colour and `color` set to
-  ///    transparent, so each text span renders as a solid filled rectangle
-  ///    matching the text's exact bounding box.
-  /// 3. **Solid fill** — `ColorFiltered(srcATop)` unifies all remaining
-  ///    visible pixels (icons, containers, avatars) into the base colour.
-  /// 4. **Animated shimmer** — `ShaderMask` sweeps a highlight gradient
-  ///    across those solid shapes.
+  /// 1. **Layout only** — The child widget tree is built and laid out so
+  ///    every [RenderBox] has its correct position and size. Background
+  ///    surfaces (Card, ListTile) are theme-overridden to transparent.
+  /// 2. **Bone painting** — A custom [RenderProxyBox] walks the child's
+  ///    render tree. For each [RenderParagraph] it paints a rounded
+  ///    rectangle covering each line of text. For each visible
+  ///    [RenderDecoratedBox] it paints the original shape (preserving
+  ///    the container's own [BorderRadius]).
+  /// 3. **No child paint** — The child is *never* rendered to screen,
+  ///    so there are no text characters or blurs interfering with the
+  ///    rounded corners.
+  /// 4. **Animated shimmer** — [ShaderMask] sweeps a highlight gradient
+  ///    across those rounded bones.
   ///
-  /// The result: text → solid bar, avatar → solid rectangle,
-  /// chip → solid pill, icon → solid shape — all with shimmer animation.
-  /// Matches the look of a hand-crafted skeleton without writing one.
+  /// The result: text → rounded bar, avatar → rounded rectangle,
+  /// chip → rounded pill, icon → rounded shape — all with shimmer.
   ///
   /// [overlayColor] sets the base skeleton colour.
   /// Defaults to `Colors.grey.shade700` in dark, `Colors.grey.shade300`
@@ -147,21 +151,14 @@ class DefaultFirstPageLoading extends StatelessWidget {
         (overlayColor != null
             ? SkeletonConfig(overlayColor: overlayColor)
             : const SkeletonConfig());
-    // Always force opaque so ColorFiltered fully replaces all pixels.
-    // Semi-transparent overlay would let original content bleed through.
     final rawColor = effectiveConfig.overlayColor ??
         (isDark ? Colors.grey.shade700 : Colors.grey.shade300);
     final baseColor = rawColor.withAlpha(255);
-
     final radius = effectiveConfig.borderRadius;
-    final skeletonTextTheme =
-        _toSkeletonTextTheme(theme.textTheme, baseColor, radius);
 
     return Theme(
       data: theme.copyWith(
-        textTheme: skeletonTextTheme,
-        primaryTextTheme:
-            _toSkeletonTextTheme(theme.primaryTextTheme, baseColor, radius),
+        // Transparent surfaces so they don't affect layout sizes.
         cardTheme: theme.cardTheme.copyWith(
           color: Colors.transparent,
           shadowColor: Colors.transparent,
@@ -171,84 +168,16 @@ class DefaultFirstPageLoading extends StatelessWidget {
         listTileTheme: theme.listTileTheme.copyWith(
           tileColor: Colors.transparent,
         ),
-        iconTheme: theme.iconTheme.copyWith(color: baseColor),
       ),
-      child: DefaultTextStyle.merge(
-        style: radius > 0
-            ? TextStyle(
-                color: Colors.transparent,
-                decorationColor: Colors.transparent,
-                background: Paint()
-                  ..color = baseColor
-                  ..maskFilter =
-                      MaskFilter.blur(BlurStyle.solid, radius * 0.5),
-              )
-            : TextStyle(
-                color: Colors.transparent,
-                backgroundColor: baseColor,
-                decorationColor: Colors.transparent,
-              ),
-        child: _SkeletonShimmer(
+      child: _SkeletonShimmer(
+        baseColor: baseColor,
+        duration: effectiveConfig.shimmerDuration,
+        child: _SkeletonBoneLayer(
           baseColor: baseColor,
-          duration: effectiveConfig.shimmerDuration,
-          child: ColorFiltered(
-            colorFilter: ColorFilter.mode(baseColor, BlendMode.srcATop),
-            child: IgnorePointer(child: child),
-          ),
+          borderRadius: radius,
+          child: IgnorePointer(child: child),
         ),
       ),
-    );
-  }
-
-  /// Converts a [TextTheme] so every style renders as a rounded solid bar.
-  ///
-  /// When [borderRadius] > 0, uses [BlurStyle.solid] mask-filter so the
-  /// interior stays fully opaque while only the outer edge is softened —
-  /// visually identical to CSS `border-radius`. When [borderRadius] is 0
-  /// the plain [backgroundColor] path is used for sharp rectangles.
-  static TextTheme _toSkeletonTextTheme(
-    TextTheme t,
-    Color color,
-    double borderRadius,
-  ) {
-    TextStyle? s(TextStyle? style) {
-      if (style == null) return null;
-      if (borderRadius > 0) {
-        // BlurStyle.solid keeps the fill fully opaque inside the original
-        // rectangle and only softens the outer edge, giving each text bar
-        // rounded-looking corners without any visible blur on the content.
-        final sigma = borderRadius * 0.5;
-        return style.copyWith(
-          color: Colors.transparent,
-          decorationColor: Colors.transparent,
-          background: Paint()
-            ..color = color
-            ..maskFilter = MaskFilter.blur(BlurStyle.solid, sigma),
-        );
-      }
-      return style.copyWith(
-        color: Colors.transparent,
-        backgroundColor: color,
-        decorationColor: Colors.transparent,
-      );
-    }
-
-    return TextTheme(
-      displayLarge: s(t.displayLarge),
-      displayMedium: s(t.displayMedium),
-      displaySmall: s(t.displaySmall),
-      headlineLarge: s(t.headlineLarge),
-      headlineMedium: s(t.headlineMedium),
-      headlineSmall: s(t.headlineSmall),
-      titleLarge: s(t.titleLarge),
-      titleMedium: s(t.titleMedium),
-      titleSmall: s(t.titleSmall),
-      bodyLarge: s(t.bodyLarge),
-      bodyMedium: s(t.bodyMedium),
-      bodySmall: s(t.bodySmall),
-      labelLarge: s(t.labelLarge),
-      labelMedium: s(t.labelMedium),
-      labelSmall: s(t.labelSmall),
     );
   }
 
@@ -304,6 +233,167 @@ class DefaultLoadMoreLoading extends StatelessWidget {
     );
   }
 }
+
+// ---------------------------------------------------------------------------
+// Skeleton bone layer
+// ---------------------------------------------------------------------------
+
+/// Walks the child's render tree and paints rounded rectangles ("bones")
+/// where text and decorated-box widgets appear.
+///
+/// The child itself is **not** painted — only its layout positions are used.
+/// This avoids [TextStyle.backgroundColor] (which always paints sharp rects)
+/// and any blur/mask-filter hack. Each bone gets a real [borderRadius].
+class _SkeletonBoneLayer extends SingleChildRenderObjectWidget {
+  const _SkeletonBoneLayer({
+    required super.child,
+    required this.baseColor,
+    required this.borderRadius,
+  });
+
+  final Color baseColor;
+  final double borderRadius;
+
+  @override
+  _RenderSkeletonBones createRenderObject(BuildContext context) =>
+      _RenderSkeletonBones(baseColor: baseColor, borderRadius: borderRadius);
+
+  @override
+  void updateRenderObject(
+      BuildContext context, _RenderSkeletonBones renderObject) {
+    renderObject
+      ..baseColor = baseColor
+      ..borderRadius = borderRadius;
+  }
+}
+
+class _RenderSkeletonBones extends RenderProxyBox {
+  _RenderSkeletonBones({
+    required Color baseColor,
+    required double borderRadius,
+  })  : _baseColor = baseColor,
+        _borderRadius = borderRadius;
+
+  Color _baseColor;
+  set baseColor(Color value) {
+    if (_baseColor == value) return;
+    _baseColor = value;
+    markNeedsPaint();
+  }
+
+  double _borderRadius;
+  set borderRadius(double value) {
+    if (_borderRadius == value) return;
+    _borderRadius = value;
+    markNeedsPaint();
+  }
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    // We intentionally skip super.paint(). The child is laid out (so every
+    // RenderBox has its correct position & size) but never rendered. We
+    // paint our own rounded-rectangle bones instead — giving every shape
+    // crisp corners with zero blur.
+    if (child == null) return;
+    final paint = Paint()..color = _baseColor;
+    _paintBones(context.canvas, child!, offset, paint);
+  }
+
+  // -- tree walk ----------------------------------------------------------
+
+  void _paintBones(
+    Canvas canvas,
+    RenderObject obj,
+    Offset paintOffset,
+    Paint paint,
+  ) {
+    if (obj is RenderParagraph) {
+      _paintTextBone(canvas, obj, paintOffset, paint);
+    } else if (obj is RenderDecoratedBox) {
+      _paintDecorationBone(canvas, obj, paintOffset, paint);
+    }
+    obj.visitChildren(
+      (child) => _paintBones(canvas, child, paintOffset, paint),
+    );
+  }
+
+  // -- text bones ---------------------------------------------------------
+
+  void _paintTextBone(
+    Canvas canvas,
+    RenderParagraph paragraph,
+    Offset paintOffset,
+    Paint paint,
+  ) {
+    final text = paragraph.text.toPlainText();
+    if (text.isEmpty) return;
+
+    final transform = paragraph.getTransformTo(this);
+    final clipRect = Offset.zero & paragraph.size;
+    final boxes = paragraph.getBoxesForSelection(
+      TextSelection(baseOffset: 0, extentOffset: text.length),
+    );
+
+    for (final box in boxes) {
+      var rect = box.toRect().intersect(clipRect);
+      if (rect.isEmpty) continue;
+      final topLeft = MatrixUtils.transformPoint(transform, rect.topLeft);
+      final bottomRight =
+          MatrixUtils.transformPoint(transform, rect.bottomRight);
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromPoints(topLeft, bottomRight).shift(paintOffset),
+          Radius.circular(_borderRadius),
+        ),
+        paint,
+      );
+    }
+  }
+
+  // -- decoration bones ---------------------------------------------------
+
+  void _paintDecorationBone(
+    Canvas canvas,
+    RenderDecoratedBox box,
+    Offset paintOffset,
+    Paint paint,
+  ) {
+    final decoration = box.decoration;
+    if (decoration is! BoxDecoration) return;
+    if (!_hasVisibleFill(decoration)) return;
+
+    final transform = box.getTransformTo(this);
+    final topLeft = MatrixUtils.transformPoint(transform, Offset.zero);
+    final bottomRight = MatrixUtils.transformPoint(
+      transform,
+      Offset(box.size.width, box.size.height),
+    );
+    final rect = Rect.fromPoints(topLeft, bottomRight).shift(paintOffset);
+
+    if (decoration.shape == BoxShape.circle) {
+      canvas.drawOval(rect, paint);
+    } else if (decoration.borderRadius != null) {
+      final br = decoration.borderRadius!.resolve(TextDirection.ltr);
+      canvas.drawRRect(br.toRRect(rect), paint);
+    } else {
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(rect, Radius.circular(_borderRadius)),
+        paint,
+      );
+    }
+  }
+
+  static bool _hasVisibleFill(BoxDecoration d) {
+    if (d.color != null && d.color!.alpha > 0) return true;
+    if (d.gradient != null) return true;
+    if (d.image != null) return true;
+    return false;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Shimmer animation
+// ---------------------------------------------------------------------------
 
 /// Animated shimmer that sweeps a highlight gradient across [child].
 ///
