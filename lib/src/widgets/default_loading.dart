@@ -1,6 +1,8 @@
 /// Default loading indicator widgets
 library;
 
+import 'dart:ui' show ImageFilter;
+
 import 'package:flutter/material.dart';
 import '../core/skeleton_config.dart';
 import '../core/typedefs.dart';
@@ -147,8 +149,11 @@ class DefaultFirstPageLoading extends StatelessWidget {
         (overlayColor != null
             ? SkeletonConfig(overlayColor: overlayColor)
             : const SkeletonConfig());
-    final baseColor = effectiveConfig.overlayColor ??
+    // Always force opaque so ColorFiltered fully replaces all pixels.
+    // Semi-transparent overlay would let original content bleed through.
+    final rawColor = effectiveConfig.overlayColor ??
         (isDark ? Colors.grey.shade700 : Colors.grey.shade300);
+    final baseColor = rawColor.withAlpha(255);
 
     // Override every TextTheme style: backgroundColor → solid bar,
     // color → transparent (hides letter shapes, only bar remains).
@@ -177,15 +182,20 @@ class DefaultFirstPageLoading extends StatelessWidget {
           backgroundColor: baseColor,
           decorationColor: Colors.transparent,
         ),
-        child: ClipRRect(
-          borderRadius: effectiveConfig.borderRadius,
-          child: _SkeletonShimmer(
-            baseColor: baseColor,
-            duration: effectiveConfig.shimmerDuration,
-            child: ColorFiltered(
-              colorFilter: ColorFilter.mode(baseColor, BlendMode.srcATop),
-              child: IgnorePointer(child: child),
-            ),
+        child: _SkeletonShimmer(
+          baseColor: baseColor,
+          duration: effectiveConfig.shimmerDuration,
+          child: ColorFiltered(
+            colorFilter: ColorFilter.mode(baseColor, BlendMode.srcATop),
+            child: effectiveConfig.blurRadius > 0
+                ? ImageFiltered(
+                    imageFilter: ImageFilter.blur(
+                      sigmaX: effectiveConfig.blurRadius,
+                      sigmaY: effectiveConfig.blurRadius,
+                    ),
+                    child: IgnorePointer(child: child),
+                  )
+                : IgnorePointer(child: child),
           ),
         ),
       ),

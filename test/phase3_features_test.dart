@@ -955,8 +955,8 @@ void main() {
         expect(widget.blendMode, BlendMode.srcATop);
       }
       expect(find.byType(ShaderMask), findsNWidgets(2));
-      // ClipRRect with default borderRadius
-      expect(find.byType(ClipRRect), findsNWidgets(2));
+      // ImageFiltered blur for edge softening
+      expect(find.byType(ImageFiltered), findsNWidgets(2));
     });
 
     testWidgets('no skeleton when placeholderItem is null', (tester) async {

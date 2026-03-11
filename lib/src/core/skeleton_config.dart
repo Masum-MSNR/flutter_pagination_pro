@@ -15,7 +15,7 @@ import 'package:flutter/material.dart';
 ///   itemBuilder: (context, user, index) => UserTile(user: user),
 ///   placeholderItem: User.placeholder(),
 ///   skeletonConfig: const SkeletonConfig(
-///     borderRadius: BorderRadius.all(Radius.circular(12)),
+///     blurRadius: 2.0,
 ///     overlayColor: Colors.blueGrey,
 ///     shimmerDuration: Duration(milliseconds: 2000),
 ///   ),
@@ -28,22 +28,28 @@ class SkeletonConfig {
   /// All parameters are optional and fall back to sensible defaults.
   const SkeletonConfig({
     this.overlayColor,
-    this.borderRadius = const BorderRadius.all(Radius.circular(8)),
+    this.blurRadius = 1.5,
     this.shimmerDuration = const Duration(milliseconds: 1500),
-  });
+  }) : assert(blurRadius >= 0, 'blurRadius must be >= 0');
 
   /// Base colour used for the skeleton shapes.
+  ///
+  /// If the colour has an alpha channel (semi-transparent), it is
+  /// automatically made fully opaque internally so that the skeleton
+  /// shapes are solid and the original content is completely hidden.
   ///
   /// Defaults to `Colors.grey.shade700` in dark mode and
   /// `Colors.grey.shade300` in light mode.
   final Color? overlayColor;
 
-  /// Border radius applied to each skeleton placeholder item via
-  /// [ClipRRect].
+  /// Gaussian blur sigma applied to the skeleton shapes to soften
+  /// sharp edges into rounded corners.
   ///
-  /// Defaults to `BorderRadius.all(Radius.circular(8))`.
-  /// Set to [BorderRadius.zero] for sharp corners.
-  final BorderRadius borderRadius;
+  /// Higher values produce rounder, softer shapes. Set to `0` for
+  /// sharp-cornered rectangles.
+  ///
+  /// Defaults to `1.5`.
+  final double blurRadius;
 
   /// Duration of one full shimmer animation sweep.
   ///
@@ -56,15 +62,15 @@ class SkeletonConfig {
       other is SkeletonConfig &&
           runtimeType == other.runtimeType &&
           overlayColor == other.overlayColor &&
-          borderRadius == other.borderRadius &&
+          blurRadius == other.blurRadius &&
           shimmerDuration == other.shimmerDuration;
 
   @override
-  int get hashCode => Object.hash(overlayColor, borderRadius, shimmerDuration);
+  int get hashCode => Object.hash(overlayColor, blurRadius, shimmerDuration);
 
   @override
   String toString() =>
       'SkeletonConfig(overlayColor: $overlayColor, '
-      'borderRadius: $borderRadius, '
+      'blurRadius: $blurRadius, '
       'shimmerDuration: $shimmerDuration)';
 }
