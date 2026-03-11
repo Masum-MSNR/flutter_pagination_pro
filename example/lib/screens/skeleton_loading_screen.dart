@@ -203,7 +203,9 @@ class _SkeletonLoadingScreenState extends State<SkeletonLoadingScreen> {
             category: 'Design',
           ),
           placeholderCount: 8,
-          skeletonOverlayColor: AppTheme.primaryColor.withValues(alpha: 0.15),
+          skeletonConfig: SkeletonConfig(
+            overlayColor: AppTheme.primaryColor.withValues(alpha: 0.15),
+          ),
           separatorBuilder: (context, index) => Divider(
             indent: 84,
             endIndent: 16,
@@ -337,7 +339,7 @@ enum _SkeletonMode {
   ),
   customOverlay(
     label: 'Custom Color',
-    description: 'skeletonOverlayColor: primaryColor.withOpacity(0.15)',
+    description: 'skeletonConfig: SkeletonConfig(overlayColor: ...)',
     icon: Icons.palette,
   ),
   customBuilder(

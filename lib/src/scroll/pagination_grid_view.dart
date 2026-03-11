@@ -7,6 +7,7 @@ import '../core/pagination_controller.dart';
 import '../core/pagination_config.dart';
 import '../core/pagination_state.dart';
 import '../core/pagination_status.dart';
+import '../core/skeleton_config.dart';
 import '../core/typedefs.dart';
 import 'pagination_state_mixin.dart';
 
@@ -46,7 +47,7 @@ class PaginationGridView<K, T> extends StatefulWidget {
     this.loadMoreButtonBuilder,
     this.placeholderItem,
     this.placeholderCount = 6,
-    this.skeletonOverlayColor,
+    this.skeletonConfig,
     this.onPageLoaded,
     this.onError,
     this.enablePullToRefresh = false,
@@ -93,7 +94,7 @@ class PaginationGridView<K, T> extends StatefulWidget {
     this.loadMoreButtonBuilder,
     this.placeholderItem,
     this.placeholderCount = 6,
-    this.skeletonOverlayColor,
+    this.skeletonConfig,
     this.onPageLoaded,
     this.onError,
     this.enablePullToRefresh = false,
@@ -152,7 +153,7 @@ class PaginationGridView<K, T> extends StatefulWidget {
     this.loadMoreButtonBuilder,
     this.placeholderItem,
     this.placeholderCount = 6,
-    this.skeletonOverlayColor,
+    this.skeletonConfig,
     this.enablePullToRefresh = false,
     this.header,
     this.footer,
@@ -251,8 +252,11 @@ class PaginationGridView<K, T> extends StatefulWidget {
   /// Number of skeleton placeholder items to display (default 6).
   final int placeholderCount;
 
-  /// Overlay color for skeleton items (defaults to `Colors.grey.shade300`).
-  final Color? skeletonOverlayColor;
+  /// Skeleton configuration for automatic skeleton loading.
+  ///
+  /// Controls overlay colour, border radius, shimmer speed, etc.
+  /// Only used when [placeholderItem] is provided.
+  final SkeletonConfig? skeletonConfig;
 
   // Callbacks
   /// Called when a page is successfully loaded with only the new items.
@@ -376,7 +380,7 @@ class _PaginationGridViewState<K, T> extends State<PaginationGridView<K, T>>
   @override
   int get widgetPlaceholderCount => widget.placeholderCount;
   @override
-  Color? get widgetSkeletonOverlayColor => widget.skeletonOverlayColor;
+  SkeletonConfig? get widgetSkeletonConfig => widget.skeletonConfig;
 
   // Controlled mode bridge
   @override

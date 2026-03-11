@@ -6,6 +6,7 @@ import '../core/pagination_controller.dart';
 import '../core/pagination_config.dart';
 import '../core/pagination_state.dart';
 import '../core/pagination_status.dart';
+import '../core/skeleton_config.dart';
 import '../core/typedefs.dart';
 import '../widgets/default_loading.dart';
 import '../widgets/default_error.dart';
@@ -75,7 +76,7 @@ class SliverPaginatedList<K, T> extends StatefulWidget {
     this.findChildIndexCallback,
     this.placeholderItem,
     this.placeholderCount = 6,
-    this.skeletonOverlayColor,
+    this.skeletonConfig,
   })  : assert(
           paginationType != PaginationType.infiniteScroll ||
               scrollController != null,
@@ -119,7 +120,7 @@ class SliverPaginatedList<K, T> extends StatefulWidget {
     this.findChildIndexCallback,
     this.placeholderItem,
     this.placeholderCount = 6,
-    this.skeletonOverlayColor,
+    this.skeletonConfig,
   })  : assert(
           paginationType != PaginationType.infiniteScroll ||
               scrollController != null,
@@ -213,10 +214,11 @@ class SliverPaginatedList<K, T> extends StatefulWidget {
   /// Only used when [placeholderItem] is provided.
   final int placeholderCount;
 
-  /// Overlay color for skeleton items (defaults to `Colors.grey.shade300`).
+  /// Skeleton configuration for automatic skeleton loading.
   ///
+  /// Controls overlay colour, border radius, shimmer speed, etc.
   /// Only used when [placeholderItem] is provided.
-  final Color? skeletonOverlayColor;
+  final SkeletonConfig? skeletonConfig;
 
   @override
   State<SliverPaginatedList<K, T>> createState() =>
@@ -279,7 +281,7 @@ class _SliverPaginatedListState<K, T> extends State<SliverPaginatedList<K, T>>
   @override
   int get widgetPlaceholderCount => widget.placeholderCount;
   @override
-  Color? get widgetSkeletonOverlayColor => widget.skeletonOverlayColor;
+  SkeletonConfig? get widgetSkeletonConfig => widget.skeletonConfig;
 
   // Controlled mode bridge
   @override
@@ -456,7 +458,7 @@ class _SliverPaginatedListState<K, T> extends State<SliverPaginatedList<K, T>>
           return DefaultFirstPageLoading.skeletonize(
             context,
             widgetItemBuilder(context, placeholder, itemIndex),
-            overlayColor: widgetSkeletonOverlayColor,
+            config: widgetSkeletonConfig,
           );
         },
         childCount: totalSlots,

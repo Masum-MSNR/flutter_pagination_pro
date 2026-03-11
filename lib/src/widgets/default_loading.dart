@@ -2,6 +2,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import '../core/skeleton_config.dart';
 import '../core/typedefs.dart';
 
 /// Default loading indicator for first page loading.
@@ -89,10 +90,15 @@ class DefaultFirstPageLoading extends StatelessWidget {
     required T placeholderItem,
     int itemCount = 6,
     Color? overlayColor,
+    SkeletonConfig? config,
     IndexedWidgetBuilder? separatorBuilder,
     EdgeInsetsGeometry? padding,
     Axis scrollDirection = Axis.vertical,
   }) {
+    final effectiveConfig = config ??
+        (overlayColor != null
+            ? SkeletonConfig(overlayColor: overlayColor)
+            : null);
     return DefaultFirstPageLoading.builder(
       key: key,
       itemCount: itemCount,
@@ -102,7 +108,7 @@ class DefaultFirstPageLoading extends StatelessWidget {
       itemBuilder: (context, index) => skeletonize(
         context,
         itemBuilder(context, placeholderItem, index),
-        overlayColor: overlayColor,
+        config: effectiveConfig,
       ),
     );
   }
@@ -133,10 +139,15 @@ class DefaultFirstPageLoading extends StatelessWidget {
     BuildContext context,
     Widget child, {
     Color? overlayColor,
+    SkeletonConfig? config,
   }) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final baseColor = overlayColor ??
+    final effectiveConfig = config ??
+        (overlayColor != null
+            ? SkeletonConfig(overlayColor: overlayColor)
+            : const SkeletonConfig());
+    final baseColor = effectiveConfig.overlayColor ??
         (isDark ? Colors.grey.shade700 : Colors.grey.shade300);
 
     // Override every TextTheme style: backgroundColor → solid bar,
@@ -166,11 +177,15 @@ class DefaultFirstPageLoading extends StatelessWidget {
           backgroundColor: baseColor,
           decorationColor: Colors.transparent,
         ),
-        child: _SkeletonShimmer(
-          baseColor: baseColor,
-          child: ColorFiltered(
-            colorFilter: ColorFilter.mode(baseColor, BlendMode.srcATop),
-            child: IgnorePointer(child: child),
+        child: ClipRRect(
+          borderRadius: effectiveConfig.borderRadius,
+          child: _SkeletonShimmer(
+            baseColor: baseColor,
+            duration: effectiveConfig.shimmerDuration,
+            child: ColorFiltered(
+              colorFilter: ColorFilter.mode(baseColor, BlendMode.srcATop),
+              child: IgnorePointer(child: child),
+            ),
           ),
         ),
       ),
@@ -267,9 +282,11 @@ class _SkeletonShimmer extends StatefulWidget {
   const _SkeletonShimmer({
     required this.baseColor,
     required this.child,
+    this.duration = const Duration(milliseconds: 1500),
   });
 
   final Color baseColor;
+  final Duration duration;
   final Widget child;
 
   @override
@@ -285,7 +302,7 @@ class _SkeletonShimmerState extends State<_SkeletonShimmer>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1500),
+      duration: widget.duration,
     )..repeat();
   }
 

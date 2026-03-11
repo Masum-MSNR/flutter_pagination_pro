@@ -75,6 +75,7 @@ export 'src/core/pagination_controller.dart';
 export 'src/core/pagination_config.dart';
 export 'src/core/pagination_state.dart';
 export 'src/core/pagination_status.dart';
+export 'src/core/skeleton_config.dart';
 export 'src/core/typedefs.dart';
 export 'src/core/bidirectional_state.dart';
 export 'src/core/bidirectional_controller.dart';

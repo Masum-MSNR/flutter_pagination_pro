@@ -931,7 +931,7 @@ void main() {
       expect(find.text('SliverGrid'), findsNWidgets(4));
     });
 
-    testWidgets('skeletonOverlayColor is applied', (tester) async {
+    testWidgets('skeletonConfig is applied', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -941,7 +941,7 @@ void main() {
               itemBuilder: (context, item, index) => Text(item),
               placeholderItem: 'X',
               placeholderCount: 2,
-              skeletonOverlayColor: Colors.red,
+              skeletonConfig: const SkeletonConfig(overlayColor: Colors.red),
             ),
           ),
         ),
@@ -955,6 +955,8 @@ void main() {
         expect(widget.blendMode, BlendMode.srcATop);
       }
       expect(find.byType(ShaderMask), findsNWidgets(2));
+      // ClipRRect with default borderRadius
+      expect(find.byType(ClipRRect), findsNWidgets(2));
     });
 
     testWidgets('no skeleton when placeholderItem is null', (tester) async {

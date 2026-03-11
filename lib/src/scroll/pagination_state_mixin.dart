@@ -6,6 +6,7 @@ import '../core/pagination_controller.dart';
 import '../core/pagination_config.dart';
 import '../core/pagination_state.dart';
 import '../core/pagination_status.dart';
+import '../core/skeleton_config.dart';
 import '../core/typedefs.dart';
 import '../widgets/default_loading.dart';
 import '../widgets/default_error.dart';
@@ -88,8 +89,8 @@ mixin PaginationStateMixin<K, T, W extends StatefulWidget> on State<W> {
   /// Number of skeleton items to show (default 6).
   int get widgetPlaceholderCount;
 
-  /// Overlay color for skeleton items.
-  Color? get widgetSkeletonOverlayColor;
+  /// Skeleton configuration for automatic skeleton loading.
+  SkeletonConfig? get widgetSkeletonConfig;
 
   // ── Controlled mode getters ─────────────────────────────────────────────
 
@@ -353,7 +354,7 @@ mixin PaginationStateMixin<K, T, W extends StatefulWidget> on State<W> {
           itemBuilder: widgetItemBuilder,
           placeholderItem: widgetPlaceholderItem as T,
           itemCount: widgetPlaceholderCount,
-          overlayColor: widgetSkeletonOverlayColor,
+          config: widgetSkeletonConfig,
           separatorBuilder: widgetSeparatorBuilder != null
               ? (context, index) => widgetSeparatorBuilder!(context, index)
               : null,
@@ -411,7 +412,7 @@ mixin PaginationStateMixin<K, T, W extends StatefulWidget> on State<W> {
     return DefaultFirstPageLoading.skeletonize(
       context,
       widgetItemBuilder(context, widgetPlaceholderItem as T, index),
-      overlayColor: widgetSkeletonOverlayColor,
+      config: widgetSkeletonConfig,
     );
   }
 
