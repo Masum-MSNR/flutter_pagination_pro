@@ -178,11 +178,12 @@ void main() {
         expect(find.byKey(ValueKey('item-$i')), findsOneWidget);
       }
 
-      // Each item is wrapped in a ColorFiltered
+      // Each item is wrapped in the skeletonize pipeline (ColorFiltered + ImageFiltered)
       expect(find.byType(ColorFiltered), findsNWidgets(5));
+      expect(find.byType(ImageFiltered), findsNWidgets(5));
     });
 
-    testWidgets('applies overlay color via ColorFiltered', (tester) async {
+    testWidgets('applies overlay color via skeletonize', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -200,14 +201,15 @@ void main() {
           tester.widget<ColorFiltered>(find.byType(ColorFiltered).first);
       expect(
         colorFiltered.colorFilter,
-        DefaultFirstPageLoading.skeletonFilter(Colors.blue.shade200),
+        ColorFilter.mode(Colors.blue.shade200, BlendMode.srcATop),
       );
     });
 
-    testWidgets('defaults to grey overlay when no overlayColor given',
+    testWidgets('defaults to theme-appropriate grey when no overlayColor given',
         (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          theme: ThemeData.light(),
           home: Scaffold(
             body: DefaultFirstPageLoading.fromItemBuilder<String>(
               itemBuilder: (context, item, index) => Text(item),
@@ -218,11 +220,12 @@ void main() {
         ),
       );
 
+      // Light theme → Colors.grey.shade300
       final colorFiltered =
           tester.widget<ColorFiltered>(find.byType(ColorFiltered).first);
       expect(
         colorFiltered.colorFilter,
-        DefaultFirstPageLoading.skeletonFilter(Colors.grey.shade300),
+        ColorFilter.mode(Colors.grey.shade300, BlendMode.srcATop),
       );
     });
 
@@ -282,8 +285,9 @@ void main() {
       for (int i = 0; i < 4; i++) {
         expect(find.byKey(ValueKey('skeleton-$i')), findsOneWidget);
       }
-      // All wrapped in ColorFiltered
+      // All wrapped in skeletonize pipeline
       expect(find.byType(ColorFiltered), findsNWidgets(4));
+      expect(find.byType(ImageFiltered), findsNWidgets(4));
     });
 
     testWidgets('works with complex widget trees', (tester) async {
@@ -316,6 +320,7 @@ void main() {
         expect(find.byKey(ValueKey('card-$i')), findsOneWidget);
       }
       expect(find.byType(ColorFiltered), findsNWidgets(3));
+      expect(find.byType(ImageFiltered), findsNWidgets(3));
     });
   });
 

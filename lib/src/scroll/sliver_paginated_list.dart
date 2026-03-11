@@ -440,7 +440,6 @@ class _SliverPaginatedListState<K, T> extends State<SliverPaginatedList<K, T>>
   }
 
   Widget _buildSkeletonSliver() {
-    final color = widgetSkeletonOverlayColor ?? Colors.grey.shade300;
     final placeholder = widgetPlaceholderItem as T;
     final hasSeparator = widgetSeparatorBuilder != null;
     final count = widgetPlaceholderCount;
@@ -454,9 +453,10 @@ class _SliverPaginatedListState<K, T> extends State<SliverPaginatedList<K, T>>
             return widgetSeparatorBuilder!(context, index ~/ 2);
           }
           final itemIndex = hasSeparator ? index ~/ 2 : index;
-          return ColorFiltered(
-            colorFilter: DefaultFirstPageLoading.skeletonFilter(color),
-            child: widgetItemBuilder(context, placeholder, itemIndex),
+          return DefaultFirstPageLoading.skeletonize(
+            context,
+            widgetItemBuilder(context, placeholder, itemIndex),
+            overlayColor: widgetSkeletonOverlayColor,
           );
         },
         childCount: totalSlots,

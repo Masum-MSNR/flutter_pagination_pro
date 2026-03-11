@@ -1,6 +1,7 @@
 /// Default loading indicator widgets
 library;
 
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import '../core/typedefs.dart';
 
@@ -58,8 +59,8 @@ class DefaultFirstPageLoading extends StatelessWidget {
   final Axis _scrollDirection;
 
   /// Creates a skeleton placeholder from the **real** [itemBuilder]
-  /// by rendering it with a [placeholderItem] and applying a color overlay
-  /// so it looks like a grey skeleton.
+  /// by rendering it with a [placeholderItem] and automatically converting
+  /// it into skeleton shapes.
   ///
   /// This lets you reuse your existing item widget without building a
   /// separate skeleton widget — just provide a dummy instance of `T`:
@@ -77,12 +78,15 @@ class DefaultFirstPageLoading extends StatelessWidget {
   /// )
   /// ```
   ///
-  /// The [overlayColor] defaults to `Colors.grey.shade300`.
+  /// The widget tree is rendered with **transparent backgrounds** (Card,
+  /// ListTile, Material surfaces are cleared), then a Gaussian blur merges
+  /// individual text characters into solid bands and a uniform colour
+  /// overlay is applied. The result looks like hand-crafted skeleton shapes
+  /// (avatar rectangle, title bar, subtitle bar, chip pill) without
+  /// requiring a separate skeleton widget.
   ///
-  /// A greyscale colour-matrix is applied that preserves the *luminance
-  /// structure* of the original widget (avatar shapes, text blocks, chips)
-  /// while shifting every pixel toward [overlayColor]. This produces a
-  /// realistic skeleton / shimmer placeholder instead of flat colour blocks.
+  /// [overlayColor] defaults to a theme-appropriate grey —
+  /// `Colors.grey.shade700` in dark mode, `Colors.grey.shade300` in light.
   static Widget fromItemBuilder<T>({
     Key? key,
     required ItemBuilder<T> itemBuilder,
@@ -93,43 +97,71 @@ class DefaultFirstPageLoading extends StatelessWidget {
     EdgeInsetsGeometry? padding,
     Axis scrollDirection = Axis.vertical,
   }) {
-    final color = overlayColor ?? Colors.grey.shade300;
-
     return DefaultFirstPageLoading.builder(
       key: key,
       itemCount: itemCount,
       separatorBuilder: separatorBuilder,
       padding: padding,
       scrollDirection: scrollDirection,
-      itemBuilder: (context, index) => ColorFiltered(
-        colorFilter: skeletonFilter(color),
-        child: itemBuilder(context, placeholderItem, index),
+      itemBuilder: (context, index) => skeletonize(
+        context,
+        itemBuilder(context, placeholderItem, index),
+        overlayColor: overlayColor,
       ),
     );
   }
 
-  /// Builds a [ColorFilter] that produces a skeleton placeholder effect.
+  /// Wraps [child] in a skeleton effect that **automatically** produces
+  /// placeholder shapes from the real widget.
   ///
-  /// Converts each pixel to greyscale (preserving luminance) then reduces
-  /// contrast and shifts brightness toward [color]. The result keeps the
-  /// internal structure of the widget visible (avatar, text, chip shapes)
-  /// as slightly different shades of the skeleton colour.
-  static ColorFilter skeletonFilter(Color color) {
-    final r = color.red / 255.0;
-    final g = color.green / 255.0;
-    final b = color.blue / 255.0;
+  /// How it works:
+  /// 1. **Transparent backgrounds** — Card, ListTile, and Material surface
+  ///    colours are temporarily overridden to transparent so that only
+  ///    visible content (text, icons, coloured containers) remains.
+  /// 2. **Gaussian blur** (σ = 4) — merges individual text characters into
+  ///    solid rectangular bands and softens sharp edges.
+  /// 3. **Uniform colour overlay** (`BlendMode.srcATop`) — replaces every
+  ///    non-transparent pixel with [overlayColor] while keeping the alpha
+  ///    channel, producing uniform skeleton shapes.
+  ///
+  /// The result automatically mirrors the real widget's layout: avatars
+  /// become rounded rectangles, titles become horizontal bars, chips
+  /// become pills — all in a single skeleton colour.
+  ///
+  /// [overlayColor] defaults to a theme-appropriate grey:
+  /// `Colors.grey.shade700` in dark mode, `Colors.grey.shade300` in light.
+  static Widget skeletonize(
+    BuildContext context,
+    Widget child, {
+    Color? overlayColor,
+  }) {
+    final theme = Theme.of(context);
+    final color = overlayColor ??
+        (theme.brightness == Brightness.dark
+            ? Colors.grey.shade700
+            : Colors.grey.shade300);
 
-    // How much original luminance structure to preserve.
-    // 0.0 = completely flat (single colour)  |  1.0 = full original contrast
-    const structure = 0.15;
-    final base = 1.0 - structure;
-
-    return ColorFilter.matrix(<double>[
-      structure * 0.2126, structure * 0.7152, structure * 0.0722, 0, r * base * 255,
-      structure * 0.2126, structure * 0.7152, structure * 0.0722, 0, g * base * 255,
-      structure * 0.2126, structure * 0.7152, structure * 0.0722, 0, b * base * 255,
-      0,                  0,                  0,                  1, 0,
-    ]);
+    return Theme(
+      data: theme.copyWith(
+        cardTheme: theme.cardTheme.copyWith(
+          color: Colors.transparent,
+          shadowColor: Colors.transparent,
+          elevation: 0,
+        ),
+        listTileTheme: theme.listTileTheme.copyWith(
+          tileColor: Colors.transparent,
+        ),
+      ),
+      child: ClipRect(
+        child: ColorFiltered(
+          colorFilter: ColorFilter.mode(color, BlendMode.srcATop),
+          child: ImageFiltered(
+            imageFilter: ui.ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+            child: IgnorePointer(child: child),
+          ),
+        ),
+      ),
+    );
   }
 
   @override

@@ -407,15 +407,15 @@ class _SliverPaginatedGridState<K, T> extends State<SliverPaginatedGrid<K, T>>
   }
 
   Widget _buildSkeletonSliver() {
-    final color = widgetSkeletonOverlayColor ?? Colors.grey.shade300;
     final placeholder = widgetPlaceholderItem as T;
 
     return SliverGrid(
       gridDelegate: widget.gridDelegate,
       delegate: SliverChildBuilderDelegate(
-        (context, index) => ColorFiltered(
-          colorFilter: DefaultFirstPageLoading.skeletonFilter(color),
-          child: widgetItemBuilder(context, placeholder, index),
+        (context, index) => DefaultFirstPageLoading.skeletonize(
+          context,
+          widgetItemBuilder(context, placeholder, index),
+          overlayColor: widgetSkeletonOverlayColor,
         ),
         childCount: widgetPlaceholderCount,
       ),
