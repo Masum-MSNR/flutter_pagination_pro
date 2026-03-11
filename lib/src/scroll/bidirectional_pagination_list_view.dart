@@ -239,9 +239,13 @@ class _BidirectionalPaginationListViewState<K, T>
         previousPageKeyBuilder: widget.previousPageKeyBuilder,
         config: widget.config,
       );
-      _internalController!.loadInitialPage();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _internalController!.loadInitialPage();
+      });
     } else if (widget.controller!.state.status == PaginationStatus.initial) {
-      widget.controller!.loadInitialPage();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) widget.controller!.loadInitialPage();
+      });
     }
   }
 

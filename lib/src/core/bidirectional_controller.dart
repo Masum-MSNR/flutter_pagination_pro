@@ -68,8 +68,6 @@ class BidirectionalPaginationController<K, T>
   Object? _backwardOperation;
   Object? _initialOperation;
 
-  Timer? _retryTimer;
-
   /// Default forward key builder for int keys: `key + 1`.
   static NextPageKeyBuilder<K, T> _intDefaultOrThrow<K, T>() {
     return (K key, List<T> _) {
@@ -363,8 +361,6 @@ class BidirectionalPaginationController<K, T>
     _initialOperation = null;
     _forwardOperation = null;
     _backwardOperation = null;
-    _retryTimer?.cancel();
-    _retryTimer = null;
   }
 
   @override

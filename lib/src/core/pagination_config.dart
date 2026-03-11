@@ -1,6 +1,8 @@
 /// Pagination configuration
 library;
 
+import 'dart:math' show pow;
+
 /// The type of pagination behavior.
 enum PaginationType {
   /// Infinite scroll - automatically loads more when reaching the bottom.
@@ -63,9 +65,12 @@ class RetryPolicy {
   final bool retryFirstPage;
 
   /// Calculates the delay for a given retry attempt (0-based).
+  ///
+  /// Uses true exponential backoff: `initialDelay * backoffMultiplier^attempt`.
+  /// For example, with initialDelay=1s and backoffMultiplier=2.0:
+  /// attempt 0 → 1s, attempt 1 → 2s, attempt 2 → 4s, attempt 3 → 8s.
   Duration delayForAttempt(int attempt) {
-    final multiplier =
-        attempt == 0 ? 1.0 : backoffMultiplier * attempt.toDouble();
+    final multiplier = pow(backoffMultiplier, attempt).toDouble();
     return Duration(
       milliseconds: (initialDelay.inMilliseconds * multiplier).round(),
     );

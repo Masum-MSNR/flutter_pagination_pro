@@ -120,6 +120,9 @@ class PaginationController<K, T> extends ValueNotifier<PaginationState<K, T>> {
   /// Timer used for retry delays; cancelled on refresh/reset/dispose.
   Timer? _retryTimer;
 
+  /// Completer for the current retry wait, so it can be resolved on cancel.
+  Completer<bool>? _retryCompleter;
+
   /// Returns a default [NextPageKeyBuilder] that increments int keys by 1.
   ///
   /// Throws a [StateError] at call-time if K is not int.
@@ -157,10 +160,14 @@ class PaginationController<K, T> extends ValueNotifier<PaginationState<K, T>> {
   /// The initial page key.
   K get initialPageKey => _initialPageKey;
 
-  /// Cancels any pending retry timer.
+  /// Cancels any pending retry timer and resolves the outstanding completer.
   void _cancelRetryTimer() {
     _retryTimer?.cancel();
     _retryTimer = null;
+    if (_retryCompleter != null && !_retryCompleter!.isCompleted) {
+      _retryCompleter!.complete(false);
+    }
+    _retryCompleter = null;
   }
 
   /// Waits for [duration] using a cancellable timer.
@@ -168,11 +175,10 @@ class PaginationController<K, T> extends ValueNotifier<PaginationState<K, T>> {
   /// Returns `false` if the timer was cancelled (operation changed).
   Future<bool> _waitForRetry(Duration duration, Object operation) {
     final completer = Completer<bool>();
+    _retryCompleter = completer;
     _retryTimer = Timer(duration, () {
-      if (operation == _currentOperation) {
-        completer.complete(true);
-      } else {
-        completer.complete(false);
+      if (!completer.isCompleted) {
+        completer.complete(operation == _currentOperation);
       }
     });
     return completer.future;
