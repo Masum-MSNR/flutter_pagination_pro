@@ -153,22 +153,33 @@ class DefaultFirstPageLoading extends StatelessWidget {
         (isDark ? Colors.grey.shade700 : Colors.grey.shade300);
     final baseColor = rawColor.withAlpha(255);
 
-    // Override every TextTheme style: backgroundColor → solid bar,
-    // color → transparent (hides letter shapes, only bar remains).
-    final skeletonTextTheme = _toSkeletonTextTheme(theme.textTheme, baseColor);
+    // Override every TextTheme style: background Paint with MaskFilter
+    // gives each text bar individually rounded edges (not a full-image blur).
+    final skeletonTextTheme = _toSkeletonTextTheme(
+      theme.textTheme,
+      baseColor,
+      effectiveConfig.borderRadius,
+    );
 
     final radius = Radius.circular(effectiveConfig.borderRadius);
     final borderRadius = BorderRadius.all(radius);
 
     // A subtle lighter/darker background that fills the entire rounded
     // card area so ClipRRect has visible content at the corners.
-    // Without this, Card's explicit margin pushes content inward and
-    // ClipRRect would round only invisible transparent space.
     final bgColor = Color.lerp(
       isDark ? Colors.black : Colors.white,
       baseColor,
       isDark ? 0.35 : 0.25,
     )!;
+
+    // Paint for DefaultTextStyle fallback (catches inline-styled Text).
+    final bgPaint = Paint()..color = baseColor;
+    if (effectiveConfig.borderRadius > 0) {
+      bgPaint.maskFilter = MaskFilter.blur(
+        BlurStyle.normal,
+        effectiveConfig.borderRadius * 0.4,
+      );
+    }
 
     return ClipRRect(
       borderRadius: borderRadius,
@@ -177,8 +188,11 @@ class DefaultFirstPageLoading extends StatelessWidget {
         child: Theme(
           data: theme.copyWith(
             textTheme: skeletonTextTheme,
-            primaryTextTheme:
-                _toSkeletonTextTheme(theme.primaryTextTheme, baseColor),
+            primaryTextTheme: _toSkeletonTextTheme(
+              theme.primaryTextTheme,
+              baseColor,
+              effectiveConfig.borderRadius,
+            ),
             cardTheme: theme.cardTheme.copyWith(
               color: Colors.transparent,
               shadowColor: Colors.transparent,
@@ -196,7 +210,7 @@ class DefaultFirstPageLoading extends StatelessWidget {
           child: DefaultTextStyle.merge(
             style: TextStyle(
               color: Colors.transparent,
-              backgroundColor: baseColor,
+              background: bgPaint,
               decorationColor: Colors.transparent,
             ),
             child: _SkeletonShimmer(
@@ -213,15 +227,30 @@ class DefaultFirstPageLoading extends StatelessWidget {
     );
   }
 
-  /// Converts a [TextTheme] so every style renders as a solid rectangular
-  /// bar: [backgroundColor] fills the bounding box, [color] is transparent
-  /// so letter shapes are invisible.
-  static TextTheme _toSkeletonTextTheme(TextTheme t, Color color) {
-    TextStyle? s(TextStyle? style) => style?.copyWith(
-          color: Colors.transparent,
-          backgroundColor: color,
-          decorationColor: Colors.transparent,
+  /// Converts a [TextTheme] so every style renders as a solid bar with
+  /// rounded edges: [background] Paint fills the bounding box with optional
+  /// [MaskFilter] for rounded edges, [color] is transparent so letter
+  /// shapes are invisible.
+  static TextTheme _toSkeletonTextTheme(
+    TextTheme t,
+    Color color,
+    double borderRadius,
+  ) {
+    TextStyle? s(TextStyle? style) {
+      if (style == null) return null;
+      final paint = Paint()..color = color;
+      if (borderRadius > 0) {
+        paint.maskFilter = MaskFilter.blur(
+          BlurStyle.normal,
+          borderRadius * 0.4,
         );
+      }
+      return style.copyWith(
+        color: Colors.transparent,
+        background: paint,
+        decorationColor: Colors.transparent,
+      );
+    }
 
     return TextTheme(
       displayLarge: s(t.displayLarge),
