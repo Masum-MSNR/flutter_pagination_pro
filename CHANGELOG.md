@@ -2,252 +2,106 @@
 
 ## 1.0.0
 
-### Stable Release
+**Stable release** — all features implemented, 297 tests passing.
 
-`flutter_pagination_pro` is now **stable** — all planned features are implemented, tested (297 tests), and documented.
+### Highlights
 
-### Features Summary (since 0.4.0)
+- Skeleton loading with true rounded corners (render-tree bone painting)
+- `SkeletonConfig`: `borderRadius`, `overlayColor`, `shimmerDuration`
+- Full codebase cleanup, formatting, and lint fixes
 
-- **Empty state with refresh** (v0.5.0) — `DefaultEmpty` auto-wires refresh action
-- **Auto-retry with exponential backoff** (v0.5.0) — `RetryPolicy` on `PaginationConfig`
-- **Bidirectional pagination** (v0.6.0) — Two-way scrolling for chats, timelines, logs
-- **Animated item insert/remove** (v0.7.0) — `AnimatedPaginationListView` with staggered transitions
-- **Keyboard navigation** (v0.8.0) — `PaginationKeyboardHandler` for desktop & web
+### All Features (cumulative)
+
+| Version | Feature |
+|---------|---------|
+| 0.0.1 | `PaginationListView`, `PaginationGridView`, `NumberedPagination`, `PaginationController` |
+| 0.1.0 | Slivers (`SliverPaginatedList`, `SliverPaginatedGrid`), pull-to-refresh, accessibility |
+| 0.2.0 | `pageSize` auto last-page detection, `initialItems`, `totalItems`, `findChildIndexCallback` |
+| 0.3.0 | Generic page keys (`K`), cursor/offset pagination, controlled mode, `updateFetchPage()`, convenience typedefs |
+| 0.4.0 | Skeleton/shimmer loading (`placeholderItem`), header/footer, testing utilities |
+| 0.5.0 | Auto-retry with exponential backoff (`RetryPolicy`), empty state refresh |
+| 0.6.0 | Bidirectional pagination (`BidirectionalPaginationListView`) |
+| 0.7.0 | Animated item insert/remove (`AnimatedPaginationListView`) |
+| 0.8.0 | Keyboard navigation (`PaginationKeyboardHandler`) |
+| 1.0.0 | Skeleton render-tree bone painting, `SkeletonConfig`, stable release |
 
 ### Migration from `infinite_scroll_pagination`
 
-| infinite_scroll_pagination | flutter_pagination_pro |
-|---|---|
-| `PagedListView<int, T>` | `PagedListView<T>` (or `PaginationListView<int, T>`) |
-| `PagingController<int, T>` | `PagedController<T>` (or `PaginationController<int, T>`) |
+| Before | After |
+|--------|-------|
+| `PagedListView<int, T>` | `PagedListView<T>` |
+| `PagingController<int, T>` | `PagedController<T>` |
 | `PagedChildBuilderDelegate` | Pass builders directly to widget |
-| `pagingController.appendPage(items, nextKey)` | Return `List<T>` from `fetchPage` — controller manages keys |
-| `pagingController.appendLastPage(items)` | Return fewer items than `pageSize` — auto-detected |
-| No bidirectional support | `BidirectionalPaginationListView` |
-| No animated lists | `AnimatedPaginationListView` |
-| No keyboard navigation | `PaginationKeyboardHandler` |
-| No auto-retry | `RetryPolicy` on `PaginationConfig` |
-| No numbered pagination | `NumberedPagination` |
+| `controller.appendPage(items, key)` | Return `List<T>` from `fetchPage` |
+| `controller.appendLastPage(items)` | Return fewer than `pageSize` — auto-detected |
+
+---
 
 ## 0.8.0
 
-### New Features
-
-- **Keyboard navigation handler**: New `PaginationKeyboardHandler` widget for desktop and web keyboard scrolling. Wrap any paginated list to enable:
-  - **Page Down / Page Up** — scroll one viewport height
-  - **Home / End** — jump to top / bottom
-  - **Arrow Down / Arrow Up** — scroll by configurable amount (default 50px)
-  - **End key + onEndReached** — auto-triggers next page load at bottom
-  - `enabled` flag to dynamically toggle keyboard handling
-  - `autofocus` for automatic focus acquisition
-  - Configurable `scrollAnimationDuration` and `scrollAnimationCurve`
-
-  ```dart
-  PaginationKeyboardHandler(
-    scrollController: scrollController,
-    onEndReached: controller.loadNextPage,
-    child: PagedListView<User>.withController(
-      controller: controller,
-      scrollController: scrollController,
-      itemBuilder: (ctx, user, i) => UserTile(user: user),
-    ),
-  )
-  ```
+- **Keyboard navigation**: `PaginationKeyboardHandler` — Page Down/Up, Home/End, Arrow keys for desktop & web scrolling
 
 ## 0.7.0
 
-### New Features
-
-- **Animated pagination list**: New `AnimatedPaginationListView` widget that uses `AnimatedList` internally for smooth item insert/remove animations. Features:
-  - Default slide+fade insert animation and fade+shrink remove animation
-  - Staggered bulk inserts when new pages load (`staggerDelay` param)
-  - `plainItemBuilder` for zero-config default animations, or `itemBuilder` (with `Animation<double>`) for full control
-  - Custom `removeItemBuilder` for removal transitions
-  - Configurable `insertDuration`, `removeDuration`, and `staggerDelay`
-  - Works with controller `insertItem()`, `removeItemAt()`, `removeWhere()`
-  - `.withController()` constructor for external controller management
-  - Convenience typedef: `AnimatedPagedListView<T>`
-
-  ```dart
-  AnimatedPagedListView<User>(
-    fetchPage: (page) => api.getUsers(page: page),
-    plainItemBuilder: (context, user, index) => UserTile(user: user),
-    staggerDelay: Duration(milliseconds: 50),
-  )
-  ```
+- **Animated pagination list**: `AnimatedPaginationListView` with staggered insert/remove animations, configurable durations, `plainItemBuilder` for zero-config
 
 ## 0.6.0
 
-### New Features
-
-- **Bidirectional (two-way) pagination**: New `BidirectionalPaginationListView` widget and `BidirectionalPaginationController` for loading items in both forward (append) and backward (prepend) directions. Uses Flutter's `CustomScrollView(center:)` for scroll-stable prepending — ideal for chat apps, timelines, and log viewers.
-
-  ```dart
-  BidirectionalPagedListView<Message>(
-    fetchPage: (page) => api.getMessages(page: page),
-    fetchPreviousPage: (page) => api.getOlderMessages(before: page),
-    initialPageKey: 10,
-    itemBuilder: (context, msg, index) => MessageBubble(msg),
-  )
-  ```
-
-  Key features:
-  - Separate forward/backward loading states and error handling
-  - Auto-scroll-threshold triggers in both directions
-  - Support for int page keys (auto-defaults) and cursor/string keys via `nextPageKeyBuilder`/`previousPageKeyBuilder`
-  - `BidirectionalPaginationListView.withController()` for external controller management
-  - Custom builders: `forwardLoadingBuilder`, `backwardLoadingBuilder`, `forwardErrorBuilder`, `backwardErrorBuilder`
-  - Convenience typedefs: `BidirectionalPagedListView<T>`, `BidirectionalPagedController<T>`
+- **Bidirectional pagination**: `BidirectionalPaginationListView` — two-way scrolling with separate forward/backward loading, scroll-stable prepending via `CustomScrollView(center:)`
 
 ## 0.5.0
 
-### New Features
-
-- **Auto-retry with exponential backoff**: Failed page loads can now be automatically retried with configurable backoff via `RetryPolicy`. Attach to `PaginationConfig.retryPolicy` to enable. Supports `maxRetries`, `initialDelay`, `backoffMultiplier`, error filtering via `retryOn`, and optional first-page retries via `retryFirstPage`. Access `state.retryCount` to display retry progress in the UI.
-
-  ```dart
-  PaginationListView<int, User>(
-    fetchPage: (page) => api.getUsers(page),
-    config: PaginationConfig(
-      retryPolicy: RetryPolicy(
-        maxRetries: 3,
-        initialDelay: Duration(seconds: 1),
-        backoffMultiplier: 2.0, // 1s → 2s → 4s
-      ),
-    ),
-    itemBuilder: (context, user, index) => UserTile(user: user),
-  )
-  ```
-
-- **Empty state refresh action**: `DefaultEmpty` now accepts an optional `onRefresh` callback. When provided, a "Refresh" button is shown below the empty message. In controlled mode (`.withController()` / `.controlled()`), `onRefresh` is auto-wired to the controller's refresh method — no manual wiring needed.
+- **Auto-retry with exponential backoff**: `RetryPolicy` on `PaginationConfig` — `maxRetries`, `initialDelay`, `backoffMultiplier`, error filtering
+- **Empty state refresh**: `DefaultEmpty` with optional `onRefresh` callback, auto-wired in controlled mode
 
 ## 0.4.0
 
-### New Features
-
-- **Skeleton / Shimmer first-page loading**: `DefaultFirstPageLoading.builder()` — a named constructor that renders a list of placeholder widgets during the initial load. Accepts `itemBuilder`, `itemCount` (default 6), optional `separatorBuilder`, `padding`, and `scrollDirection`. Works seamlessly as a `firstPageLoadingBuilder` for shimmer/skeleton patterns without adding any dependencies.
-
-- **Zero-config skeleton loading via `placeholderItem`**: All four widget types (`PaginationListView`, `PaginationGridView`, `SliverPaginatedList`, `SliverPaginatedGrid`) now accept `placeholderItem`, `placeholderCount` (default 6), and `skeletonOverlayColor` directly as constructor parameters. When `placeholderItem` is provided, the widget automatically reuses your existing `itemBuilder` with a `ColorFiltered` grey overlay to produce a skeleton effect — no duplication of `itemBuilder` or separate builder required. Skeleton items appear both during **first-page loading** (full screen) and **load-more** (appended inline below existing items), giving a consistent placeholder UX throughout the list lifecycle.
-
-  ```dart
-  PagedListView<User>(
-    fetchPage: (page) => api.getUsers(page: page),
-    itemBuilder: (context, user, index) => UserTile(user: user),
-    placeholderItem: User(name: '', email: ''),  // just add this!
-    placeholderCount: 8,
-  )
-  ```
-
-- **`DefaultFirstPageLoading.fromItemBuilder<T>()`**: A static factory that reuses your real `ItemBuilder<T>` with a placeholder item and applies `ColorFiltered(BlendMode.srcATop)` for skeleton-style loading. Used internally by the `placeholderItem` param, but also available for direct use.
-
-- **Header & Footer convenience parameters**: Both `PaginationListView` and `PaginationGridView` (all 3 constructors) now accept optional `header` and `footer` widgets. The header scrolls above the paginated items; the footer scrolls below all items. Internally switches to `CustomScrollView` when either is provided — transparent to the user.
-
-- **Testing utilities** (`package:flutter_pagination_pro/testing.dart`):
-  - `testPaginationController<K, T>()` — creates a pre-seeded controller with known state for fast, deterministic widget tests.
-  - Custom matchers: `hasItemCount(n)`, `isOnPage(key)`, `hasStatus(status)`, `isPaginationCompleted`, `hasPaginationError([error])`, `isPaginationEmpty`.
-  - Separate entry point — import `testing.dart` in test files only.
-
-### Dependencies
-
-- Added `matcher` (^0.12.0) as a dependency for the testing utilities custom matchers. This package is already a transitive dependency of `flutter_test` in every Flutter project.
+- **Skeleton/shimmer loading**: `placeholderItem` + `placeholderCount` on all paginated widgets — reuses your `itemBuilder` as skeleton
+- **`DefaultFirstPageLoading.builder()`** and **`.fromItemBuilder<T>()`** for custom skeleton layouts
+- **Header & Footer**: `header` / `footer` params on `PaginationListView` and `PaginationGridView`
+- **Testing utilities**: `testPaginationController()`, `hasItemCount()`, `hasStatus()`, `isPaginationCompleted`, `isPaginationEmpty`, `hasPaginationError()`
 
 ## 0.3.0
 
 ### Breaking Changes
 
-- **Generic page keys (`K`)**: All controllers and widgets now require two type parameters: `PaginationController<K, T>`, `PaginationListView<K, T>`, etc. where `K` is the page key type and `T` is the item type. For integer pages, use `<int, T>` or the new convenience aliases.
-- **`FetchPage<T>` → `FetchPage<K, T>`**: The fetch callback now receives `K pageKey` instead of `int page`.
-- **`OnPageLoaded<T>` → `OnPageLoaded<K, T>`**: The page-loaded callback now provides `K pageKey` instead of `int page`.
-- **`PaginationState.currentPage` → `PaginationState.pageKey`**: The `int currentPage` field is replaced by `K? pageKey`.
-- **`PaginationConfig.initialPage` removed**: Use `initialPageKey` on the controller or widget constructor instead.
+- Generic page keys: `PaginationController<K, T>`, `PaginationListView<K, T>`, etc.
+- `FetchPage<T>` → `FetchPage<K, T>`, `PaginationState.currentPage` → `.pageKey`
+- `PaginationConfig.initialPage` removed — use `initialPageKey` on widget/controller
 
-### New Features
+### New
 
-- **`initialPageKey` is optional for int keys**: When `K` is `int`, `initialPageKey` defaults to `1` — you no longer need to pass it for the common case.
-- **Convenience typedefs**: `PagedListView<T>`, `PagedGridView<T>`, `PagedController<T>`, `SliverPagedList<T>`, `SliverPagedGrid<T>` — these alias the `<int, T>` variants so you can write `PagedListView<User>(...)` instead of `PaginationListView<int, User>(...)`.
-- **Cursor-based pagination**: Use `PaginationController<String, T>` with `nextPageKeyBuilder: (_, items) => items.last.cursor` for cursor/token-based APIs.
-- **Offset-based pagination**: Use `PaginationController<int, T>` with `initialPageKey: 0` and `nextPageKeyBuilder: (offset, items) => offset + items.length`.
-- **`updateFetchPage()`**: Replace the data source at runtime — ideal for search/filter scenarios. Cancels any ongoing fetch, resets state, and reloads from the first page.
-- **Controlled mode (`.controlled()` constructors)**: All four widget types (`PaginationListView`, `PaginationGridView`, `SliverPaginatedList`, `SliverPaginatedGrid`) now support a `.controlled()` named constructor for BYO state management — provide items, status, and callbacks directly without a `PaginationController`.
-- **`NextPageKeyBuilder<K, T>` typedef**: New callback type for computing the next page key from the current key and loaded items. Defaults to `(k, _) => k + 1` for `int` keys.
-
-### Migration Guide (0.2.0 → 0.3.0)
-
-```dart
-// Before (0.2.0)
-PaginationController<User>(fetchPage: (page) => api.getUsers(page: page));
-PaginationListView<User>(fetchPage: (page) => ..., itemBuilder: ...);
-
-// After (0.3.0) — simplest with aliases
-PagedController<User>(fetchPage: (page) => api.getUsers(page: page));
-PagedListView<User>(fetchPage: (page) => ..., itemBuilder: ...);
-
-// After (0.3.0) — explicit generic form (also valid)
-PaginationController<int, User>(fetchPage: (page) => api.getUsers(page: page));
-PaginationListView<int, User>(fetchPage: (page) => ..., itemBuilder: ...);
-```
+- Convenience typedefs: `PagedListView<T>`, `PagedGridView<T>`, `PagedController<T>`, etc.
+- Cursor & offset pagination support
+- `updateFetchPage()` for search/filter
+- Controlled mode (`.controlled()` constructors)
 
 ## 0.2.0
 
-### New Features
-
-- **`pageSize` auto last-page detection**: Set `pageSize` in `PaginationConfig` to automatically detect the final page when fewer items than expected are returned — eliminates phantom "loading more" spinners.
-- **`initialItems` support**: Prepopulate the list with cached data via `PaginationController(initialItems: [...])`. The controller starts in `loaded` state, skipping the initial load.
-- **`totalItems` / `setTotalItems`**: Track the total item count from your API. Call `controller.setTotalItems(total)` to display "Showing X of Y" and auto-complete when all items are loaded.
-- **`findChildIndexCallback` passthrough**: All scroll widgets (`PaginationListView`, `PaginationGridView`, `SliverPaginatedList`, `SliverPaginatedGrid`) now accept `findChildIndexCallback` for improved performance during item mutations.
-
-### Improvements
-
-- `PaginationConfig` now supports `pageSize` field with proper `==`/`hashCode`/`copyWith`.
-- `PaginationState` now includes `totalItems` field with proper `==`/`hashCode`/`copyWith`/`toString`.
+- `pageSize` auto last-page detection
+- `initialItems` for pre-populated lists
+- `totalItems` / `setTotalItems()` for progress tracking
+- `findChildIndexCallback` passthrough
 
 ## 0.1.0
 
 ### Breaking Changes
 
-- **`PaginationConfig`**: Replaced `invisibleItemsThreshold` with `scrollThreshold` (in pixels, default 200.0) for clearer, more accurate scroll-triggered loading.
-- **`onPageLoaded`**: Now fires with only the **new** items loaded on that page instead of the full accumulated list.
-- **`PaginationGridView`**: Removed unused `mainAxisSpacing` and `crossAxisSpacing` parameters (they were accepted but never applied). Set spacing via `gridDelegate` instead.
+- `invisibleItemsThreshold` → `scrollThreshold` (pixels, default 200)
+- `onPageLoaded` now fires with new items only
+- Removed unused `mainAxisSpacing` / `crossAxisSpacing` from `PaginationGridView`
 
-### Bug Fixes
+### New
 
-- **Refresh no longer wipes the screen**: `controller.refresh()` now keeps existing items visible while reloading, instead of replacing everything with a full-page loading spinner.
-- **`DefaultLoadMoreError` now shows the actual error**: Previously hardcoded "Failed to load more" and ignored the `error` field.
+- `SliverPaginatedList`, `SliverPaginatedGrid`
+- Pull-to-refresh (`enablePullToRefresh`)
+- Accessibility labels on `NumberedPagination`
 
-### New Features
+### Fixes
 
-- **Sliver variants**: Added `SliverPaginatedList` and `SliverPaginatedGrid` for use inside `CustomScrollView`, enabling composability with `SliverAppBar`, `SliverToBoxAdapter`, and other slivers.
-- **Pull-to-refresh**: Added `enablePullToRefresh` parameter to `PaginationListView` and `PaginationGridView`.
-- **Accessibility**: Added semantic labels to `NumberedPagination` buttons for screen readers.
-- **`NumberedPaginationConfig`**: Added `==` and `hashCode` for proper equality comparison.
-
-### Improvements
-
-- **Shared pagination mixin**: Extracted `PaginationStateMixin` to eliminate code duplication between `PaginationListView` and `PaginationGridView`.
-- **Config from controller**: When using `.withController()`, config is now read from the controller instead of widget defaults.
-- **Fixed README**: Corrected parameter tables to match actual API.
+- `refresh()` keeps items visible while reloading
+- `DefaultLoadMoreError` shows actual error message
 
 ## 0.0.1
 
-Initial release.
-
-### Features
-
-- **PaginationListView** - ListView with pagination support
-- **PaginationGridView** - GridView with pagination support
-- **NumberedPagination** - Page number navigation widget
-- **PaginationController** - Programmatic control for pagination
-
-### Pagination Modes
-
-- **Infinite Scroll** - Auto-load when scrolling near bottom
-- **Load More Button** - Manual button to load next page
-- **Numbered** - Classic page number navigation
-
-### Highlights
-
-- Zero external dependencies
-- Fully customizable UI components
-- Built-in loading, error, and empty states
-- Type-safe generic API
-- Separator support for ListView
+Initial release — `PaginationListView`, `PaginationGridView`, `NumberedPagination`, `PaginationController`. Infinite scroll, load more button, numbered pagination. Zero dependencies.

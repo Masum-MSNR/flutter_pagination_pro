@@ -1,45 +1,85 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Masum-MSNR/flutter_pagination_pro/main/images/logo.png" alt="Flutter Pagination Pro" width="120"/>
+  <img src="https://raw.githubusercontent.com/Masum-MSNR/flutter_pagination_pro/main/images/logo.png" alt="Flutter Pagination Pro" width="100"/>
 </p>
+
+<h1 align="center">Flutter Pagination Pro</h1>
 
 <p align="center">
   <a href="https://pub.dev/packages/flutter_pagination_pro"><img src="https://img.shields.io/pub/v/flutter_pagination_pro" alt="Pub Version"></a>
+  <a href="https://pub.dev/packages/flutter_pagination_pro/score"><img src="https://img.shields.io/pub/points/flutter_pagination_pro" alt="Pub Points"></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
-  <a href="https://flutter.dev"><img src="https://img.shields.io/badge/Flutter-3.0+-02569B?logo=flutter" alt="Flutter"></a>
+  <a href="https://flutter.dev"><img src="https://img.shields.io/badge/Flutter-3.0+-02569B?logo=flutter" alt="Flutter 3.0+"></a>
+  <a href="https://dart.dev"><img src="https://img.shields.io/badge/Dart-3.0+-0175C2?logo=dart" alt="Dart 3.0+"></a>
 </p>
 
 <p align="center">
-A lightweight, zero-dependency Flutter pagination package.<br/>
-Infinite scroll · load more · grid · slivers · numbered pages · bidirectional — all in one.
+  <b>A lightweight, zero-dependency pagination toolkit for Flutter.</b><br/>
+  Infinite scroll · Load more · Grid · Slivers · Numbered pages · Bidirectional · Animated lists · Skeleton loading · Keyboard nav — all in one package.
 </p>
 
-## Install
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Masum-MSNR/flutter_pagination_pro/main/images/preview.png" alt="Preview" width="720"/>
+</p>
+
+---
+
+## Features
+
+| Feature | Widget / API | Description |
+|---------|-------------|-------------|
+| **Infinite Scroll** | `PagedListView` | Auto-loads next page on scroll threshold |
+| **Load More Button** | `paginationType: .loadMore` | Manual "load more" trigger |
+| **Grid View** | `PagedGridView` | Paginated grid with any `SliverGridDelegate` |
+| **Slivers** | `SliverPagedList` / `SliverPagedGrid` | Composable inside `CustomScrollView` |
+| **Numbered Pages** | `NumberedPagination` | Classic page-number navigation bar |
+| **Bidirectional** | `BidirectionalPagedListView` | Two-way scroll for chats, timelines |
+| **Animated List** | `AnimatedPagedListView` | Staggered insert/remove animations |
+| **Skeleton Loading** | `placeholderItem` + `SkeletonConfig` | Auto-generated shimmer from your item builder |
+| **Cursor / Offset Keys** | `PaginationListView<String, T>` | Generic page keys — int, cursor, offset |
+| **Controlled Mode** | `.controlled()` constructor | BYO state (Bloc, Riverpod, etc.) |
+| **Search / Filter** | `updateFetchPage()` | Swap data source & reload instantly |
+| **Auto-Retry** | `RetryPolicy` | Exponential backoff on failures |
+| **Keyboard Nav** | `PaginationKeyboardHandler` | Page Up/Down, Home/End for desktop & web |
+| **Pull to Refresh** | `enablePullToRefresh: true` | Built-in refresh indicator |
+| **Header / Footer** | `header` / `footer` params | Scrollable header & footer widgets |
+| **Testing Utilities** | `package:.../testing.dart` | Pre-seeded controllers & custom matchers |
+
+**Zero external dependencies** · **297 tests** · **Fully type-safe**
+
+---
+
+## Installation
 
 ```yaml
 dependencies:
   flutter_pagination_pro: ^1.0.0
 ```
 
+---
+
 ## Quick Start
 
 ```dart
-// Infinite scroll list — handles loading, errors, empty state automatically
+import 'package:flutter_pagination_pro/flutter_pagination_pro.dart';
+
 PagedListView<User>(
   fetchPage: (page) => api.getUsers(page: page),
   itemBuilder: (context, user, index) => ListTile(title: Text(user.name)),
 )
 ```
 
-> **Typedefs:** `PagedListView<T>` = `PaginationListView<int, T>` (initialPageKey defaults to `1`). Same for `PagedGridView`, `PagedController`, `SliverPagedList`, `SliverPagedGrid`.
+> `PagedListView<T>` is a convenience alias for `PaginationListView<int, T>` with `initialPageKey: 1`. The same pattern applies to `PagedGridView`, `PagedController`, `SliverPagedList`, `SliverPagedGrid`.
 
-## Usage
+---
 
-### Grid
+## Examples
+
+### Grid View
 
 ```dart
 PagedGridView<Photo>(
   fetchPage: (page) => api.getPhotos(page: page),
-  itemBuilder: (context, photo, index) => PhotoCard(photo: photo),
+  itemBuilder: (ctx, photo, i) => PhotoCard(photo: photo),
   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
 )
 ```
@@ -49,41 +89,41 @@ PagedGridView<Photo>(
 ```dart
 PagedListView<User>(
   fetchPage: (page) => api.getUsers(page: page),
-  itemBuilder: (context, user, index) => UserCard(user: user),
+  itemBuilder: (ctx, user, i) => UserTile(user: user),
   paginationType: PaginationType.loadMore,
 )
 ```
 
-### Cursor-Based (Firestore, GraphQL)
+### Cursor-Based Pagination
 
 ```dart
 PaginationListView<String, User>(
   fetchPage: (cursor) => api.getUsers(cursor: cursor),
   initialPageKey: '',
   nextPageKeyBuilder: (_, items) => items.last.cursor,
-  itemBuilder: (context, user, index) => ListTile(title: Text(user.name)),
+  itemBuilder: (ctx, user, i) => ListTile(title: Text(user.name)),
 )
 ```
 
-### Controlled Mode (BYO State)
+### Controlled Mode
 
 ```dart
 PaginationListView<int, User>.controlled(
   items: users,
   status: PaginationStatus.loaded,
   onLoadMore: () => bloc.add(LoadNextPage()),
-  itemBuilder: (context, user, index) => UserCard(user: user),
+  itemBuilder: (ctx, user, i) => UserTile(user: user),
 )
 ```
 
-### Bidirectional (Two-Way) Scroll
+### Bidirectional Scroll
 
 ```dart
 BidirectionalPagedListView<Message>(
   fetchPage: (page) => api.getMessages(page: page),
-  fetchPreviousPage: (page) => api.getOlderMessages(before: page),
+  fetchPreviousPage: (page) => api.getOlder(before: page),
   initialPageKey: 10,
-  itemBuilder: (context, msg, index) => MessageBubble(msg),
+  itemBuilder: (ctx, msg, i) => MessageBubble(msg),
 )
 ```
 
@@ -92,11 +132,11 @@ BidirectionalPagedListView<Message>(
 ```dart
 CustomScrollView(
   slivers: [
-    SliverAppBar(title: Text('Users'), floating: true),
+    SliverAppBar(title: Text('Users')),
     SliverPaginatedList<int, User>(
       controller: controller,
       scrollController: scrollController,
-      itemBuilder: (context, user, index) => ListTile(title: Text(user.name)),
+      itemBuilder: (ctx, user, i) => ListTile(title: Text(user.name)),
     ),
   ],
 )
@@ -107,7 +147,7 @@ CustomScrollView(
 ```dart
 AnimatedPagedListView<User>(
   fetchPage: (page) => api.getUsers(page: page),
-  plainItemBuilder: (context, user, index) => UserTile(user: user),
+  plainItemBuilder: (ctx, user, i) => UserTile(user: user),
   staggerDelay: Duration(milliseconds: 50),
 )
 ```
@@ -118,7 +158,7 @@ AnimatedPagedListView<User>(
 NumberedPagination(
   totalPages: 20,
   currentPage: _page,
-  onPageChanged: (page) => setState(() => _page = page),
+  onPageChanged: (p) => setState(() => _page = p),
 )
 ```
 
@@ -127,13 +167,14 @@ NumberedPagination(
 ```dart
 PagedListView<User>(
   fetchPage: (page) => api.getUsers(page: page),
-  itemBuilder: (context, user, index) => UserTile(user: user),
-  placeholderItem: User(name: '', email: ''),
+  itemBuilder: (ctx, user, i) => UserTile(user: user),
+  placeholderItem: User.placeholder(),
   placeholderCount: 8,
+  skeletonConfig: SkeletonConfig(borderRadius: 6),
 )
 ```
 
-### Keyboard Navigation (Desktop/Web)
+### Keyboard Navigation
 
 ```dart
 PaginationKeyboardHandler(
@@ -147,35 +188,36 @@ PaginationKeyboardHandler(
 )
 ```
 
-### Auto-Retry with Backoff
+### Auto-Retry
 
 ```dart
 PagedListView<User>(
   fetchPage: (page) => api.getUsers(page: page),
-  itemBuilder: (context, user, index) => UserTile(user: user),
+  itemBuilder: (ctx, user, i) => UserTile(user: user),
   config: PaginationConfig(
     retryPolicy: RetryPolicy(maxRetries: 3, initialDelay: Duration(seconds: 1)),
   ),
 )
 ```
 
-### Customization
+### Full Customization
 
 ```dart
 PagedListView<User>(
   fetchPage: (page) => api.getUsers(page: page),
-  itemBuilder: (context, user, index) => UserTile(user: user),
-  firstPageLoadingBuilder: (context) => MyShimmer(),
-  firstPageErrorBuilder: (context, error, retry) => MyErrorWidget(error, retry),
-  emptyBuilder: (context) => MyEmptyState(),
-  loadMoreErrorBuilder: (context, error, retry) => MyRetryBar(error, retry),
-  endOfListBuilder: (context) => Text('All caught up!'),
+  itemBuilder: (ctx, user, i) => UserTile(user: user),
+  firstPageLoadingBuilder: (ctx) => MyShimmer(),
+  firstPageErrorBuilder: (ctx, err, retry) => ErrorWidget(err, retry),
+  emptyBuilder: (ctx) => EmptyState(),
+  endOfListBuilder: (ctx) => Text('All caught up!'),
   enablePullToRefresh: true,
   header: Text('Header'),
   footer: Text('Footer'),
-  separatorBuilder: (context, index) => Divider(),
+  separatorBuilder: (ctx, i) => Divider(),
 )
 ```
+
+---
 
 ## Controller API
 
@@ -183,13 +225,14 @@ PagedListView<User>(
 final controller = PagedController<User>(
   fetchPage: (page) => api.getUsers(page: page),
   config: PaginationConfig(pageSize: 20),
-  initialItems: cachedUsers,
 );
 ```
 
+### Methods
+
 | Method | Description |
 |--------|-------------|
-| `refresh()` | Reload from first page |
+| `refresh()` | Reload from first page (keeps items visible) |
 | `retry()` | Retry last failed request |
 | `reset()` | Clear to initial state |
 | `loadNextPage()` | Trigger next page manually |
@@ -201,47 +244,55 @@ final controller = PagedController<User>(
 | `removeItemAt(i)` | Remove at index |
 | `updateItemAt(i, item)` | Replace at index |
 
+### Properties
+
 | Property | Type | Description |
 |----------|------|-------------|
-| `items` | `List<T>` | Loaded items |
-| `status` | `PaginationStatus` | Current state |
-| `hasMorePages` | `bool` | More pages? |
-| `currentPageKey` | `K?` | Last page key |
-| `state.totalItems` | `int?` | Total (if set) |
-| `state.retryCount` | `int` | Auto-retry attempts |
+| `items` | `List<T>` | Currently loaded items |
+| `status` | `PaginationStatus` | Current state enum |
+| `hasMorePages` | `bool` | Whether more pages remain |
+| `currentPageKey` | `K?` | Last loaded page key |
 
 ### BidirectionalPaginationController
 
 | Method | Description |
 |--------|-------------|
 | `loadInitialPage()` | Load anchor page |
-| `loadNextPage()` | Load forward |
-| `loadPreviousPage()` | Load backward |
+| `loadNextPage()` / `loadPreviousPage()` | Load forward / backward |
 | `refresh()` | Reload from anchor |
 | `retry()` | Retry last failed direction |
-| `reset()` | Clear to initial |
-| `items` | `[...backward, ...forward]` |
+| `reset()` | Clear to initial state |
 
-## Config Reference
+---
+
+## Configuration
 
 ### PaginationConfig
 
 | Param | Default | Description |
 |-------|---------|-------------|
-| `scrollThreshold` | `200.0` | Pixels from bottom to trigger load |
-| `autoLoadFirstPage` | `true` | Auto-load on build |
-| `pageSize` | `null` | Items/page (auto-detects last page) |
-| `retryPolicy` | `null` | Auto-retry config |
+| `scrollThreshold` | `200.0` | Pixels from bottom to trigger next load |
+| `autoLoadFirstPage` | `true` | Auto-load on widget build |
+| `pageSize` | `null` | Items per page (auto-detects last page) |
+| `retryPolicy` | `null` | Auto-retry configuration |
 
 ### RetryPolicy
 
 | Param | Default | Description |
 |-------|---------|-------------|
-| `maxRetries` | `3` | Max attempts |
+| `maxRetries` | `3` | Maximum retry attempts |
 | `initialDelay` | `1s` | First retry delay |
 | `backoffMultiplier` | `2.0` | Delay multiplier (1s → 2s → 4s) |
 | `retryOn` | `null` | Error predicate filter |
-| `retryFirstPage` | `false` | Retry first-page errors too |
+| `retryFirstPage` | `false` | Also retry first-page errors |
+
+### SkeletonConfig
+
+| Param | Default | Description |
+|-------|---------|-------------|
+| `overlayColor` | theme grey | Base colour for skeleton bones |
+| `borderRadius` | `4.0` | Corner radius for skeleton shapes |
+| `shimmerDuration` | `1500ms` | Shimmer animation sweep duration |
 
 ### NumberedPaginationConfig
 
@@ -250,17 +301,19 @@ final controller = PagedController<User>(
 | `buttonSize` | `40` | Page button size |
 | `spacing` | `4` | Button spacing |
 | `borderRadius` | `8` | Corner radius |
-| `showFirstLastButtons` | `true` | ⏮ ⏭ buttons |
-| `showNavigationButtons` | `true` | ◀ ▶ buttons |
-| `selectedButtonColor` | `primary` | Active page color |
+| `showFirstLastButtons` | `true` | Show ⏮ ⏭ buttons |
+| `showNavigationButtons` | `true` | Show ◀ ▶ buttons |
+| `selectedButtonColor` | primary | Active page colour |
 
-### Keyboard Handler
+### Keyboard Shortcuts
 
 | Key | Action |
 |-----|--------|
-| Page Down/Up | Scroll one viewport |
-| Home/End | Jump to top/bottom |
-| Arrow ↑/↓ | Scroll 50px |
+| Page Down / Up | Scroll one viewport |
+| Home / End | Jump to top / bottom |
+| Arrow ↑ / ↓ | Scroll 50px |
+
+---
 
 ## Testing
 
@@ -279,19 +332,29 @@ expect(controller, isPaginationEmpty);
 expect(controller, hasPaginationError());
 ```
 
-## Migration from infinite_scroll_pagination
+---
 
-| Before | After |
-|--------|-------|
+## Migrating from `infinite_scroll_pagination`
+
+| Before (`infinite_scroll_pagination`) | After (`flutter_pagination_pro`) |
+|---------------------------------------|-----------------------------------|
 | `PagedListView<int, T>` | `PagedListView<T>` |
 | `PagingController<int, T>` | `PagedController<T>` |
-| `PagedChildBuilderDelegate` | Pass builders directly |
-| `controller.appendPage(items, nextKey)` | Return `List<T>` from `fetchPage` |
-| `controller.appendLastPage(items)` | Return fewer items than `pageSize` |
+| `PagedChildBuilderDelegate` | Pass builders directly to widget |
+| `controller.appendPage(items, key)` | Return `List<T>` from `fetchPage` |
+| `controller.appendLastPage(items)` | Return fewer than `pageSize` → auto-detected |
+| No bidirectional support | `BidirectionalPagedListView` |
+| No animated lists | `AnimatedPagedListView` |
+| No keyboard nav | `PaginationKeyboardHandler` |
+| No auto-retry | `RetryPolicy` on `PaginationConfig` |
+| No skeleton loading | `placeholderItem` + `SkeletonConfig` |
+| No numbered pagination | `NumberedPagination` |
 
-## Example
+---
 
-See the [example](example/) app for demos of every feature.
+## Example App
+
+See the full [example app](example/) with demos for every feature.
 
 ## License
 
