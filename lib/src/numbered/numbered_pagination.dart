@@ -4,7 +4,11 @@ library;
 import 'package:flutter/material.dart';
 
 /// Configuration for [NumberedPagination] appearance.
+@immutable
 class NumberedPaginationConfig {
+  /// Creates a numbered pagination configuration.
+  ///
+  /// All size/spacing values must be positive.
   const NumberedPaginationConfig({
     this.selectedButtonColor,
     this.unselectedButtonColor,
@@ -27,7 +31,12 @@ class NumberedPaginationConfig {
     this.lastIcon,
     this.previousIcon,
     this.nextIcon,
-  });
+  })  : assert(buttonSize > 0, 'buttonSize must be > 0'),
+        assert(spacing >= 0, 'spacing must be >= 0'),
+        assert(borderRadius >= 0, 'borderRadius must be >= 0'),
+        assert(elevation >= 0, 'elevation must be >= 0'),
+        assert(fontSize > 0, 'fontSize must be > 0'),
+        assert(navigationIconSize > 0, 'navigationIconSize must be > 0');
 
   /// Color of the selected page button.
   final Color? selectedButtonColor;
@@ -184,6 +193,13 @@ class NumberedPaginationConfig {
         showNavigationButtons,
         navigationIconSize,
       );
+
+  @override
+  String toString() =>
+      'NumberedPaginationConfig(buttonSize: $buttonSize, spacing: $spacing, '
+      'borderRadius: $borderRadius, elevation: $elevation, '
+      'fontSize: $fontSize, showFirstLast: $showFirstLastButtons, '
+      'showNavigation: $showNavigationButtons)';
 }
 
 /// A numbered pagination widget for navigating between pages.

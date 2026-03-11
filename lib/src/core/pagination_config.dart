@@ -3,6 +3,8 @@ library;
 
 import 'dart:math' show pow;
 
+import 'package:flutter/foundation.dart' show immutable;
+
 /// The type of pagination behavior.
 enum PaginationType {
   /// Infinite scroll - automatically loads more when reaching the bottom.
@@ -29,8 +31,13 @@ enum PaginationType {
 ///   ),
 /// );
 /// ```
+@immutable
 class RetryPolicy {
   /// Creates a retry policy.
+  ///
+  /// [maxRetries] must be > 0 (default 3).
+  /// [backoffMultiplier] must be >= 1.0 (default 2.0).
+  /// [initialDelay] must be non-negative (default 1 second).
   const RetryPolicy({
     this.maxRetries = 3,
     this.initialDelay = const Duration(seconds: 1),
@@ -78,17 +85,48 @@ class RetryPolicy {
 
   /// Whether the given error should be retried.
   bool shouldRetry(Object error) => retryOn?.call(error) ?? true;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is RetryPolicy &&
+        other.maxRetries == maxRetries &&
+        other.initialDelay == initialDelay &&
+        other.backoffMultiplier == backoffMultiplier &&
+        other.retryFirstPage == retryFirstPage;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        maxRetries,
+        initialDelay,
+        backoffMultiplier,
+        retryFirstPage,
+      );
+
+  @override
+  String toString() =>
+      'RetryPolicy(maxRetries: $maxRetries, initialDelay: $initialDelay, '
+      'backoffMultiplier: $backoffMultiplier, retryFirstPage: $retryFirstPage)';
 }
 
 /// Configuration options for pagination behavior.
+@immutable
 class PaginationConfig {
   /// Creates a pagination configuration.
+  ///
+  /// [scrollThreshold] must be > 0 (default 200.0 pixels).
+  /// [pageSize], when set, must be > 0.
   const PaginationConfig({
     this.scrollThreshold = 200.0,
     this.autoLoadFirstPage = true,
     this.pageSize,
     this.retryPolicy,
-  });
+  })  : assert(scrollThreshold > 0, 'scrollThreshold must be > 0'),
+        assert(
+          pageSize == null || pageSize > 0,
+          'pageSize must be > 0 when specified',
+        );
 
   /// Distance in pixels from the bottom of the scrollable area that triggers
   /// loading the next page in infinite scroll mode.
@@ -152,4 +190,10 @@ class PaginationConfig {
   @override
   int get hashCode =>
       Object.hash(scrollThreshold, autoLoadFirstPage, pageSize, retryPolicy);
+
+  @override
+  String toString() =>
+      'PaginationConfig(scrollThreshold: $scrollThreshold, '
+      'autoLoadFirstPage: $autoLoadFirstPage, pageSize: $pageSize, '
+      'retryPolicy: $retryPolicy)';
 }

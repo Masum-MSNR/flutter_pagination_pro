@@ -219,12 +219,26 @@ class PaginationGridView<K, T> extends StatefulWidget {
   final PaginationType paginationType;
 
   // Custom builders for different states
+
+  /// Widget shown while the first page is loading.
   final LoadingBuilder? firstPageLoadingBuilder;
+
+  /// Widget shown at the bottom while loading subsequent pages.
   final LoadingBuilder? loadMoreLoadingBuilder;
+
+  /// Widget shown when the first page load fails.
   final ErrorBuilder? firstPageErrorBuilder;
+
+  /// Widget shown when a load-more request fails.
   final ErrorBuilder? loadMoreErrorBuilder;
+
+  /// Widget shown when the list is empty (no items).
   final EmptyBuilder? emptyBuilder;
+
+  /// Widget shown at the bottom when all pages have been loaded.
   final EndOfListBuilder? endOfListBuilder;
+
+  /// Widget shown as the "Load More" button in [PaginationType.loadMore] mode.
   final LoadMoreBuilder? loadMoreButtonBuilder;
 
   /// A dummy instance of `T` for automatic skeleton loading.
@@ -261,17 +275,41 @@ class PaginationGridView<K, T> extends StatefulWidget {
   final Widget? footer;
 
   // GridView properties
+
+  /// An optional [ScrollController] for the grid.
   final ScrollController? scrollController;
+
+  /// The axis along which the grid scrolls.
   final Axis scrollDirection;
+
+  /// Whether the grid scrolls in the reading direction.
   final bool reverse;
+
+  /// Whether this is the primary scroll view associated with the parent.
   final bool? primary;
+
+  /// The scroll physics for the grid.
   final ScrollPhysics? physics;
+
+  /// Whether the grid should shrink-wrap its contents.
   final bool shrinkWrap;
+
+  /// Padding around the grid.
   final EdgeInsetsGeometry? padding;
+
+  /// The viewport extent to cache beyond the visible area.
   final double? cacheExtent;
+
+  /// Determines the way drag start behavior is handled.
   final DragStartBehavior dragStartBehavior;
+
+  /// Configures how the [ScrollView] dismisses the keyboard.
   final ScrollViewKeyboardDismissBehavior keyboardDismissBehavior;
+
+  /// Restoration ID for saving and restoring the scroll position.
   final String? restorationId;
+
+  /// The content clipping behavior.
   final Clip clipBehavior;
 
   /// Optional callback to find a child's index by its key.

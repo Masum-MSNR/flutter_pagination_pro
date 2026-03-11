@@ -120,7 +120,7 @@ class _KeyboardNavScreenState extends State<KeyboardNavScreen> {
                 controller: _controller,
                 scrollController: _scrollController,
                 itemBuilder: (context, item, index) =>
-                    ItemTile(item: item, index: index),
+                    ItemTile(item: item),
               ),
             ),
           ),

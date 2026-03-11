@@ -168,16 +168,34 @@ class SliverPaginatedList<K, T> extends StatefulWidget {
   final SeparatorBuilder? separatorBuilder;
 
   // Custom builders for different states
+
+  /// Widget shown while the first page is loading.
   final LoadingBuilder? firstPageLoadingBuilder;
+
+  /// Widget shown at the bottom while loading subsequent pages.
   final LoadingBuilder? loadMoreLoadingBuilder;
+
+  /// Widget shown when the first page load fails.
   final ErrorBuilder? firstPageErrorBuilder;
+
+  /// Widget shown when a load-more request fails.
   final ErrorBuilder? loadMoreErrorBuilder;
+
+  /// Widget shown when the list is empty (no items).
   final EmptyBuilder? emptyBuilder;
+
+  /// Widget shown at the bottom when all pages have been loaded.
   final EndOfListBuilder? endOfListBuilder;
+
+  /// Widget shown as the "Load More" button in [PaginationType.loadMore] mode.
   final LoadMoreBuilder? loadMoreButtonBuilder;
 
   // Callbacks
+
+  /// Called when a page is successfully loaded with only the new items.
   final OnPageLoaded<K, T>? onPageLoaded;
+
+  /// Called when an error occurs.
   final OnError? onError;
 
   /// Optional callback to find a child's index by its key.

@@ -50,7 +50,7 @@ Infinite scroll, load more, grid, slivers, numbered pages — all in one.
 
 ```yaml
 dependencies:
-  flutter_pagination_pro: ^0.4.0
+  flutter_pagination_pro: ^1.0.0
 ```
 
 ### 4 Lines to Paginated List

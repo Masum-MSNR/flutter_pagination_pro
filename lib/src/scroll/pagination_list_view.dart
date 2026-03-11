@@ -353,17 +353,41 @@ class PaginationListView<K, T> extends StatefulWidget {
   final Widget? footer;
 
   // ListView properties
+
+  /// An optional [ScrollController] for the list.
   final ScrollController? scrollController;
+
+  /// The axis along which the list scrolls.
   final Axis scrollDirection;
+
+  /// Whether the list scrolls in the reading direction.
   final bool reverse;
+
+  /// Whether this is the primary scroll view associated with the parent.
   final bool? primary;
+
+  /// The scroll physics for the list.
   final ScrollPhysics? physics;
+
+  /// Whether the list should shrink-wrap its contents.
   final bool shrinkWrap;
+
+  /// Padding around the list.
   final EdgeInsetsGeometry? padding;
+
+  /// The viewport extent to cache beyond the visible area.
   final double? cacheExtent;
+
+  /// Determines the way drag start behavior is handled.
   final DragStartBehavior dragStartBehavior;
+
+  /// Configures how the [ScrollView] dismisses the keyboard.
   final ScrollViewKeyboardDismissBehavior keyboardDismissBehavior;
+
+  /// Restoration ID for saving and restoring the scroll position.
   final String? restorationId;
+
+  /// The content clipping behavior.
   final Clip clipBehavior;
 
   /// Optional callback to find a child's index by its key.

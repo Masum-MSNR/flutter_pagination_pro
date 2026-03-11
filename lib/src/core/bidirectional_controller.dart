@@ -43,7 +43,19 @@ class BidirectionalPaginationController<K, T>
     NextPageKeyBuilder<K, T>? nextPageKeyBuilder,
     NextPageKeyBuilder<K, T>? previousPageKeyBuilder,
     PaginationConfig config = PaginationConfig.defaults,
-  })  : _fetchForward = fetchPage,
+  })  : assert(
+          nextPageKeyBuilder != null || initialPageKey is int,
+          'nextPageKeyBuilder is required when the page key type is not int. '
+          'Provide a function that computes the next page key from the current '
+          'key and the loaded items.',
+        ),
+        assert(
+          previousPageKeyBuilder != null || initialPageKey is int,
+          'previousPageKeyBuilder is required when the page key type is not int. '
+          'Provide a function that computes the previous page key from the '
+          'current key and the loaded items.',
+        ),
+        _fetchForward = fetchPage,
         _fetchBackward = fetchPreviousPage,
         _initialPageKey = initialPageKey,
         _forwardKeyBuilder = nextPageKeyBuilder ?? _intDefaultOrThrow<K, T>(),
@@ -368,4 +380,13 @@ class BidirectionalPaginationController<K, T>
     _cancelAll();
     super.dispose();
   }
+
+  @override
+  String toString() =>
+      'BidirectionalPaginationController<$K, $T>('
+      'status: ${value.status}, '
+      'forward: ${value.forwardItems.length}, '
+      'backward: ${value.backwardItems.length}, '
+      'moreFwd: ${value.hasMoreForward}, '
+      'moreBwd: ${value.hasMoreBackward})';
 }

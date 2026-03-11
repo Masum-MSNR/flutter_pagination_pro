@@ -432,6 +432,8 @@ class PaginationController<K, T> extends ValueNotifier<PaginationState<K, T>> {
 
   /// Sets the total number of items available.
   ///
+  /// [total] must be >= 0.
+  ///
   /// Call this when your API provides a total count in the response.
   /// Automatically adjusts [hasMorePages] and transitions to
   /// [PaginationStatus.completed] when all items have been loaded.
@@ -446,6 +448,7 @@ class PaginationController<K, T> extends ValueNotifier<PaginationState<K, T>> {
   /// )
   /// ```
   void setTotalItems(int total) {
+    assert(total >= 0, 'total must be >= 0, got $total');
     final allLoaded = value.items.length >= total;
     value = value.copyWith(
       totalItems: total,
@@ -483,14 +486,27 @@ class PaginationController<K, T> extends ValueNotifier<PaginationState<K, T>> {
   }
 
   /// Inserts an item at the specified index.
+  ///
+  /// The [index] is clamped to `[0, items.length]`, so out-of-range
+  /// values are silently adjusted.
   void insertItem(int index, T item) {
+    assert(
+      index >= 0 && index <= value.items.length,
+      'insertItem index $index out of range [0..${value.items.length}]',
+    );
     final newItems = List<T>.from(value.items);
     newItems.insert(index.clamp(0, newItems.length), item);
     value = value.copyWith(items: newItems);
   }
 
   /// Removes an item at the specified index.
+  ///
+  /// Does nothing if [index] is out of range.
   void removeItemAt(int index) {
+    assert(
+      index >= 0 && index < value.items.length,
+      'removeItemAt index $index out of range [0..${value.items.length - 1}]',
+    );
     if (index < 0 || index >= value.items.length) return;
     final newItems = List<T>.from(value.items)..removeAt(index);
     value = value.copyWith(
@@ -500,7 +516,13 @@ class PaginationController<K, T> extends ValueNotifier<PaginationState<K, T>> {
   }
 
   /// Updates a single item at the specified index.
+  ///
+  /// Does nothing if [index] is out of range.
   void updateItemAt(int index, T item) {
+    assert(
+      index >= 0 && index < value.items.length,
+      'updateItemAt index $index out of range [0..${value.items.length - 1}]',
+    );
     if (index < 0 || index >= value.items.length) return;
     final newItems = List<T>.from(value.items);
     newItems[index] = item;
@@ -513,4 +535,10 @@ class PaginationController<K, T> extends ValueNotifier<PaginationState<K, T>> {
     _currentOperation = null;
     super.dispose();
   }
+
+  @override
+  String toString() =>
+      'PaginationController<$K, $T>(status: $status, '
+      'items: ${items.length}, pageKey: $currentPageKey, '
+      'hasMore: $hasMorePages)';
 }

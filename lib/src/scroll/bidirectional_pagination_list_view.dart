@@ -74,7 +74,12 @@ class BidirectionalPaginationListView<K, T> extends StatefulWidget {
     this.keyboardDismissBehavior = ScrollViewKeyboardDismissBehavior.manual,
     this.restorationId,
     this.clipBehavior = Clip.hardEdge,
-  })  : controller = null,
+  })  : assert(
+          initialPageKey != null || K == int,
+          'initialPageKey is required when the page key type is not int. '
+          'For int keys, it defaults to 1.',
+        ),
+        controller = null,
         _initialPageKey = initialPageKey ?? (1 as K),
         _isControlled = false;
 

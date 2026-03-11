@@ -95,6 +95,23 @@ class AnimatedPaginationListView<K, T> extends StatefulWidget {
         assert(
           itemBuilder != null || plainItemBuilder != null,
           'Either itemBuilder or plainItemBuilder must be provided.',
+        ),
+        assert(
+          initialPageKey != null || K == int,
+          'initialPageKey is required when the page key type is not int. '
+          'For int keys, it defaults to 1.',
+        ),
+        assert(
+          insertDuration >= Duration.zero,
+          'insertDuration must be non-negative',
+        ),
+        assert(
+          removeDuration >= Duration.zero,
+          'removeDuration must be non-negative',
+        ),
+        assert(
+          staggerDelay >= Duration.zero,
+          'staggerDelay must be non-negative',
         );
 
   /// Creates an animated paginated list with a user-provided controller.
