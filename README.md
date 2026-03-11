@@ -1,20 +1,16 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Masum-MSNR/flutter_pagination_pro/main/images/logo.png" alt="Flutter Pagination Pro" width="100"/>
+  <img src="https://raw.githubusercontent.com/Masum-MSNR/flutter_pagination_pro/main/images/logo.png" alt="Flutter Pagination Pro" width="120"/>
 </p>
 
-<h1 align="center">Flutter Pagination Pro</h1>
-
 <p align="center">
-  <a href="https://pub.dev/packages/flutter_pagination_pro"><img src="https://img.shields.io/pub/v/flutter_pagination_pro" alt="Pub Version"></a>
-  <a href="https://pub.dev/packages/flutter_pagination_pro/score"><img src="https://img.shields.io/pub/points/flutter_pagination_pro" alt="Pub Points"></a>
+  <a href="https://pub.dev/packages/flutter_pagination_pro"><img src="https://img.shields.io/pub/v/flutter_pagination_pro.svg" alt="pub package"></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
   <a href="https://flutter.dev"><img src="https://img.shields.io/badge/Flutter-3.0+-02569B?logo=flutter" alt="Flutter 3.0+"></a>
-  <a href="https://dart.dev"><img src="https://img.shields.io/badge/Dart-3.0+-0175C2?logo=dart" alt="Dart 3.0+"></a>
 </p>
 
 <p align="center">
-  <b>A lightweight, zero-dependency pagination toolkit for Flutter.</b><br/>
-  Infinite scroll · Load more · Grid · Slivers · Numbered pages · Bidirectional · Animated lists · Skeleton loading · Keyboard nav — all in one package.
+A lightweight, zero-dependency pagination toolkit for Flutter.<br/>
+Infinite scroll · Load more · Grid · Slivers · Numbered pages · Bidirectional · Animated lists · Skeleton loading · Keyboard nav — all in one package.
 </p>
 
 <p align="center">
@@ -42,8 +38,6 @@
 | **Keyboard Nav** | `PaginationKeyboardHandler` | Page Up/Down, Home/End for desktop & web |
 | **Pull to Refresh** | `enablePullToRefresh: true` | Built-in refresh indicator |
 | **Header / Footer** | `header` / `footer` params | Scrollable header & footer widgets |
-| **Testing Utilities** | `package:.../testing.dart` | Pre-seeded controllers & custom matchers |
-
 **Zero external dependencies** · **297 tests** · **Fully type-safe**
 
 ---
@@ -52,7 +46,7 @@
 
 ```yaml
 dependencies:
-  flutter_pagination_pro: ^1.0.0
+  flutter_pagination_pro: ^latest
 ```
 
 ---
@@ -312,43 +306,6 @@ final controller = PagedController<User>(
 | Page Down / Up | Scroll one viewport |
 | Home / End | Jump to top / bottom |
 | Arrow ↑ / ↓ | Scroll 50px |
-
----
-
-## Testing
-
-```dart
-import 'package:flutter_pagination_pro/testing.dart';
-
-final controller = testPaginationController<int, User>(
-  items: [user1, user2],
-  status: PaginationStatus.loaded,
-);
-
-expect(controller, hasItemCount(2));
-expect(controller, hasStatus(PaginationStatus.loaded));
-expect(controller, isPaginationCompleted);
-expect(controller, isPaginationEmpty);
-expect(controller, hasPaginationError());
-```
-
----
-
-## Migrating from `infinite_scroll_pagination`
-
-| Before (`infinite_scroll_pagination`) | After (`flutter_pagination_pro`) |
-|---------------------------------------|-----------------------------------|
-| `PagedListView<int, T>` | `PagedListView<T>` |
-| `PagingController<int, T>` | `PagedController<T>` |
-| `PagedChildBuilderDelegate` | Pass builders directly to widget |
-| `controller.appendPage(items, key)` | Return `List<T>` from `fetchPage` |
-| `controller.appendLastPage(items)` | Return fewer than `pageSize` → auto-detected |
-| No bidirectional support | `BidirectionalPagedListView` |
-| No animated lists | `AnimatedPagedListView` |
-| No keyboard nav | `PaginationKeyboardHandler` |
-| No auto-retry | `RetryPolicy` on `PaginationConfig` |
-| No skeleton loading | `placeholderItem` + `SkeletonConfig` |
-| No numbered pagination | `NumberedPagination` |
 
 ---
 
