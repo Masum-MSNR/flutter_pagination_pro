@@ -2,15 +2,22 @@ import 'package:flutter/material.dart';
 
 import '../widgets/demo_card.dart';
 import '../theme/app_theme.dart';
-import 'infinite_scroll_screen.dart';
-import 'load_more_screen.dart';
-import 'grid_view_screen.dart';
-import 'numbered_pagination_screen.dart';
-import 'state_simulator_screen.dart';
 import 'animated_list_screen.dart';
 import 'bidirectional_screen.dart';
+import 'controlled_mode_screen.dart';
+import 'cursor_pagination_screen.dart';
+import 'custom_builders_screen.dart';
+import 'grid_view_screen.dart';
 import 'header_footer_screen.dart';
+import 'infinite_scroll_screen.dart';
+import 'item_mutations_screen.dart';
 import 'keyboard_nav_screen.dart';
+import 'load_more_screen.dart';
+import 'numbered_pagination_screen.dart';
+import 'pull_to_refresh_screen.dart';
+import 'search_filter_screen.dart';
+import 'sliver_demo_screen.dart';
+import 'state_simulator_screen.dart';
 
 /// Home screen with navigation to all demo screens
 class HomeScreen extends StatelessWidget {
@@ -191,7 +198,7 @@ class HomeScreen extends StatelessWidget {
                 ),
                 DemoCard(
                   title: 'Grid View',
-                  subtitle: 'Paginated grid layout with configurable columns',
+                  subtitle: 'Paginated grid with configurable columns',
                   icon: Icons.grid_view_rounded,
                   gradientColors: const [
                     AppTheme.secondaryColor,
@@ -200,59 +207,147 @@ class HomeScreen extends StatelessWidget {
                   onTap: () => _navigate(context, const GridViewScreen()),
                 ),
                 DemoCard(
+                  title: 'Cursor-Based',
+                  subtitle: 'String page keys — GraphQL / Firestore style',
+                  icon: Icons.link,
+                  gradientColors: const [
+                    Color(0xFF0EA5E9),
+                    Color(0xFF38BDF8),
+                  ],
+                  onTap: () =>
+                      _navigate(context, const CursorPaginationScreen()),
+                ),
+                DemoCard(
+                  title: 'Pull-to-Refresh & Cache',
+                  subtitle: 'Refresh + initialItems (cache-first) pattern',
+                  icon: Icons.swipe_down,
+                  gradientColors: const [
+                    AppTheme.successColor,
+                    Color(0xFF34D399),
+                  ],
+                  onTap: () =>
+                      _navigate(context, const PullToRefreshScreen()),
+                ),
+                DemoCard(
+                  title: 'Search & Filter',
+                  subtitle: 'updateFetchPage() to swap data source live',
+                  icon: Icons.search,
+                  gradientColors: const [
+                    Color(0xFFF97316),
+                    Color(0xFFFBBF24),
+                  ],
+                  onTap: () =>
+                      _navigate(context, const SearchFilterScreen()),
+                ),
+
+                const SectionHeader(
+                  title: 'ADVANCED WIDGETS',
+                  subtitle: 'Slivers, animated list, bidirectional & keyboard',
+                ),
+                DemoCard(
+                  title: 'Sliver Demo',
+                  subtitle: 'SliverPaginatedList & Grid in CustomScrollView',
+                  icon: Icons.layers,
+                  gradientColors: const [
+                    Color(0xFF8B5CF6),
+                    Color(0xFFC084FC),
+                  ],
+                  onTap: () =>
+                      _navigate(context, const SliverDemoScreen()),
+                ),
+                DemoCard(
                   title: 'Header / Footer',
                   subtitle: 'Header, footer & skeleton loading builder',
                   icon: Icons.view_agenda_outlined,
                   gradientColors: const [
-                    Color(0xFFF97316),
-                    Color(0xFFFBBF24),
+                    Color(0xFFEC4899),
+                    Color(0xFFF472B6),
                   ],
                   onTap: () =>
                       _navigate(context, const HeaderFooterScreen()),
                 ),
                 DemoCard(
                   title: 'Bidirectional',
-                  subtitle: 'Two-way scrolling — chat-style older/newer loading',
+                  subtitle: 'Two-way scroll — chat-style older/newer',
                   icon: Icons.swap_vert_rounded,
                   gradientColors: const [
-                    Color(0xFFEC4899),
-                    Color(0xFFF472B6),
+                    Color(0xFFEF4444),
+                    Color(0xFFF87171),
                   ],
                   onTap: () =>
                       _navigate(context, const BidirectionalScreen()),
                 ),
                 DemoCard(
                   title: 'Animated List',
-                  subtitle: 'Slide+fade animations on insert & swipe to dismiss',
+                  subtitle: 'Slide+fade on insert & swipe to dismiss',
                   icon: Icons.animation_rounded,
                   gradientColors: const [
-                    Color(0xFF8B5CF6),
-                    Color(0xFFC084FC),
+                    AppTheme.primaryColor,
+                    AppTheme.secondaryColor,
                   ],
                   onTap: () =>
                       _navigate(context, const AnimatedListScreen()),
                 ),
                 DemoCard(
                   title: 'Keyboard Navigation',
-                  subtitle: 'Page Up/Down, Home/End & arrow key scrolling',
+                  subtitle: 'Page Up/Down, Home/End & arrow keys',
                   icon: Icons.keyboard_rounded,
                   gradientColors: const [
-                    Color(0xFF0EA5E9),
-                    Color(0xFF38BDF8),
+                    AppTheme.accentColor,
+                    Color(0xFF22D3EE),
                   ],
                   onTap: () =>
                       _navigate(context, const KeyboardNavScreen()),
                 ),
+
+                const SectionHeader(
+                  title: 'CONTROLLER & MUTATIONS',
+                  subtitle: 'Programmatic control, mutations, and custom builders',
+                ),
+                DemoCard(
+                  title: 'Item Mutations',
+                  subtitle: 'insert, remove, update, removeWhere, setTotalItems',
+                  icon: Icons.edit_note,
+                  gradientColors: const [
+                    AppTheme.successColor,
+                    AppTheme.accentColor,
+                  ],
+                  onTap: () =>
+                      _navigate(context, const ItemMutationsScreen()),
+                ),
+                DemoCard(
+                  title: 'Controlled Mode',
+                  subtitle: '.controlled() — BYO state (Bloc/Riverpod)',
+                  icon: Icons.tune,
+                  gradientColors: const [
+                    AppTheme.warningColor,
+                    Color(0xFFFBBF24),
+                  ],
+                  onTap: () =>
+                      _navigate(context, const ControlledModeScreen()),
+                ),
+                DemoCard(
+                  title: 'Custom Builders',
+                  subtitle: 'Override every state widget (error, empty, loading…)',
+                  icon: Icons.widgets,
+                  gradientColors: const [
+                    AppTheme.secondaryColor,
+                    AppTheme.primaryColor,
+                  ],
+                  onTap: () =>
+                      _navigate(context, const CustomBuildersScreen()),
+                ),
+
                 const SectionHeader(
                   title: 'NUMBERED PAGINATION',
                   subtitle: 'Traditional page navigation with page numbers',
                 ),
                 DemoCard(
                   title: 'Numbered Pagination',
-                  subtitle: 'Page numbers with first/last & prev/next buttons',
+                  subtitle: 'Page numbers with first/last & prev/next',
                   icon: Icons.format_list_numbered,
                   gradientColors: const [
-                    AppTheme.successColor,
+                    Color(0xFF10B981),
                     Color(0xFF34D399),
                   ],
                   onTap: () =>
@@ -264,11 +359,11 @@ class HomeScreen extends StatelessWidget {
                 ),
                 DemoCard(
                   title: 'State Simulator',
-                  subtitle: 'Test loading, error, empty & success states',
+                  subtitle: 'Test loading, error, empty, auto-retry & more',
                   icon: Icons.science_outlined,
                   gradientColors: const [
                     AppTheme.warningColor,
-                    Color(0xFFFBBF24),
+                    AppTheme.errorColor,
                   ],
                   onTap: () => _navigate(context, const StateSimulatorScreen()),
                 ),
