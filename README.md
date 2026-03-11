@@ -36,6 +36,7 @@ Infinite scroll, load more, grid, slivers, numbered pages — all in one.
 | `totalItems` tracking | ✅ | ❌ |
 | Auto-retry with backoff | ✅ | ❌ |
 | Animated item insert/remove | ✅ | ❌ |
+| Keyboard navigation (desktop/web) | ✅ | ❌ |
 | `findChildIndexCallback` | ✅ | ✅ |
 | Header / Footer params | ✅ | ❌ |
 | Skeleton loading builder | ✅ | ❌ |
@@ -388,6 +389,43 @@ PaginationListView<int, User>(
 | `retryFirstPage` | `false` | Also retry first-page errors |
 
 Access `state.retryCount` to show retry progress in your UI.
+
+## Keyboard Navigation (Desktop & Web)
+
+Wrap any paginated list with `PaginationKeyboardHandler` to add keyboard scrolling:
+
+```dart
+final scrollController = ScrollController();
+
+PaginationKeyboardHandler(
+  scrollController: scrollController,
+  onEndReached: controller.loadNextPage,
+  child: PagedListView<User>.withController(
+    controller: controller,
+    scrollController: scrollController,
+    itemBuilder: (ctx, user, i) => UserTile(user: user),
+  ),
+)
+```
+
+| Key | Action |
+|-----|--------|
+| Page Down | Scroll one viewport height down |
+| Page Up | Scroll one viewport height up |
+| Home | Scroll to top |
+| End | Scroll to bottom + trigger `onEndReached` |
+| Arrow Down | Scroll down by `arrowScrollAmount` (default 50px) |
+| Arrow Up | Scroll up by `arrowScrollAmount` |
+
+| Param | Default | Description |
+|-------|---------|-------------|
+| `scrollController` | **required** | Same controller used by child list |
+| `onEndReached` | `null` | Called on End key or Page Down at bottom |
+| `autofocus` | `true` | Auto-request keyboard focus |
+| `arrowScrollAmount` | `50.0` | Pixels per arrow key press |
+| `scrollAnimationDuration` | `200ms` | Scroll animation length |
+| `scrollAnimationCurve` | `easeInOut` | Scroll animation curve |
+| `enabled` | `true` | Toggle keyboard handling on/off |
 
 ### NumberedPaginationConfig
 

@@ -10,6 +10,7 @@ import 'state_simulator_screen.dart';
 import 'animated_list_screen.dart';
 import 'bidirectional_screen.dart';
 import 'header_footer_screen.dart';
+import 'keyboard_nav_screen.dart';
 
 /// Home screen with navigation to all demo screens
 class HomeScreen extends StatelessWidget {
@@ -230,6 +231,17 @@ class HomeScreen extends StatelessWidget {
                   ],
                   onTap: () =>
                       _navigate(context, const AnimatedListScreen()),
+                ),
+                DemoCard(
+                  title: 'Keyboard Navigation',
+                  subtitle: 'Page Up/Down, Home/End & arrow key scrolling',
+                  icon: Icons.keyboard_rounded,
+                  gradientColors: const [
+                    Color(0xFF0EA5E9),
+                    Color(0xFF38BDF8),
+                  ],
+                  onTap: () =>
+                      _navigate(context, const KeyboardNavScreen()),
                 ),
                 const SectionHeader(
                   title: 'NUMBERED PAGINATION',

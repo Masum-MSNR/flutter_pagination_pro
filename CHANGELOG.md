@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.8.0
+
+### New Features
+
+- **Keyboard navigation handler**: New `PaginationKeyboardHandler` widget for desktop and web keyboard scrolling. Wrap any paginated list to enable:
+  - **Page Down / Page Up** — scroll one viewport height
+  - **Home / End** — jump to top / bottom
+  - **Arrow Down / Arrow Up** — scroll by configurable amount (default 50px)
+  - **End key + onEndReached** — auto-triggers next page load at bottom
+  - `enabled` flag to dynamically toggle keyboard handling
+  - `autofocus` for automatic focus acquisition
+  - Configurable `scrollAnimationDuration` and `scrollAnimationCurve`
+
+  ```dart
+  PaginationKeyboardHandler(
+    scrollController: scrollController,
+    onEndReached: controller.loadNextPage,
+    child: PagedListView<User>.withController(
+      controller: controller,
+      scrollController: scrollController,
+      itemBuilder: (ctx, user, i) => UserTile(user: user),
+    ),
+  )
+  ```
+
 ## 0.7.0
 
 ### New Features

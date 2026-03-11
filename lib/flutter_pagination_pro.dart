@@ -98,6 +98,7 @@ export 'src/widgets/default_error.dart';
 export 'src/widgets/default_empty.dart';
 export 'src/widgets/default_end_of_list.dart';
 export 'src/widgets/default_load_more.dart';
+export 'src/widgets/pagination_keyboard_handler.dart';
 
 // Convenience typedefs for the common int-key case
 export 'src/paged_aliases.dart';
