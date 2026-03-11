@@ -16,6 +16,7 @@ import 'load_more_screen.dart';
 import 'numbered_pagination_screen.dart';
 import 'pull_to_refresh_screen.dart';
 import 'search_filter_screen.dart';
+import 'skeleton_loading_screen.dart';
 import 'sliver_demo_screen.dart';
 import 'state_simulator_screen.dart';
 
@@ -256,8 +257,19 @@ class HomeScreen extends StatelessWidget {
                       _navigate(context, const SliverDemoScreen()),
                 ),
                 DemoCard(
+                  title: 'Skeleton Loading',
+                  subtitle: 'placeholderItem, custom builder & overlay modes',
+                  icon: Icons.view_day_outlined,
+                  gradientColors: const [
+                    Color(0xFFF97316),
+                    Color(0xFFFBBF24),
+                  ],
+                  onTap: () =>
+                      _navigate(context, const SkeletonLoadingScreen()),
+                ),
+                DemoCard(
                   title: 'Header / Footer',
-                  subtitle: 'Header, footer & skeleton loading builder',
+                  subtitle: 'Header, footer & default skeleton toggle',
                   icon: Icons.view_agenda_outlined,
                   gradientColors: const [
                     Color(0xFFEC4899),
