@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.2
+
+- Add CI workflow for Firebase Hosting deployment of example app
+- Live demo at [masum-fpp.web.app](https://masum-fpp.web.app)
+- Polish README: professional description, compact feature table
+
 ## 1.0.1
 
 - Shorten pubspec description to meet pub.dev guidelines (60–180 chars)

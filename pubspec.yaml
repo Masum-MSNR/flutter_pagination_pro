@@ -1,6 +1,6 @@
 name: flutter_pagination_pro
 description: "A lightweight, zero-dependency Flutter pagination toolkit. Infinite scroll, load more, grid, slivers, numbered pages, bidirectional, animated lists, skeleton loading & keyboard nav"
-version: 1.0.1
+version: 1.0.2
 homepage: https://github.com/Masum-MSNR/flutter_pagination_pro
 repository: https://github.com/Masum-MSNR/flutter_pagination_pro
 issue_tracker: https://github.com/Masum-MSNR/flutter_pagination_pro/issues
